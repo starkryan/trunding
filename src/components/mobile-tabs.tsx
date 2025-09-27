@@ -90,8 +90,8 @@ export function MobileTabs() {
               className={cn(
                 "flex flex-col items-center justify-center min-w-[60px] py-1 px-2 rounded-lg transition-colors",
                 isActive 
-                  ? "text-primary bg-primary/10" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {isActive ? tab.activeIcon : tab.icon}

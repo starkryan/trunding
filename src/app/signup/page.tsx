@@ -1,21 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { PasswordRequirementsAlert } from "@/components/password-requirements-alert";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useAuth } from "@/context/auth-context";
+
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }).regex(/[!@#$%^&*(),.?":{}|<>]/, {
+    message: "Password must contain at least one special character.",
+  }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 export default function SignUpPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,35 +48,43 @@ export default function SignUpPage() {
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   const router = useRouter();
+  const { session, loading } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setShowPasswordRequirements(false);
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      setIsLoading(false);
-      return;
+  // Redirect authenticated users to home
+  useEffect(() => {
+    if (!loading && session) {
+      router.push("/home");
     }
+  }, [session, loading, router]);
 
-    // Check password requirements
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const password = form.watch("password");
+
+  useEffect(() => {
     const hasMinLength = password.length >= 8;
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    
-    if (!hasMinLength || !hasSpecialChar) {
-      setShowPasswordRequirements(true);
-      setIsLoading(false);
-      return;
-    }
+    setShowPasswordRequirements(password.length > 0 && (!hasMinLength || !hasSpecialChar));
+  }, [password]);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    setError(null);
 
     try {
       // Sign up the user using email and password
       const signUpResult = await authClient.signUp.email({
-        email,
-        password,
-        name,
+        email: values.email,
+        password: values.password,
+        name: values.name,
       });
 
       if (signUpResult.error) {
@@ -61,7 +94,7 @@ export default function SignUpPage() {
 
       // After successful sign-up, send an OTP for email verification
       const otpResult = await authClient.emailOtp.sendVerificationOtp({
-        email,
+        email: values.email,
         type: "email-verification",
       });
 
@@ -84,19 +117,26 @@ export default function SignUpPage() {
     }
   };
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="h-screen w-full bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the form if user is authenticated (will be redirected by useEffect)
+  if (session) {
+    return null;
+  }
+
   return (
     <div className="h-screen w-full bg-background flex flex-col">
-      {/* App-like header with back button */}
-      <div className="p-4 flex items-center">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => router.back()}
-          className="p-2 h-auto"
-        >
-          <FiArrowLeft size={20} />
-        </Button>
-      </div>
+
       
       <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background">
         <CardHeader className="space-y-3 px-6 pt-6 text-center">
@@ -109,100 +149,123 @@ export default function SignUpPage() {
           </CardDescription>
         </CardHeader>
         
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-          <CardContent className="space-y-6 px-6 flex-1 flex flex-col justify-center">
-            {error && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
-                {error}
-              </div>
-            )}
-            
-            {showPasswordRequirements && (
-              <PasswordRequirementsAlert />
-            )}
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-base font-medium">Full Name</Label>
-                <div className="relative">
-                  <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-12 h-12 text-base"
-                    required
-                  />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+            <CardContent className="space-y-4 px-6 flex-1 flex flex-col justify-center pb-4">
+              {error && (
+                <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
+                  {error}
                 </div>
-              </div>
+              )}
               
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium">Email</Label>
-                <div className="relative">
-                  <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 h-12 text-base"
-                    required
-                  />
-                </div>
-              </div>
+              {showPasswordRequirements && <PasswordRequirementsAlert />}
               
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium">Password</Label>
-                <div className="relative">
-                  <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-12 pr-14 h-12 text-base"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                  </button>
-                </div>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">Full Name</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
+                          <Input
+                            type="text"
+                            placeholder="John Doe"
+                            className="pl-12 h-12 text-base"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
+                          <Input
+                            type="email"
+                            placeholder="you@example.com"
+                            className="pl-12 h-12 text-base"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            className="pl-12 pr-14 h-12 text-base"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            className="pl-12 pr-14 h-12 text-base"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          >
+                            {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-base font-medium">Confirm Password</Label>
-                <div className="relative">
-                  <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-12 pr-14 h-12 text-base"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                  >
-                    {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
+            </CardContent>
           
-          <CardFooter className="flex flex-col space-y-4 px-6 pb-6 pt-4">
+          <CardFooter className="flex flex-col space-y-4 px-6 pb-6">
             <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create Account"}
             </Button>
@@ -215,6 +278,7 @@ export default function SignUpPage() {
             </p>
           </CardFooter>
         </form>
+        </Form>
       </Card>
     </div>
   );
