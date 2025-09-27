@@ -13,15 +13,3 @@ cmds = [
 
 [start]
 cmd = "yarn start"
-
-[variables]
-NODE_ENV = "production"
-DATABASE_URL = "${DATABASE_URL}"
-NEXTAUTH_URL = "${NEXTAUTH_URL}"
-NEXTAUTH_SECRET = "${NEXTAUTH_SECRET}"
-BETTER_AUTH_SECRET = "${BETTER_AUTH_SECRET}"
-BETTER_AUTH_URL = "${BETTER_AUTH_URL}"
-RESEND_API_KEY = "${RESEND_API_KEY}"
-
-[build.env]
-NODE_ENV = "production"

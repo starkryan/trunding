@@ -5,7 +5,7 @@ import { AuthProvider } from "@/context/auth-context";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileTabs } from "@/components/mobile-tabs";
-import { Header } from "@/components/header";
+import { AuthenticatedHeader } from "@/components/authenticated-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +39,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Header />
+            <AuthenticatedHeader />
             {children}
             <MobileTabs />
             <Toaster />
