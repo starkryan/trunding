@@ -9,8 +9,5 @@ commands = [
 
 [phases.start]
 commands = [
-  # run migrations first (non-interactive)
-  "npm run migrate",
-  # then start your production server (change if you use standalone)
   "node .next/standalone/server.js"
 ]
