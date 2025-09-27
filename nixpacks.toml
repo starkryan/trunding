@@ -1,15 +1,16 @@
 [phases.setup]
-nixPkgs = ["nodejs", "yarn", "postgresql"]
-
-[phases.install]
-cmds = [
-  "yarn install --frozen-lockfile"
-]
+commands = ["echo 'setup'"]
 
 [phases.build]
-cmds = [
-  "yarn build"
+commands = [
+  "npm ci",
+  "npm run build"
 ]
 
-[start]
-cmd = "node .next/standalone/server.js"
+[phases.start]
+commands = [
+  # run migrations first (non-interactive)
+  "npm run migrate",
+  # then start your production server (change if you use standalone)
+  "node .next/standalone/server.js"
+]
