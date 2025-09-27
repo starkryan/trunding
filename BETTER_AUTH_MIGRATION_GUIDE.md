@@ -74,8 +74,19 @@ RESEND_API_KEY=your-resend-api-key
 
 1. **Make schema changes**: Update your Better Auth configuration or add custom tables
 2. **Generate migrations**: Use `npx @better-auth/cli generate` if needed
-3. **Test locally**: Run `npx @better-auth/cli migrate` to test migrations
+3. **Test locally**: Run `npm run migrate` to test migrations
 4. **Commit changes**: Include both code changes and migration files
+
+### Package.json Migration Script
+
+A simple migration script is available in your package.json:
+
+```bash
+# Run Better Auth migrations (uses DATABASE_URL from environment)
+npm run migrate
+```
+
+This script uses the `DATABASE_URL` environment variable and runs the Better Auth CLI migrate command.
 
 ### During Deployment
 
