@@ -6,7 +6,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAuthClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
@@ -48,12 +48,6 @@ function VerifyOTPForm() {
     setOtpStatus("idle");
 
     try {
-      const authClient = getAuthClient();
-      if (!authClient) {
-        setError("Authentication service is currently unavailable. Please try again later.");
-        return;
-      }
-      
       let result;
       if (type === "email-verification") {
         result = await authClient.emailOtp.verifyEmail({
@@ -105,12 +99,6 @@ function VerifyOTPForm() {
     }
     try {
       setIsLoading(true);
-      const authClient = getAuthClient();
-      if (!authClient) {
-        toast.error("Authentication service is currently unavailable. Please try again later.");
-        return;
-      }
-      
       const result = await authClient.emailOtp.sendVerificationOtp({
         email,
         type,

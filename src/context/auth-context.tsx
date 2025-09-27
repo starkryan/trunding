@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { getAuthClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 
 interface User {
@@ -34,14 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const authClient = getAuthClient();
-        if (!authClient) {
-          console.error("Authentication service is unavailable");
-          setSession(null);
-          setLoading(false);
-          return;
-        }
-        
         const result = await authClient.getSession();
         if (result.data?.user) {
           setSession({
@@ -65,12 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      const authClient = getAuthClient();
-      if (!authClient) {
-        toast.error("Authentication service is currently unavailable.");
-        return;
-      }
-      
       await authClient.signOut();
       setSession(null);
       toast.success("You have been signed out successfully.");
