@@ -1,22 +1,21 @@
 import { betterAuth } from "better-auth";
 import { emailOTP } from "better-auth/plugins";
-import { Pool } from "pg";
+import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { prisma } from "./prisma";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET || "SpCTp0hd8qU6DOKXSXjUlciSyDtke5hv",
-  database: pool,
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Disable default email verification
+    requireEmailVerification: true, // Require email verification before allowing access
   },
   plugins: [
     nextCookies(),
@@ -42,14 +41,13 @@ export const auth = betterAuth({
 
         try {
           await resend.emails.send({
-            from: "onboarding@resend.dev", // Replace with your verified domain
+            from: process.env.EMAIL_FROM || "onboarding@resend.dev", // Use environment variable with fallback
             to: email,
             subject: subject,
             html: htmlContent,
           });
         } catch (error) {
           console.error("Failed to send OTP email via Resend:", error);
-          // Potentially re-throw or handle this error as needed
           throw new Error("Could not send verification email. Please try again later.");
         }
       },

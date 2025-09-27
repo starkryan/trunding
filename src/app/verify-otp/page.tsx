@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,18 +16,56 @@ function VerifyOTPForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [otpStatus, setOtpStatus] = useState<"idle" | "correct" | "incorrect">("idle");
+  const [email, setEmail] = useState<string>("");
+  const [type, setType] = useState<"email-verification" | "forget-password" | null>(null);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email");
-  const type = searchParams.get("type") as "email-verification" | "forget-password" | null;
+
+  // Better Auth best practice: Get email and type from session context or storage
+  // instead of exposing them in URL parameters
+  useEffect(() => {
+    // Try to get verification data from session storage (set during sign-up)
+    const storedVerificationData = sessionStorage.getItem("verificationData");
+    
+    if (storedVerificationData) {
+      try {
+        const { email: storedEmail, type: storedType } = JSON.parse(storedVerificationData);
+        setEmail(storedEmail);
+        setType(storedType);
+      } catch (error) {
+        console.error("Failed to parse verification data:", error);
+        toast.error("Invalid verification session. Please try signing up again.");
+        router.push("/signup");
+      }
+    } else {
+      // Fallback: check if user has a session and needs email verification
+      // This handles the case where user is logged in but email is not verified
+      const checkUserSession = async () => {
+        try {
+          const { data: session } = await authClient.getSession();
+          if (session?.user && !session.user.emailVerified) {
+            setEmail(session.user.email);
+            setType("email-verification");
+          } else {
+            toast.error("No active verification session found. Please try signing up again.");
+            router.push("/signup");
+          }
+        } catch (error) {
+          toast.error("Failed to verify session. Please try signing up again.");
+          router.push("/signup");
+        }
+      };
+      
+      checkUserSession();
+    }
+  }, [router]);
 
   useEffect(() => {
-    if (!email || !type) {
-      toast.error("Invalid verification link. Missing email or type.");
-      router.push("/signin");
+    if (email && type) {
+      // Store verification data in session storage for persistence
+      sessionStorage.setItem("verificationData", JSON.stringify({ email, type }));
     }
-  }, [email, type, router]);
+  }, [email, type]);
 
   useEffect(() => {
     // Reset status when OTP changes

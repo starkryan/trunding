@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home, TrendingUp, Users, DollarSign } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function HomePage() {
   const { session, loading, signOut } = useAuth();
@@ -20,7 +21,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <Spinner variant="bars" size={32} className="text-primary" />
       </div>
     );
   }

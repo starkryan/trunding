@@ -323,41 +323,68 @@ export default function ProfilePage() {
                       <Card>
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg">Theme</CardTitle>
-                          <CardDescription>Choose your preferred theme</CardDescription>
+                          <CardDescription>Customize your appearance preferences</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <Button
-                              variant={theme === "light" ? "default" : "outline"}
-                              className="flex flex-col items-center justify-center h-20 space-y-2"
-                              onClick={() => setTheme("light")}
+                        <CardContent className="space-y-6">
+                          {/* Quick Theme Toggle */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-2">
+                                {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                                <div>
+                                  <p className="font-medium">Dark Mode</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {theme === "dark" ? "Dark theme is enabled" : "Switch to dark theme"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <Switch
+                              checked={theme === "dark"}
+                              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                               disabled={!mounted}
-                            >
-                              <Sun className="h-6 w-6" />
-                              <span className="text-sm">Light</span>
-                            </Button>
-                            
-                            <Button
-                              variant={theme === "dark" ? "default" : "outline"}
-                              className="flex flex-col items-center justify-center h-20 space-y-2"
-                              onClick={() => setTheme("dark")}
-                              disabled={!mounted}
-                            >
-                              <Moon className="h-6 w-6" />
-                              <span className="text-sm">Dark</span>
-                            </Button>
-                            
-                            <Button
-                              variant={theme === "system" ? "default" : "outline"}
-                              className="flex flex-col items-center justify-center h-20 space-y-2"
-                              onClick={() => setTheme("system")}
-                              disabled={!mounted}
-                            >
-                              <Monitor className="h-6 w-6" />
-                              <span className="text-sm">System</span>
-                            </Button>
+                            />
                           </div>
-                          
+
+                          <Separator />
+
+                          {/* Theme Options */}
+                          <div className="space-y-4">
+                            <h4 className="text-sm font-medium">Theme Options</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <Button
+                                variant={theme === "light" ? "default" : "outline"}
+                                className="flex flex-col items-center justify-center h-16 space-y-1"
+                                onClick={() => setTheme("light")}
+                                disabled={!mounted}
+                              >
+                                <Sun className="h-5 w-5" />
+                                <span className="text-xs">Light</span>
+                              </Button>
+                              
+                              <Button
+                                variant={theme === "dark" ? "default" : "outline"}
+                                className="flex flex-col items-center justify-center h-16 space-y-1"
+                                onClick={() => setTheme("dark")}
+                                disabled={!mounted}
+                              >
+                                <Moon className="h-5 w-5" />
+                                <span className="text-xs">Dark</span>
+                              </Button>
+                              
+                              <Button
+                                variant={theme === "system" ? "default" : "outline"}
+                                className="flex flex-col items-center justify-center h-16 space-y-1"
+                                onClick={() => setTheme("system")}
+                                disabled={!mounted}
+                              >
+                                <Monitor className="h-5 w-5" />
+                                <span className="text-xs">System</span>
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Current Theme Status */}
                           <div className="flex items-center justify-between pt-2">
                             <div>
                               <p className="font-medium">Current Theme</p>
@@ -371,6 +398,24 @@ export default function ProfilePage() {
                               {theme === "system" && <Monitor className="h-4 w-4" />}
                             </div>
                           </div>
+
+                          {/* System Theme Toggle */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Monitor className="h-5 w-5" />
+                              <div>
+                                <p className="font-medium">Follow System Theme</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Automatically match your device's appearance
+                                </p>
+                              </div>
+                            </div>
+                            <Switch
+                              checked={theme === "system"}
+                              onCheckedChange={(checked) => setTheme(checked ? "system" : "light")}
+                              disabled={!mounted}
+                            />
+                          </div>
                         </CardContent>
                       </Card>
 
@@ -379,25 +424,84 @@ export default function ProfilePage() {
                           <CardTitle className="text-lg">Notifications</CardTitle>
                           <CardDescription>Manage your notification preferences</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                           <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">Email Notifications</p>
-                              <p className="text-sm text-muted-foreground">Receive updates via email</p>
+                            <div className="flex items-center space-x-3">
+                              <Bell className="h-5 w-5" />
+                              <div>
+                                <p className="font-medium">Email Notifications</p>
+                                <p className="text-sm text-muted-foreground">Receive updates via email</p>
+                              </div>
                             </div>
-                            <Button variant="outline" size="sm">
-                              Configure
-                            </Button>
+                            <Switch
+                              checked={true} // Default to enabled
+                              onCheckedChange={(checked) => {
+                                // Handle email notifications toggle
+                                console.log("Email notifications:", checked);
+                              }}
+                            />
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">Push Notifications</p>
-                              <p className="text-sm text-muted-foreground">Get instant alerts</p>
+                            <div className="flex items-center space-x-3">
+                              <Bell className="h-5 w-5" />
+                              <div>
+                                <p className="font-medium">Push Notifications</p>
+                                <p className="text-sm text-muted-foreground">Get instant alerts on your device</p>
+                              </div>
                             </div>
-                            <Button variant="outline" size="sm">
-                              Configure
-                            </Button>
+                            <Switch
+                              checked={true} // Default to enabled
+                              onCheckedChange={(checked) => {
+                                // Handle push notifications toggle
+                                console.log("Push notifications:", checked);
+                              }}
+                            />
+                          </div>
+
+                          <Separator />
+
+                          <div className="space-y-4">
+                            <h4 className="text-sm font-medium">Notification Types</h4>
+                            
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Trading Alerts</p>
+                                <p className="text-sm text-muted-foreground">Price changes and market updates</p>
+                              </div>
+                              <Switch
+                                checked={true}
+                                onCheckedChange={(checked) => {
+                                  console.log("Trading alerts:", checked);
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Security Alerts</p>
+                                <p className="text-sm text-muted-foreground">Account security notifications</p>
+                              </div>
+                              <Switch
+                                checked={true}
+                                onCheckedChange={(checked) => {
+                                  console.log("Security alerts:", checked);
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Marketing Updates</p>
+                                <p className="text-sm text-muted-foreground">News and promotional content</p>
+                              </div>
+                              <Switch
+                                checked={false}
+                                onCheckedChange={(checked) => {
+                                  console.log("Marketing updates:", checked);
+                                }}
+                              />
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -407,11 +511,14 @@ export default function ProfilePage() {
                           <CardTitle className="text-lg">Trading Preferences</CardTitle>
                           <CardDescription>Customize your trading experience</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                           <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">Default Currency</p>
-                              <p className="text-sm text-muted-foreground">USD</p>
+                            <div className="flex items-center space-x-3">
+                              <CreditCard className="h-5 w-5" />
+                              <div>
+                                <p className="font-medium">Default Currency</p>
+                                <p className="text-sm text-muted-foreground">USD</p>
+                              </div>
                             </div>
                             <Button variant="outline" size="sm">
                               Change
@@ -419,13 +526,76 @@ export default function ProfilePage() {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">Risk Level</p>
-                              <p className="text-sm text-muted-foreground">Moderate</p>
+                            <div className="flex items-center space-x-3">
+                              <Shield className="h-5 w-5" />
+                              <div>
+                                <p className="font-medium">Risk Level</p>
+                                <p className="text-sm text-muted-foreground">Moderate</p>
+                              </div>
                             </div>
                             <Button variant="outline" size="sm">
                               Change
                             </Button>
+                          </div>
+
+                          <Separator />
+
+                          <div className="space-y-4">
+                            <h4 className="text-sm font-medium">Trading Features</h4>
+                            
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Auto-Confirm Trades</p>
+                                <p className="text-sm text-muted-foreground">Skip confirmation dialog for quick trades</p>
+                              </div>
+                              <Switch
+                                checked={false}
+                                onCheckedChange={(checked) => {
+                                  console.log("Auto-confirm trades:", checked);
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Price Alerts</p>
+                                <p className="text-sm text-muted-foreground">Get notified when prices reach targets</p>
+                              </div>
+                              <Switch
+                                checked={true}
+                                onCheckedChange={(checked) => {
+                                  console.log("Price alerts:", checked);
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Stop-Loss Protection</p>
+                                <p className="text-sm text-muted-foreground">Automatic stop-loss on all trades</p>
+                              </div>
+                              <Switch
+                                checked={true}
+                                onCheckedChange={(checked) => {
+                                  console.log("Stop-loss protection:", checked);
+                                }}
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">Dark Trading Mode</p>
+                                <p className="text-sm text-muted-foreground">Reduce eye strain during extended trading</p>
+                              </div>
+                              <Switch
+                                checked={theme === "dark"}
+                                onCheckedChange={(checked) => {
+                                  setTheme(checked ? "dark" : "light");
+                                  console.log("Dark trading mode:", checked);
+                                }}
+                                disabled={!mounted}
+                              />
+                            </div>
                           </div>
                         </CardContent>
                       </Card>

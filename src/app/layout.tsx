@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileTabs } from "@/components/mobile-tabs";
 import { AuthenticatedHeader } from "@/components/authenticated-header";
+import HydrationGuard from "@/components/hydration-guard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,10 +47,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <AuthenticatedHeader />
-            {children}
-            <MobileTabs />
-            <Toaster />
+            <HydrationGuard>
+              <AuthenticatedHeader />
+              {children}
+              <MobileTabs />
+              <Toaster />
+            </HydrationGuard>
           </AuthProvider>
         </ThemeProvider>
       </body>

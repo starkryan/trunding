@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -87,8 +88,8 @@ export default function SignInPage() {
     return (
       <div className="h-screen w-full bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <Spinner variant="bars" size={32} className="text-primary mb-4" />
+
         </div>
       </div>
     );
@@ -123,7 +124,7 @@ export default function SignInPage() {
                 </div>
               )}
               
-              <div className="space-y-4 pb-4">
+              <div className="space-y-3 pb-4">
                 <FormField
                   control={form.control}
                   name="email"
@@ -157,6 +158,7 @@ export default function SignInPage() {
                           <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
                           <Input
                             type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
                             className="pl-12 pr-14 h-12 text-base"
                             {...field}
                           />
@@ -171,6 +173,23 @@ export default function SignInPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 text-base font-semibold shadow-sm hover:shadow-md transition-shadow disabled:shadow-none mt-4" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Spinner variant="bars" size={16} className="text-current" />
+                            <span>Signing In...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <FiLock size={18} />
+                            <span>Sign In</span>
+                          </div>
+                        )}
+                      </Button>
                     </FormItem>
                   )}
                 />
@@ -178,10 +197,6 @@ export default function SignInPage() {
             </CardContent>
           
           <CardFooter className="flex flex-col space-y-4 px-6 pb-6">
-            <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-            
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
               <a href="/signup" className="font-medium text-primary hover:underline">

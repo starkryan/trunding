@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authClient } from "@/lib/auth-client";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,30 +24,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has active withdrawal details
-    const existingDetails = await db.execute({
-      sql: "SELECT id FROM withdrawal_details WHERE user_id = $1 AND is_active = TRUE",
-      args: [session.data.user.id],
-    });
+    const existingDetails = await prisma.$queryRaw`
+      SELECT id FROM withdrawal_details WHERE user_id = ${session.data.user.id} AND is_active = TRUE
+    ` as any[];
 
-    if (existingDetails.rows.length > 0) {
+    if (existingDetails.length > 0) {
       // Update existing details
-      await db.execute({
-        sql: `
-          UPDATE withdrawal_details 
-          SET full_name = $1, upi_id = $2, bank_account_number = $3, phone_number = $4, email = $5, updated_at = NOW()
-          WHERE user_id = $6 AND is_active = TRUE
-        `,
-        args: [fullName, upiId, bankAccount, phone, email, session.data.user.id],
-      });
+      await prisma.$executeRaw`
+        UPDATE withdrawal_details 
+        SET full_name = ${fullName}, upi_id = ${upiId}, bank_account_number = ${bankAccount}, phone_number = ${phone}, email = ${email}, updated_at = NOW()
+        WHERE user_id = ${session.data.user.id} AND is_active = TRUE
+      `;
     } else {
       // Insert new details
-      await db.execute({
-        sql: `
-          INSERT INTO withdrawal_details (user_id, full_name, upi_id, bank_account_number, phone_number, email)
-          VALUES ($1, $2, $3, $4, $5, $6)
-        `,
-        args: [session.data.user.id, fullName, upiId, bankAccount, phone, email],
-      });
+      await prisma.$executeRaw`
+        INSERT INTO withdrawal_details (user_id, full_name, upi_id, bank_account_number, phone_number, email)
+        VALUES (${session.data.user.id}, ${fullName}, ${upiId}, ${bankAccount}, ${phone}, ${email})
+      `;
     }
 
     return NextResponse.json(
@@ -75,19 +68,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's withdrawal details
-    const result = await db.execute({
-      sql: "SELECT * FROM withdrawal_details WHERE user_id = $1 AND is_active = TRUE",
-      args: [session.data.user.id],
-    });
+    const result = await prisma.$queryRaw`
+      SELECT * FROM withdrawal_details WHERE user_id = ${session.data.user.id} AND is_active = TRUE
+    ` as any[];
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return NextResponse.json(
         { error: "No withdrawal details found" },
         { status: 404 }
       );
     }
 
-    const details = result.rows[0];
+    const details = result[0];
     return NextResponse.json({
       id: details.id,
       fullName: details.full_name,

@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function HomePage() {
   const { session, loading } = useAuth();
@@ -19,7 +20,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <Spinner variant="bars" size={32} className="text-indigo-600" />
       </div>
     );
   }

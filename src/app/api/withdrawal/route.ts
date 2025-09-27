@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authClient } from "@/lib/auth-client";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,19 +33,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has withdrawal details
-    const withdrawalDetailsResult = await db.execute({
-      sql: "SELECT * FROM withdrawal_details WHERE user_id = $1 AND is_active = TRUE",
-      args: [session.data.user.id],
-    });
+    const withdrawalDetailsResult = await prisma.$queryRaw`
+      SELECT * FROM withdrawal_details WHERE user_id = ${session.data.user.id} AND is_active = TRUE
+    ` as any[];
 
-    if (withdrawalDetailsResult.rows.length === 0) {
+    if (withdrawalDetailsResult.length === 0) {
       return NextResponse.json(
         { error: "Please set up your withdrawal details first" },
         { status: 400 }
       );
     }
 
-    const withdrawalDetails = withdrawalDetailsResult.rows[0];
+    const withdrawalDetails = withdrawalDetailsResult[0];
 
     // Check if user details are verified (in real implementation, this would be more complex)
     if (!withdrawalDetails.is_verified) {

@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { PasswordRequirementsAlert } from "@/components/password-requirements-alert";
+import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -80,7 +81,8 @@ export default function SignUpPage() {
     setError(null);
 
     try {
-      // Sign up the user using email and password
+      // Sign up the user using email and password (official Better Auth method)
+      // With requireEmailVerification: true, Better Auth will automatically handle verification
       const signUpResult = await authClient.signUp.email({
         email: values.email,
         password: values.password,
@@ -92,23 +94,42 @@ export default function SignUpPage() {
         return;
       }
 
-      // After successful sign-up, send an OTP for email verification
-      const otpResult = await authClient.emailOtp.sendVerificationOtp({
-        email: values.email,
-        type: "email-verification",
-      });
+      // Check if email verification is required
+      if (signUpResult.data?.user && !signUpResult.data.user.emailVerified) {
+        // Email verification is required - send OTP and redirect to verification
+        const otpResult = await authClient.emailOtp.sendVerificationOtp({
+          email: values.email,
+          type: "email-verification",
+        });
 
-      if (otpResult.error) {
-        // If OTP sending fails, still sign up was successful, but inform the user
-        toast.error("Account created, but failed to send verification email. Please try resending.");
-        // Optionally, still redirect to verification page or let them handle it from profile
-        // For now, we'll redirect and they can try resending.
-      } else if (otpResult.data?.success) {
-        toast.success("Account created! Please check your email for the verification code.");
+        if (otpResult.error) {
+          // If OTP sending fails, inform the user
+          toast.error("Account created successfully! However, failed to send verification email. Please check your email or try resending.");
+          // Store verification data for later use
+          sessionStorage.setItem("verificationData", JSON.stringify({
+            email: values.email,
+            type: "email-verification"
+          }));
+          router.push("/verify-otp");
+          return;
+        }
+
+        // Show success message and redirect to OTP verification
+        toast.success("Account created successfully! Please check your email for the 6-digit verification code.");
+        
+        // Store verification data in session storage (Better Auth best practice)
+        sessionStorage.setItem("verificationData", JSON.stringify({
+          email: values.email,
+          type: "email-verification"
+        }));
+        
+        // Redirect to OTP verification page with clean URL
+        router.push("/verify-otp");
+      } else {
+        // Email is already verified or not required
+        toast.success("Account created successfully! Welcome to your dashboard.");
+        router.push("/home");
       }
-      
-      // Redirect to home page after successful sign-up
-      router.push("/home");
 
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred. Please try again.");
@@ -122,8 +143,8 @@ export default function SignUpPage() {
     return (
       <div className="h-screen w-full bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <Spinner variant="bars" size={32} className="text-primary mb-4" />
+       
         </div>
       </div>
     );
@@ -157,8 +178,6 @@ export default function SignUpPage() {
                   {error}
                 </div>
               )}
-              
-              {showPasswordRequirements && <PasswordRequirementsAlert />}
               
               <div className="space-y-4">
                 <FormField
@@ -210,12 +229,15 @@ export default function SignUpPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-medium">Password</FormLabel>
+                      <FormLabel className="text-base font-medium">
+                        Password <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
                           <Input
                             type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
                             className="pl-12 pr-14 h-12 text-base"
                             {...field}
                           />
@@ -230,6 +252,7 @@ export default function SignUpPage() {
                         </div>
                       </FormControl>
                       <FormMessage />
+                      {showPasswordRequirements && <PasswordRequirementsAlert />}
                     </FormItem>
                   )}
                 />
@@ -239,12 +262,15 @@ export default function SignUpPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-medium">Confirm Password</FormLabel>
+                      <FormLabel className="text-base font-medium">
+                        Confirm Password <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground size-5" />
                           <Input
                             type={showConfirmPassword ? "text" : "password"}
+                            placeholder="••••••••"
                             className="pl-12 pr-14 h-12 text-base"
                             {...field}
                           />
@@ -267,7 +293,13 @@ export default function SignUpPage() {
           
           <CardFooter className="flex flex-col space-y-4 px-6 pb-6">
             <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create Account"}
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Spinner variant="bars" size={16} className="text-current" />
+                </div>
+              ) : (
+                "Create Account"
+              )}
             </Button>
             
             <p className="text-center text-sm text-muted-foreground">

@@ -51,11 +51,7 @@ export default function TradePage() {
       {/* Main content area with padding for mobile tabs */}
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="p-6">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold">Trade</h1>
-            <p className="text-muted-foreground mt-2">Buy and sell cryptocurrencies instantly</p>
-          </div>
+       
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Trading Panel */}
