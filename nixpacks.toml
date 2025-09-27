@@ -1,0 +1,31 @@
+[phases.setup]
+nixPkgs = ["...", "postgresql", "nodejs", "yarn", "gcc", "g++"]
+
+[phases.install]
+cmds = [
+  "yarn install --frozen-lockfile"
+]
+
+[phases.build]
+cmds = [
+  "yarn build"
+]
+
+[start]
+cmd = "yarn start"
+
+[variables]
+NODE_ENV = "production"
+DATABASE_URL = "${DATABASE_URL}"
+NEXTAUTH_URL = "${NEXTAUTH_URL}"
+NEXTAUTH_SECRET = "${NEXTAUTH_SECRET}"
+BETTER_AUTH_SECRET = "${BETTER_AUTH_SECRET}"
+BETTER_AUTH_URL = "${BETTER_AUTH_URL}"
+
+[build.env]
+NODE_ENV = "production"
+
+[phases.install.env]
+NODE_ENV = "production"
+
+[phases.build.env]
