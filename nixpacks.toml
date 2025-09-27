@@ -8,13 +8,7 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "yarn build",
-  "cp -r .next/static .next/standalone/.next/" # ensure static assets available
-]
-
-[phases.release]
-cmds = [
-  "npx @better-auth/cli migrate" # run migrations once before starting app
+  "yarn build"
 ]
 
 [start]
