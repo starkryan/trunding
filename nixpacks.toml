@@ -1,13 +1,15 @@
 [phases.setup]
-commands = ["echo 'setup'"]
+nixPkgs = ["nodejs", "yarn", "postgresql"]
+
+[phases.install]
+cmds = [
+  "yarn install --frozen-lockfile"
+]
 
 [phases.build]
-commands = [
-  "npm ci",
-  "npm run build"
+cmds = [
+  "yarn build"
 ]
 
-[phases.start]
-commands = [
-  "node .next/standalone/server.js"
-]
+[start]
+cmd = "yarn start"
