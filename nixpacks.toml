@@ -11,48 +11,5 @@ cmds = [
   "yarn build"
 ]
 
-# Database migration phase - runs at startup when database is available
-[phases.migrate]
-dependsOn = ["install"]
-cmds = [
-  # Only run migrations if DATABASE_URL is set (skip during build)
-  "echo 'Checking for database configuration...'",
-  "if [ -z \"$DATABASE_URL\" ]; then echo 'No DATABASE_URL set, skipping migrations (build mode)'; exit 0; fi",
-  "echo 'DATABASE_URL is configured, proceeding with migrations...'",
-  
-  # Extract database host and port from DATABASE_URL for health check
-  "echo 'Extracting database connection info...'",
-  "DB_HOST=$(echo \"$DATABASE_URL\" | sed -n 's/.*@\\([^:]*\\).*/\\1/p')",
-  "DB_PORT=$(echo \"$DATABASE_URL\" | sed -n 's/.*:\\([0-9]*\\)\\/.*/\\1/p')",
-  "if [ -z \"$DB_PORT\" ]; then DB_PORT=5432; fi",
-  "echo 'Database host: $DB_HOST, port: $DB_PORT'",
-  
-  # Wait for database to be ready with timeout
-  "echo 'Waiting for database to be ready...'",
-  "timeout=60",
-  "counter=0",
-  "while ! pg_isready -h \"$DB_HOST\" -p \"$DB_PORT\" -U postgres 2>/dev/null; do",
-  "  counter=$((counter + 1))",
-  "  if [ $counter -ge $timeout ]; then",
-  "    echo 'Database connection timeout after 60 seconds'",
-  "    echo 'Skipping migrations - will retry on application startup'",
-  "    exit 0",
-  "  fi",
-  "  echo 'Waiting for postgres... ($counter/$timeout)'",
-  "  sleep 1",
-  "done",
-  "echo 'Database is ready!'",
-  
-  # Run Better Auth CLI migrations
-  "echo 'Running Better Auth database migrations...'",
-  "npx @better-auth/cli migrate || { echo 'Migration failed, will retry on application startup'; exit 0; }",
-  "echo 'Better Auth migrations completed successfully!'",
-  
-  # Apply any custom SQL migrations if they exist
-  "echo 'Applying custom SQL migrations...'",
-  "if [ -d ./better-auth_migrations ]; then for file in ./better-auth_migrations/*.sql; do echo 'Applying migration: $file'; psql \"$DATABASE_URL\" -f \"$file\" || echo 'Migration $file completed with warnings'; done; fi",
-  "echo 'All migrations completed!'"
-]
-
 [start]
 cmd = "node .next/standalone/server.js"
