@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authClient } from "@/lib/auth-client";
+import { getAuthClient } from "@/lib/auth-client";
 import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
+    const authClient = getAuthClient();
+    if (!authClient) {
+      return NextResponse.json(
+        { error: "Authentication service unavailable" },
+        { status: 503 }
+      );
+    }
     const session = await authClient.getSession();
     
     if (!session || !session.data?.user?.id) {
@@ -65,6 +72,13 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const authClient = getAuthClient();
+    if (!authClient) {
+      return NextResponse.json(
+        { error: "Authentication service unavailable" },
+        { status: 503 }
+      );
+    }
     const session = await authClient.getSession();
     
     if (!session || !session.data?.user?.id) {

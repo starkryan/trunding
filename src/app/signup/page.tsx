@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
+import { getAuthClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { PasswordRequirementsAlert } from "@/components/password-requirements-alert";
 
@@ -47,6 +47,12 @@ export default function SignUpPage() {
     }
 
     try {
+      const authClient = getAuthClient();
+      if (!authClient) {
+        setError("Authentication service is currently unavailable. Please try again later.");
+        return;
+      }
+      
       // Sign up the user using email and password
       const signUpResult = await authClient.signUp.email({
         email,

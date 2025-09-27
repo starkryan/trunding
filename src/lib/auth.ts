@@ -11,7 +11,7 @@ const pool = new Pool({
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL || (process.env.NODE_ENV === "production" ? process.env.VERCEL_URL || "https://your-app-url.com" : "http://localhost:3000"),
   secret: process.env.BETTER_AUTH_SECRET || "SpCTp0hd8qU6DOKXSXjUlciSyDtke5hv",
   database: pool,
   emailAndPassword: {
