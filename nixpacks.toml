@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["...", "postgresql", "nodejs", "yarn", "gcc", "g++"]
+nixPkgs = ["nodejs", "yarn", "postgresql"]
 
 [phases.install]
 cmds = [
@@ -21,11 +21,7 @@ NEXTAUTH_URL = "${NEXTAUTH_URL}"
 NEXTAUTH_SECRET = "${NEXTAUTH_SECRET}"
 BETTER_AUTH_SECRET = "${BETTER_AUTH_SECRET}"
 BETTER_AUTH_URL = "${BETTER_AUTH_URL}"
+RESEND_API_KEY = "${RESEND_API_KEY}"
 
 [build.env]
 NODE_ENV = "production"
-
-[phases.install.env]
-NODE_ENV = "production"
-
-[phases.build.env]
