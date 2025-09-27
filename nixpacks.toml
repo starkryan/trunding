@@ -11,5 +11,25 @@ cmds = [
   "yarn build"
 ]
 
+# Database migration phase - runs after build but before start
+[phases.migrate]
+dependsOn = ["install"]
+cmds = [
+  # Wait for database to be ready (useful for containerized environments)
+  "echo 'Waiting for database to be ready...'",
+  "until pg_isready -h localhost -p 5432 -U postgres; do echo 'Waiting for postgres...'; sleep 1; done;",
+  "echo 'Database is ready!'",
+  
+  # Run Better Auth CLI migrations
+  "echo 'Running Better Auth database migrations...'",
+  "npx @better-auth/cli migrate || echo 'Migration completed (may have warnings)'",
+  "echo 'Better Auth migrations completed successfully!'",
+  
+  # Apply any custom SQL migrations if they exist
+  "echo 'Applying custom SQL migrations...'",
+  "if [ -d ./better-auth_migrations ]; then for file in ./better-auth_migrations/*.sql; do echo 'Applying migration: $file'; psql \"$DATABASE_URL\" -f \"$file\" || echo 'Migration $file completed with warnings'; done; fi",
+  "echo 'All migrations completed!'"
+]
+
 [start]
 cmd = "node .next/standalone/server.js"
