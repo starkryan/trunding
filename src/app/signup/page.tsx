@@ -105,6 +105,35 @@ export default function SignUpPage() {
       });
 
       if (signUpResult.error) {
+        // Handle "USER_ALREADY_EXISTS" error specifically
+        if (signUpResult.error.message?.includes("User already exists") || 
+            signUpResult.error.code === "USER_ALREADY_EXISTS") {
+          
+          // Check if the user exists but is not verified
+          try {
+            // Try to send verification email to check if user exists
+            const otpResult = await authClient.emailOtp.sendVerificationOtp({
+              email: values.email,
+              type: "email-verification",
+            });
+
+            if (otpResult.data) {
+              // User exists and verification email was sent successfully
+              toast.success("An account with this email already exists but isn't verified. We've sent a new verification code to your email.");
+              sessionStorage.setItem("verificationData", JSON.stringify({
+                email: values.email,
+                type: "email-verification"
+              }));
+              router.push("/verify-otp");
+              return;
+            }
+          } catch (otpError) {
+            // If sending OTP fails, the user might be verified already
+            setError("An account with this email already exists. Please sign in instead.");
+            return;
+          }
+        }
+        
         setError(signUpResult.error.message || "Sign up failed. Please try again.");
         return;
       }

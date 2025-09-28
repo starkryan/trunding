@@ -70,6 +70,27 @@ export default function SignInPage() {
           router.push("/home");
         },
         onError: (ctx) => {
+          // Handle email verification error (403 status)
+          if (ctx.error.status === 403) {
+            setError("Please verify your email address before signing in.");
+            // Send verification email and redirect to verification page
+            authClient.emailOtp.sendVerificationOtp({
+              email: values.email,
+              type: "email-verification",
+            }).then((otpResult) => {
+              if (otpResult.data) {
+                sessionStorage.setItem("verificationData", JSON.stringify({
+                  email: values.email,
+                  type: "email-verification"
+                }));
+                toast.info("A new verification code has been sent to your email.");
+                router.push("/verify-otp");
+              }
+            }).catch(() => {
+              toast.error("Failed to send verification email. Please try again.");
+            });
+            return;
+          }
           setError(ctx.error.message || "Sign in failed. Please check your credentials.");
         },
       });

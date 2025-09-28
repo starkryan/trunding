@@ -17,6 +17,10 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true, // Require email verification before allowing access
   },
+  emailVerification: {
+    sendOnSignIn: true, // Send verification email on sign-in if user isn't verified
+    autoSignInAfterVerification: true, // Automatically sign in after verification
+  },
   plugins: [
     nextCookies(),
     emailOTP({
