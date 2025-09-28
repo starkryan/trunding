@@ -48,3 +48,46 @@ Email ID: 463b0a62-a4ac-4d41-ac7c-b0210591023b
  POST /api/auth/sign-out 200 in 74ms
  GET /signin 200 in 21ms
  GET /signin 200 in 9ms
+ ⨯ Error: Could not find the module "/home/neo/montra/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '2084220937'
+}
+ ⨯ Error: Could not find the module "/home/neo/montra/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '4205341353'
+}
+ ⨯ Error: Could not find the module "/home/neo/montra/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '4205341353'
+}
+ ⨯ Error: Could not find the module "/home/neo/montra/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '4205341353'
+}
+ ⨯ Error: Could not find the module "/home/neo/montra/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '2084220937'
+}
+ ⨯ Error: Could not find the module "/home/neo/montra/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '2084220937'
+}
+ ⨯ [TypeError: __webpack_modules__[moduleId] is not a function] {
+  digest: '4286315202'
+}
+ ⨯ Error: Could not find the module "/home/neo/montra/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '2084220937'
+}
+[TypeError: __webpack_modules__[moduleId] is not a function]
+ ⨯ [TypeError: __webpack_modules__[moduleId] is not a function]
+ ⨯ [TypeError: __webpack_modules__[moduleId] is not a function] {
+  page: '/signin'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 554ms (1409 modules)
+ GET /signin 500 in 2121ms
+ ✓ Compiled in 394ms (1330 modules)
