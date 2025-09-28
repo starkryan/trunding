@@ -1,0 +1,50 @@
+
+> montra@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.5:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1536ms
+ ✓ Compiled /middleware in 99ms (127 modules)
+ ○ Compiling /api/auth/[...all] ...
+ ✓ Compiled /api/auth/[...all] in 558ms (794 modules)
+ GET /api/auth/get-session 200 in 1095ms
+ POST /api/auth/sign-in/email 400 in 17ms
+[2m2025-09-28T15:26:56.141Z[0m [31mERROR[0m [1m[Better Auth]:[0m Invalid password
+ POST /api/auth/sign-in/email 401 in 137ms
+ POST /api/auth/email-otp/send-email-otp 404 in 12ms
+ ○ Compiling /signin ...
+ ✓ Compiled /signin in 895ms (1482 modules)
+ GET /signin 200 in 1119ms
+ GET /api/auth/get-session 200 in 130ms
+ POST /api/auth/sign-in/email 403 in 851ms
+Sending OTP email to: dixitrayaan@gmail.com
+From: noreply@r15game.com
+Environment: development
+✅ OTP email sent successfully!
+Email ID: 463b0a62-a4ac-4d41-ac7c-b0210591023b
+ POST /api/auth/email-otp/send-verification-otp 200 in 837ms
+ ✓ Compiled /verify-otp in 283ms (1485 modules)
+ GET /verify-otp 200 in 348ms
+ POST /api/auth/email-otp/verify-email 200 in 153ms
+ GET /api/auth/get-session 200 in 16ms
+ ✓ Compiled /home in 239ms (1498 modules)
+ GET /home 200 in 272ms
+ GET /api/auth/get-session 200 in 102ms
+ GET /home 200 in 16ms
+ GET /api/auth/get-session 200 in 14ms
+ GET /home 200 in 8ms
+ GET /api/auth/get-session 200 in 15ms
+ GET /home 200 in 63ms
+ GET /api/auth/get-session 200 in 9ms
+ GET /api/auth/get-session 200 in 16ms
+ ○ Compiling /profile ...
+ ✓ Compiled /profile in 528ms (1588 modules)
+ GET /profile 200 in 563ms
+ POST /api/auth/sign-out 200 in 74ms
+ GET /signin 200 in 21ms
+ GET /signin 200 in 9ms

@@ -29,7 +29,7 @@ export const auth = betterAuth({
           type === "email-verification"
             ? "Verify your email address"
             : "Your password reset code";
-        
+
         const htmlContent = `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <h2 style="color: #007bff;">Hello!</h2>
@@ -47,26 +47,26 @@ export const auth = betterAuth({
           console.log(`Sending OTP email to: ${email}`);
           console.log(`From: ${process.env.EMAIL_FROM}`);
           console.log(`Environment: ${process.env.NODE_ENV}`);
-          
+
           const result = await resend.emails.send({
             from: process.env.EMAIL_FROM || "noreply@r15game.com",
             to: email,
             subject: subject,
             html: htmlContent,
           });
-          
+
           console.log('✅ OTP email sent successfully!');
           console.log('Email ID:', result.data?.id);
-          
+
           // Check if the email was sent successfully
           if (result.error) {
             console.error('❌ Resend API error:', result.error);
             throw new Error(result.error.message || 'Failed to send email');
           }
-          
+
         } catch (error: any) {
           console.error("❌ Failed to send OTP email via Resend:", error);
-          
+
           // Provide more helpful error messages
           if (error.message?.includes('can only send testing emails')) {
             throw new Error("Email service is in test mode. Please verify your domain in Resend.");
@@ -82,6 +82,7 @@ export const auth = betterAuth({
       otpLength: 6,
       expiresIn: 300, // 5 minutes
       allowedAttempts: 3, // Allow 3 attempts before invalidating the OTP
+      sendVerificationOnSignUp: true,
     }),
   ],
 });
