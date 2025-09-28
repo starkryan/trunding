@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft, FiCheck } from "react-icons/fi";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FiLock, FiEye, FiEyeOff, FiCheck, FiArrowLeft } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,15 +21,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/context/auth-context";
-import Link from "next/link";
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }).regex(/[!@#$%^&*(),.?":{}|<>]/, {
@@ -41,13 +34,17 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export default function SignUpPage() {
+export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isValidToken, setIsValidToken] = useState(true);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const { session, loading } = useAuth();
 
   // Redirect authenticated users to home
@@ -57,11 +54,17 @@ export default function SignUpPage() {
     }
   }, [session, loading, router]);
 
+  // Validate token on mount
+  useEffect(() => {
+    if (!token) {
+      setIsValidToken(false);
+      setError("Invalid reset link. Please request a new password reset.");
+    }
+  }, [token]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      email: "",
       password: "",
       confirmPassword: "",
     },
@@ -94,47 +97,27 @@ export default function SignUpPage() {
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!token) {
+      setError("Invalid reset link. Please request a new password reset.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const signUpResult = await authClient.signUp.email({
-        email: values.email,
-        password: values.password,
-        name: values.name,
+      const resetPasswordResult = await authClient.resetPassword({
+        newPassword: values.password,
+        token: token,
       });
 
-      if (signUpResult.error) {
-        setError(signUpResult.error.message || "Sign up failed. Please try again.");
+      if (resetPasswordResult.error) {
+        setError(resetPasswordResult.error.message || "Failed to reset password. Please try again.");
         return;
       }
 
-      if (signUpResult.data?.user && !signUpResult.data.user.emailVerified) {
-        const otpResult = await authClient.emailOtp.sendVerificationOtp({
-          email: values.email,
-          type: "email-verification",
-        });
-
-        if (otpResult.error) {
-          toast.error("Account created successfully! However, failed to send verification email. Please check your email or try resending.");
-          sessionStorage.setItem("verificationData", JSON.stringify({
-            email: values.email,
-            type: "email-verification"
-          }));
-          router.push("/verify-otp");
-          return;
-        }
-
-        toast.success("Account created successfully! Please check your email for the 6-digit verification code.");
-        sessionStorage.setItem("verificationData", JSON.stringify({
-          email: values.email,
-          type: "email-verification"
-        }));
-        router.push("/verify-otp");
-      } else {
-        toast.success("Account created successfully! Welcome to your dashboard.");
-        router.push("/home");
-      }
+      setIsSuccess(true);
+      toast.success("Password reset successfully! You can now sign in with your new password.");
 
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred. Please try again.");
@@ -150,9 +133,8 @@ export default function SignUpPage() {
         <div className="text-center space-y-4">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
-            <FiUser className="absolute inset-0 m-auto text-primary size-6" />
+            <FiLock className="absolute inset-0 m-auto text-primary size-6" />
           </div>
-
         </div>
       </div>
     );
@@ -163,27 +145,127 @@ export default function SignUpPage() {
     return null;
   }
 
+  if (!isValidToken) {
+    return (
+      <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+        <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-md mx-auto my-8">
+          <CardHeader className="space-y-4 px-6 pt-8 text-center flex-shrink-0">
+            <div className="relative mx-auto">
+              <div className="w-16 h-16 bg-gradient-to-br from-destructive to-destructive/80 rounded-2xl flex items-center justify-center shadow-lg">
+                <FiLock className="text-white size-7" />
+              </div>
+              <div className="absolute -inset-1 bg-destructive/20 rounded-2xl blur-sm -z-10"></div>
+            </div>
+            
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
+                Invalid Reset Link
+              </CardTitle>
+              <CardDescription className="text-base text-muted-foreground">
+                The password reset link is invalid or has expired.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="px-6 flex-1 flex flex-col justify-center space-y-6">
+            <div className="text-center space-y-4">
+              <p className="text-muted-foreground">
+                Please request a new password reset link to continue.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                type="button"
+                className="w-full h-12 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                onClick={() => router.push("/forgot-password")}
+              >
+                Request New Reset Link
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-12 text-base border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors"
+                onClick={() => router.push("/signin")}
+              >
+                Return to Sign In
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+        <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-md mx-auto my-8">
+          <CardHeader className="space-y-4 px-6 pt-8 text-center flex-shrink-0">
+            <div className="relative mx-auto">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-500/80 rounded-2xl flex items-center justify-center shadow-lg">
+                <FiCheck className="text-white size-7" />
+              </div>
+              <div className="absolute -inset-1 bg-green-500/20 rounded-2xl blur-sm -z-10"></div>
+            </div>
+            
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
+                Password Reset Successful!
+              </CardTitle>
+              <CardDescription className="text-base text-muted-foreground">
+                Your password has been updated successfully.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="px-6 flex-1 flex flex-col justify-center space-y-6">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <FiCheck className="text-green-600 size-8" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Password Updated Successfully!</h3>
+                <p className="text-muted-foreground">
+                  You can now sign in to your account with your new password.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                type="button"
+                className="w-full h-12 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                onClick={() => router.push("/signin")}
+              >
+                Sign In to Your Account
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
-  
-
       <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-md mx-auto my-8">
-      
         
         <CardHeader className="space-y-4 px-6 pt-8 text-center flex-shrink-0">
           <div className="relative mx-auto">
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
-              <FiUser className="text-white size-7" />
+              <FiLock className="text-white size-7" />
             </div>
             <div className="absolute -inset-1 bg-primary/20 rounded-2xl blur-sm -z-10"></div>
           </div>
           
           <div className="space-y-2">
             <CardTitle className="text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
-              Join Us Today
+              Reset Your Password
             </CardTitle>
             <CardDescription className="text-base text-muted-foreground">
-              Create your account and start your journey
+              Create a new strong password for your account
             </CardDescription>
           </div>
         </CardHeader>
@@ -201,56 +283,10 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel className="text-base font-medium">Full Name</FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors size-5" />
-                          <Input
-                            type="text"
-                            placeholder="John Doe"
-                            className="pl-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
-                            {...field}
-                            onFocus={() => setError(null)}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-sm animate-in fade-in-50" />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel className="text-base font-medium">Email Address</FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors size-5" />
-                          <Input
-                            type="email"
-                            placeholder="you@example.com"
-                            className="pl-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
-                            {...field}
-                            onFocus={() => setError(null)}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-sm animate-in fade-in-50" />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="text-base font-medium">Password</FormLabel>
+                      <FormLabel className="text-base font-medium">New Password</FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors size-5" />
@@ -309,13 +345,13 @@ export default function SignUpPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="text-base font-medium">Confirm Password</FormLabel>
+                      <FormLabel className="text-base font-medium">Confirm New Password</FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors size-5" />
                           <Input
                             type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm your password"
+                            placeholder="Confirm your new password"
                             className="pl-12 pr-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
                             {...field}
                             onFocus={() => setError(null)}
@@ -355,12 +391,12 @@ export default function SignUpPage() {
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
                     <Spinner variant="bars" size={16} className="text-current" />
-                    <span>Creating Account...</span>
+                    <span>Resetting Password...</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-2">
-                    <FiUser size={18} />
-                    <span>Create Account</span>
+                    <FiLock size={18} />
+                    <span>Reset Password</span>
                   </div>
                 )}
               </Button>
@@ -372,7 +408,7 @@ export default function SignUpPage() {
                   <div className="w-full border-t border-muted-foreground/20"></div>
                 </div>
                 <div className="relative flex justify-center text-sm uppercase">
-                  <span className="bg-card px-3 text-muted-foreground">Already have an account?</span>
+                  <span className="bg-card px-3 text-muted-foreground">Remember your password?</span>
                 </div>
               </div>
 
@@ -382,19 +418,8 @@ export default function SignUpPage() {
                 className="w-full h-12 text-base border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors"
                 onClick={() => router.push("/signin")}
               >
-                Sign In to Your Account
+                Return to Sign In
               </Button>
-
-              <p className="text-center text-xs text-muted-foreground pt-2">
-                By creating an account, you agree to our{" "}
-                <Link href="/terms" className="text-primary hover:underline font-medium">
-                  Terms
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-primary hover:underline font-medium">
-                  Privacy Policy
-                </Link>
-              </p>
             </CardFooter>
           </form>
         </Form>

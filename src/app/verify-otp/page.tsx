@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiShield, FiArrowLeft, FiCheck, FiMail } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
 
 function VerifyOTPForm() {
   const [otp, setOtp] = useState("");
@@ -18,13 +20,20 @@ function VerifyOTPForm() {
   const [otpStatus, setOtpStatus] = useState<"idle" | "correct" | "incorrect">("idle");
   const [email, setEmail] = useState<string>("");
   const [type, setType] = useState<"email-verification" | "forget-password" | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const router = useRouter();
+  const { session, loading } = useAuth();
 
-  // Better Auth best practice: Get email and type from session context or storage
-  // instead of exposing them in URL parameters
+  // Redirect authenticated users to home
   useEffect(() => {
-    // Try to get verification data from session storage (set during sign-up)
+    if (!loading && session) {
+      router.push("/home");
+    }
+  }, [session, loading, router]);
+
+  // Get email and type from session storage
+  useEffect(() => {
     const storedVerificationData = sessionStorage.getItem("verificationData");
     
     if (storedVerificationData) {
@@ -39,7 +48,6 @@ function VerifyOTPForm() {
       }
     } else {
       // Fallback: check if user has a session and needs email verification
-      // This handles the case where user is logged in but email is not verified
       const checkUserSession = async () => {
         try {
           const { data: session } = await authClient.getSession();
@@ -62,13 +70,11 @@ function VerifyOTPForm() {
 
   useEffect(() => {
     if (email && type) {
-      // Store verification data in session storage for persistence
       sessionStorage.setItem("verificationData", JSON.stringify({ email, type }));
     }
   }, [email, type]);
 
   useEffect(() => {
-    // Reset status when OTP changes
     if (otp.length < 6) {
       setOtpStatus("idle");
     }
@@ -86,7 +92,7 @@ function VerifyOTPForm() {
     setOtpStatus("idle");
 
     try {
-      let result;
+      let result: any;
       if (type === "email-verification") {
         result = await authClient.emailOtp.verifyEmail({
           email,
@@ -96,8 +102,10 @@ function VerifyOTPForm() {
           setOtpStatus("correct");
           setTimeout(() => {
             toast.success("Email verified successfully! Welcome to your dashboard.");
+            // Clear verification data
+            sessionStorage.removeItem("verificationData");
             router.push("/home");
-          }, 1000); // Delay to allow animation
+          }, 1000);
           return;
         }
       } else if (type === "forget-password") {
@@ -109,9 +117,11 @@ function VerifyOTPForm() {
         if (result.data?.success) {
           setOtpStatus("correct");
           setTimeout(() => {
-            toast.success("OTP verified! Welcome to your dashboard.");
-            router.push("/home"); 
-          }, 1000); // Delay to allow animation
+            toast.success("OTP verified! Please reset your password.");
+            // Clear verification data
+            sessionStorage.removeItem("verificationData");
+            router.push("/reset-password?token=" + result.data.token);
+          }, 1000);
           return;
         }
       }
@@ -119,12 +129,12 @@ function VerifyOTPForm() {
       if (result?.error) {
         setOtpStatus("incorrect");
         setError(result.error.message || "Invalid OTP. Please try again.");
-        setTimeout(() => setOtpStatus("idle"), 1000); // Reset status after animation
+        setTimeout(() => setOtpStatus("idle"), 1000);
       }
     } catch (err: any) {
       setOtpStatus("incorrect");
       setError(err.message || "An unexpected error occurred. Please try again.");
-      setTimeout(() => setOtpStatus("idle"), 1000); // Reset status after animation
+      setTimeout(() => setOtpStatus("idle"), 1000);
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +146,7 @@ function VerifyOTPForm() {
       return;
     }
     try {
-      setIsLoading(true);
+      setResendLoading(true);
       const result = await authClient.emailOtp.sendVerificationOtp({
         email,
         type,
@@ -149,44 +159,69 @@ function VerifyOTPForm() {
     } catch (err: any) {
       toast.error(err.message || "Failed to resend OTP.");
     } finally {
-      setIsLoading(false);
+      setResendLoading(false);
     }
   };
 
-  return (
-    <div className="h-screen w-full bg-background flex flex-col">
-      {/* App-like header with back button */}
-      <div className="p-4 flex items-center">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => router.back()}
-          className="p-2 h-auto"
-        >
-          <FiArrowLeft size={20} />
-        </Button>
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <FiShield className="absolute inset-0 m-auto text-primary size-6" />
+          </div>
+        </div>
       </div>
-      
-      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background">
-        <CardHeader className="space-y-3 px-6 pt-6 text-center">
-          <CardTitle className="text-2xl font-bold">Verify OTP</CardTitle>
-          <CardDescription className="text-base max-w-md mx-auto">
-            Enter the 6-digit code sent to <span className="font-medium">{email}</span>
-          </CardDescription>
+    );
+  }
+
+  // Don't render the form if user is authenticated
+  if (session) {
+    return null;
+  }
+
+  return (
+    <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-md mx-auto my-8">
+        
+        <CardHeader className="space-y-4 px-6 pt-8 text-center flex-shrink-0">
+          <div className="relative mx-auto">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+              <FiShield className="text-white size-7" />
+            </div>
+            <div className="absolute -inset-1 bg-primary/20 rounded-2xl blur-sm -z-10"></div>
+          </div>
+          
+          <div className="space-y-2">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
+              Verify Your Email
+            </CardTitle>
+            <CardDescription className="text-base text-muted-foreground">
+              Enter the 6-digit code sent to <span className="font-medium text-foreground">{email}</span>
+            </CardDescription>
+          </div>
         </CardHeader>
         
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-          <CardContent className="space-y-6 px-6 flex-1 flex flex-col justify-center">
+          <CardContent className="px-6 flex-1 flex flex-col justify-center space-y-6">
             {error && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
+              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg flex items-center animate-in fade-in-50">
+                <div className="w-2 h-2 bg-destructive rounded-full mr-2 animate-pulse"></div>
                 {error}
               </div>
             )}
             
             <div className="space-y-4 flex flex-col items-center">
-              <Label htmlFor="otp" className="text-base font-medium">One-Time Password</Label>
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                  <FiMail size={16} />
+                  <span className="text-sm">Check your email for the verification code</span>
+                </div>
+              </div>
+              
               <InputOTP
-                id="otp"
                 maxLength={6}
                 value={otp}
                 onChange={(otpValue) => setOtp(otpValue.replace(/[^0-9]/g, ""))}
@@ -199,32 +234,77 @@ function VerifyOTPForm() {
                       key={index}
                       index={index}
                       className={cn(
-                        "w-10 h-10 text-lg",
-                        otpStatus === "correct" && "border-green-500 animate-pulse",
-                        otpStatus === "incorrect" && "border-destructive"
+                        "w-12 h-12 text-lg border-2 transition-all duration-200",
+                        "border-muted-foreground/20 focus:border-primary/50 hover:border-muted-foreground/30",
+                        otpStatus === "correct" && "border-green-500 bg-green-50 animate-pulse",
+                        otpStatus === "incorrect" && "border-destructive bg-destructive/10"
                       )}
                     />
                   ))}
                 </InputOTPGroup>
               </InputOTP>
+              
+              {otpStatus === "correct" && (
+                <div className="flex items-center gap-2 text-green-600 text-sm animate-in fade-in-50">
+                  <FiCheck size={16} />
+                  <span>OTP verified successfully!</span>
+                </div>
+              )}
             </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+              disabled={isLoading || otp.length !== 6}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Spinner variant="bars" size={16} className="text-current" />
+                  <span>Verifying...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <FiShield size={18} />
+                  <span>Verify & Continue</span>
+                </div>
+              )}
+            </Button>
           </CardContent>
           
-          <CardFooter className="flex flex-col space-y-4 px-6 pb-6 pt-4">
-            <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading || otp.length !== 6}>
-              {isLoading ? "Verifying..." : "Verify & Continue"}
-            </Button>
-            
-            <div className="text-center">
+          <CardFooter className="flex flex-col space-y-4 px-6 pb-8 flex-shrink-0">
+            <div className="relative w-full my-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-muted-foreground/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm uppercase">
+                <span className="bg-card px-3 text-muted-foreground">Need help?</span>
+              </div>
+            </div>
+
+            <div className="text-center space-y-2">
               <button
                 type="button"
                 onClick={handleResend}
-                className="text-base text-primary hover:underline disabled:opacity-50"
-                disabled={isLoading}
+                className="text-base text-primary hover:text-primary/80 transition-colors font-medium disabled:opacity-50"
+                disabled={resendLoading}
               >
-                Didn't receive the code? Resend
+                {resendLoading ? "Sending..." : "Didn't receive the code? Resend"}
               </button>
+              
+              <p className="text-xs text-muted-foreground">
+                The code will expire in 15 minutes. Please check your spam folder if you don't see it.
+              </p>
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-base border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors"
+              onClick={() => router.back()}
+            >
+              <FiArrowLeft size={16} className="mr-2" />
+              Go Back
+            </Button>
           </CardFooter>
         </form>
       </Card>
@@ -234,7 +314,16 @@ function VerifyOTPForm() {
 
 export default function VerifyOTPPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <FiShield className="absolute inset-0 m-auto text-primary size-6" />
+          </div>
+        </div>
+      </div>
+    }>
       <VerifyOTPForm />
     </Suspense>
   );

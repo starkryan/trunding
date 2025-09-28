@@ -40,15 +40,39 @@ export const auth = betterAuth({
         `;
 
         try {
-          await resend.emails.send({
-            from: process.env.EMAIL_FROM || "onboarding@resend.dev", // Use environment variable with fallback
+          console.log(`Sending OTP email to: ${email}`);
+          console.log(`From: ${process.env.EMAIL_FROM}`);
+          console.log(`Environment: ${process.env.NODE_ENV}`);
+          
+          const result = await resend.emails.send({
+            from: process.env.EMAIL_FROM || "noreply@r15game.com",
             to: email,
             subject: subject,
             html: htmlContent,
           });
-        } catch (error) {
-          console.error("Failed to send OTP email via Resend:", error);
-          throw new Error("Could not send verification email. Please try again later.");
+          
+          console.log('✅ OTP email sent successfully!');
+          console.log('Email ID:', result.data?.id);
+          
+          // Check if the email was sent successfully
+          if (result.error) {
+            console.error('❌ Resend API error:', result.error);
+            throw new Error(result.error.message || 'Failed to send email');
+          }
+          
+        } catch (error: any) {
+          console.error("❌ Failed to send OTP email via Resend:", error);
+          
+          // Provide more helpful error messages
+          if (error.message?.includes('can only send testing emails')) {
+            throw new Error("Email service is in test mode. Please verify your domain in Resend.");
+          } else if (error.message?.includes('domain')) {
+            throw new Error("Domain verification required. Please verify your domain in Resend dashboard.");
+          } else if (error.message?.includes('unverified')) {
+            throw new Error("Domain not verified. Please complete domain verification in Resend dashboard.");
+          } else {
+            throw new Error("Could not send verification email. Please try again later.");
+          }
         }
       },
       otpLength: 6,
