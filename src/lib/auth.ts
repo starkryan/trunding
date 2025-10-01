@@ -4,6 +4,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
 import { prisma } from "./prisma";
+import { oauthSecurity, OAuthErrorHandler } from "./oauth-security";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -20,6 +21,139 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignIn: false, // Disabled to prevent double emails - OTP plugin handles verification
     autoSignInAfterVerification: true, // Automatically sign in after verification
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      redirectURI: `${process.env.BETTER_AUTH_URL}/api/auth/callback/google`,
+      scopes: ["openid", "email", "profile"],
+      disableAccountLinking: false,
+      // Security: PKCE (Proof Key for Code Exchange) for enhanced security
+      pkce: true,
+      // Security: State parameter to prevent CSRF attacks
+      state: true,
+      // Security: Nonce for replay attack prevention
+      nonce: true,
+      async getUserProfile(profile: { email?: string; sub?: string; email_verified?: boolean; name?: string; picture?: string; iss?: string; aud?: string | string[]; exp?: number }) {
+        // Security: Validate the OAuth response
+        const validation = oauthSecurity.validateOAuthResponse(profile);
+        if (!validation.isValid) {
+          OAuthErrorHandler.logError(
+            { message: validation.error, type: 'validation_error' },
+            { provider: 'google' }
+          );
+          throw new Error(validation.error);
+        }
+
+        // Security: Sanitize user data
+        const sanitizedProfile = oauthSecurity.sanitizeUserData(profile);
+
+        return {
+          id: sanitizedProfile.id,
+          email: sanitizedProfile.email,
+          name: sanitizedProfile.name,
+          image: sanitizedProfile.image,
+          emailVerified: sanitizedProfile.emailVerified,
+        };
+      },
+      // Security: Handle user creation with enhanced validation
+      async onUserCreate(user: { email: string; id: string; role?: string; emailVerified?: boolean }, account: { provider: string; providerAccountId?: string; userId?: string; userAgent?: string; ipAddress?: string }) {
+        console.log("Google OAuth user created:", {
+          email: user.email,
+          id: user.id,
+          provider: account.provider,
+          timestamp: new Date().toISOString()
+        });
+
+        // Security: Validate account linking
+        if (account && account.providerAccountId) {
+          // Ensure the account is properly linked to the user
+          if (!account.userId || account.userId !== user.id) {
+            console.error("Account linking mismatch:", {
+              userId: user.id,
+              accountUserId: account.userId,
+              providerAccountId: account.providerAccountId
+            });
+            throw new Error("Account linking validation failed");
+          }
+        }
+
+        // Security: Check for suspicious patterns
+        const userAgent = account.userAgent || '';
+        const ipAddress = account.ipAddress || '';
+
+        if (oauthSecurity.detectSuspiciousActivity(userAgent, ipAddress)) {
+          console.warn("Suspicious OAuth activity detected:", {
+            email: user.email,
+            userAgent: userAgent.substring(0, 100),
+            ipAddress,
+          });
+        }
+
+        // Security: Set default role for OAuth users
+        user.role = user.role || "USER";
+
+        // Security: Mark email as verified for Google OAuth users
+        // Google already verifies email addresses, so we can trust this
+        if (!user.emailVerified && user.email) {
+          user.emailVerified = true;
+        }
+
+        return user;
+      },
+      // Security: Handle sign-in with enhanced validation
+      async onSignIn(user: { email: string; emailVerified?: boolean }, account: { provider: string; session?: { token: string } }) {
+        console.log("Google OAuth sign-in:", {
+          email: user.email,
+          provider: account.provider,
+          timestamp: new Date().toISOString()
+        });
+
+        // Security: Validate session context
+        if (!user.emailVerified && oauthSecurity.settings.requireEmailVerification) {
+          console.warn("Unverified OAuth user attempted sign-in:", {
+            email: user.email,
+            provider: account.provider,
+          });
+        }
+
+        // Security: Check for session fixation
+        if (account && account.session) {
+          // Validate session token
+          const sessionToken = account.session.token;
+          if (!sessionToken || sessionToken.length < 32) {
+            console.error("Invalid session token detected:", {
+              email: user.email,
+              provider: account.provider,
+            });
+            throw new Error("Invalid session token");
+          }
+        }
+
+        return user;
+      },
+      // Security: Handle errors properly
+      onError(error: { message: string; code?: string }) {
+        console.error("Google OAuth error:", {
+          error: error.message,
+          code: error.code,
+          timestamp: new Date().toISOString(),
+        });
+
+        // Don't expose sensitive error details
+        OAuthErrorHandler.logError(
+          {
+            message: "OAuth authentication failed",
+            type: 'oauth_error',
+            code: error.code
+          },
+          { provider: 'google' }
+        );
+
+        throw new Error("Authentication failed. Please try again.");
+      },
+    },
   },
   plugins: [
     nextCookies(),

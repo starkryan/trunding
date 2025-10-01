@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/context/auth-context";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import Link from "next/link";
 
 const formSchema = z.object({
@@ -159,6 +160,7 @@ export default function SignInPage() {
                   {error}
                 </div>
               )}
+
               
               <FormField
                 control={form.control}
