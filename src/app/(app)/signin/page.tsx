@@ -161,6 +161,12 @@ export default function SignInPage() {
                 </div>
               )}
 
+              {/* Social Login Buttons */}
+              <SocialLoginButtons
+                callbackURL="/home"
+                dividerText="Or continue with email"
+                showDivider={false}
+              />
               
               <FormField
                 control={form.control}
