@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Spinner } from "@/components/ui/spinner";
 
 interface SocialLoginButtonsProps {
@@ -128,7 +128,7 @@ export function SocialLoginButtons({
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2">
-              <FcGoogle className="h-6 w-6" />
+              <FcGoogle className="h-7 w-7" />
               <span>Continue with Google</span>
             </div>
           )}
