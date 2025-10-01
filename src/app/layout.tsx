@@ -4,8 +4,6 @@ import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
-import { MobileTabs } from "@/components/mobile-tabs";
-import { AuthenticatedHeader } from "@/components/authenticated-header";
 import HydrationGuard from "@/components/hydration-guard";
 
 const geistSans = Geist({
@@ -48,9 +46,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <HydrationGuard>
-              <AuthenticatedHeader />
               {children}
-              <MobileTabs />
               <Toaster />
             </HydrationGuard>
           </AuthProvider>

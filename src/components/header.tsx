@@ -1,75 +1,140 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { 
-  Home, 
-  TrendingUp, 
-  BarChart3, 
-  User, 
-  PieChart,
-  Wallet
-} from "lucide-react";
+import { useAuth } from "@/context/auth-context";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, ChevronLeft, Bell, Search, MoreVertical, X, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { memo, useCallback } from "react";
+import Link from "next/link";
 
 interface HeaderProps {
-  onMenuClick?: () => void;
+  title?: string;
+  subtitle?: string;
+  showBack?: boolean;
+  backHref?: string;
+  showActions?: boolean;
+  showHome?: boolean;
+  centerTitle?: boolean;
+  actions?: React.ReactNode;
+  onBack?: () => void;
+  transparent?: boolean;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export const Header = memo(function Header({
+  title,
+  subtitle,
+  showBack = false,
+  backHref,
+  showActions = true,
+  showHome = false,
+  centerTitle = true,
+  actions,
+  onBack,
+  transparent = false
+}: HeaderProps) {
   const pathname = usePathname();
+  const { session } = useAuth();
 
-  const getPageTitle = () => {
-    switch (pathname) {
-      case "/home":
-        return "Home";
-      case "/market":
-        return "Market";
-      case "/trade":
-        return "Trade";
-      case "/portfolio":
-        return "Portfolio";
-      case "/wallet":
-        return "Wallet";
-      case "/profile":
-        return "Profile";
-      default:
-        return "Montra";
-    }
-  };
+  // Get page title from pathname if not provided
+  const getPageTitle = useCallback(() => {
+    if (title) return title;
 
-  const getPageIcon = () => {
-    switch (pathname) {
-      case "/home":
-        return <Home className="h-5 w-5" />;
-      case "/market":
-        return <TrendingUp className="h-5 w-5" />;
-      case "/trade":
-        return <BarChart3 className="h-5 w-5" />;
-      case "/portfolio":
-        return <PieChart className="h-5 w-5" />;
-      case "/wallet":
-        return <Wallet className="h-5 w-5" />;
-      case "/profile":
-        return <User className="h-5 w-5" />;
-      default:
-        return <Home className="h-5 w-5" />;
-    }
-  };
+    const pathSegments = pathname.split('/').filter(Boolean);
+    const lastSegment = pathSegments[pathSegments.length - 1];
+
+    if (!lastSegment || lastSegment === 'home') return 'Montra';
+
+    // Capitalize first letter and replace hyphens with spaces
+    return lastSegment
+      .charAt(0).toUpperCase() + lastSegment.slice(1)
+      .replace(/-/g, ' ');
+  }, [pathname, title]);
+
+  const pageTitle = getPageTitle();
+
+  // Get user initials for avatar fallback
+  const getUserInitials = useCallback((name: string) => {
+    return name
+      .split(" ")
+      .map(word => word.charAt(0).toUpperCase())
+      .join("")
+      .substring(0, 2);
+  }, []);
+
+  const userInitials = session?.user.name ? getUserInitials(session.user.name) : "U";
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center px-4">
-        {/* Page title and icon */}
-        <div className="flex items-center space-x-2">
-          {getPageIcon()}
-          <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
+    <header className={cn(
+      "sticky top-0 z-40 supports-[backdrop-filter]:bg-background/60 border-b transition-all duration-200",
+      transparent
+        ? "bg-transparent border-transparent"
+        : "bg-background/95 backdrop-blur border-border/50"
+    )}>
+      {/* Status bar spacer for safe area */}
+      <div className="h-6 bg-transparent md:hidden" />
+
+      <div className="flex items-center justify-between px-4 py-3 h-[52px] md:h-[60px]">
+        {/* Left Section */}
+        <div className="flex items-center space-x-3">
+          {/* Back Button - Native iOS style */}
+          {showBack && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-8 w-8 -ml-1 md:h-9 md:w-9"
+              onClick={onBack}
+              asChild={!onBack}
+            >
+              {onBack ? (
+                <ChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
+              ) : (
+                <Link href={backHref || "/home"}>
+                  <ChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
+                </Link>
+              )}
+            </Button>
+          )}
+
+          {/* Page Title & Subtitle */}
+          <div className="flex flex-col justify-center">
+            <h1 className={cn(
+              "font-semibold text-foreground leading-tight",
+              subtitle ? "text-base md:text-lg" : "text-lg md:text-xl"
+            )}>
+              {pageTitle}
+            </h1>
+            {subtitle && (
+              <p className="text-xs text-muted-foreground leading-tight md:text-sm">
+                {subtitle}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        {/* Right Section - Minimal actions */}
+        {showActions && (
+          <div className="flex items-center space-x-1">
+            {/* Custom actions if provided */}
+            {actions}
 
-        {/* Spacer */}
-        <div className="flex-1" />
+            {/* More Actions / Menu - Only if no custom actions */}
+            {!actions && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="h-8 w-8 md:h-9 md:w-9"
+              >
+                <MoreVertical className="h-5 w-5 md:h-6 md:w-6" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );
-}
+});
+
+Header.displayName = "Header";

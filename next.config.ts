@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['192.168.1.5', 'localhost'],
+
   /* config options here */
     eslint: {
     // Warning: This allows production builds to successfully complete even if

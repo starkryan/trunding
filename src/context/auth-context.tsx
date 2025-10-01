@@ -9,6 +9,8 @@ interface User {
   email: string;
   name: string;
   emailVerified: boolean;
+  role?: string;
+  banned?: boolean;
   image?: string | null;
   createdAt: Date;
   updatedAt: Date;

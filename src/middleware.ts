@@ -23,22 +23,25 @@ export async function middleware(request: NextRequest) {
   
   // Special route for OTP verification (accessible with session but without email verification)
   const isOTPVerificationRoute = pathname.startsWith("/verify-otp");
-  
+
+  // Admin routes - these are handled by the separate admin middleware
+  const isAdminRoute = pathname.startsWith("/admin");
+
   // If user is authenticated and tries to access auth routes, redirect to home
   if (sessionCookie && isAuthRoute) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
-  
+
   // If user is not authenticated and tries to access protected routes, redirect to signin
   if (!sessionCookie && isProtectedRoute) {
     return NextResponse.redirect(new URL("/signin", request.url));
   }
-  
+
   // For authenticated users accessing protected routes, check email verification
-  if (sessionCookie && requiresVerification && !isOTPVerificationRoute) {
+  if (sessionCookie && requiresVerification && !isOTPVerificationRoute && !isAdminRoute) {
     // Create a response to check the session
     const response = NextResponse.next();
-    
+
     // Make a request to check the user's session and email verification status
     try {
       // We'll add a header to indicate this is a middleware check
@@ -48,15 +51,15 @@ export async function middleware(request: NextRequest) {
           'X-Middleware-Check': 'true',
         },
       });
-      
+
       // Forward the request to the auth API to check session
       const authResponse = await fetch(`${request.nextUrl.origin}/api/auth/get-session`, {
         headers: authRequest.headers,
       });
-      
+
       if (authResponse.ok) {
         const sessionData = await authResponse.json();
-        
+
         // Check if session exists and user exists and if email is verified
         if (sessionData && sessionData.user && !sessionData.user.emailVerified) {
           // User is authenticated but email is not verified

@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { emailOTP } from "better-auth/plugins";
+import { emailOTP, admin } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
@@ -18,11 +18,17 @@ export const auth = betterAuth({
     requireEmailVerification: true, // Require email verification before allowing access
   },
   emailVerification: {
-    sendOnSignIn: true, // Send verification email on sign-in if user isn't verified
+    sendOnSignIn: false, // Disabled to prevent double emails - OTP plugin handles verification
     autoSignInAfterVerification: true, // Automatically sign in after verification
   },
   plugins: [
     nextCookies(),
+    admin({
+      adminRoles: ["ADMIN", "SUPER_ADMIN"],
+      defaultRole: "USER",
+      impersonationSessionDuration: 60 * 60 * 24, // 1 day
+      defaultBanReason: "Violation of platform policies",
+    }),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
         const subject =
