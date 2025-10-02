@@ -39,38 +39,52 @@ export async function middleware(request: NextRequest) {
 
   // For authenticated users accessing protected routes, check email verification
   if (sessionCookie && requiresVerification && !isOTPVerificationRoute && !isAdminRoute) {
-    // Create a response to check the session
-    const response = NextResponse.next();
-
-    // Make a request to check the user's session and email verification status
     try {
-      // We'll add a header to indicate this is a middleware check
-      const authRequest = new Request(request.url, {
+      // Use better-fetch for more reliable session checking
+      const { betterFetch } = await import("@better-fetch/fetch");
+      type Session = typeof import("@/lib/auth").auth.$Infer.Session;
+
+      const { data: session, error } = await betterFetch<Session>("/api/auth/get-session", {
+        baseURL: request.nextUrl.origin,
         headers: {
-          'Cookie': sessionCookie,
+          cookie: sessionCookie,
           'X-Middleware-Check': 'true',
         },
       });
 
-      // Forward the request to the auth API to check session
-      const authResponse = await fetch(`${request.nextUrl.origin}/api/auth/get-session`, {
-        headers: authRequest.headers,
-      });
-
-      if (authResponse.ok) {
-        const sessionData = await authResponse.json();
-
-        // Check if session exists and user exists and if email is verified
-        if (sessionData && sessionData.user && !sessionData.user.emailVerified) {
-          // User is authenticated but email is not verified
-          // Redirect to OTP verification page
-          return NextResponse.redirect(new URL("/verify-otp", request.url));
+      // Handle fetch errors gracefully
+      if (error) {
+        console.error("Middleware session fetch error:", error);
+        
+        // If it's a network error, allow the request to continue
+        // Individual pages will handle session validation
+        if (error.message?.includes('fetch failed') || 
+            error.status === 0 || // Network errors often have status 0
+            error.statusText?.includes('Network Error')) {
+          return NextResponse.next();
         }
+        
+        // For other errors, redirect to sign-in for safety
+        return NextResponse.redirect(new URL("/signin", request.url));
+      }
+
+      // Check if session exists and user exists and if email is verified
+      if (session && session.user && !session.user.emailVerified) {
+        // User is authenticated but email is not verified
+        // Redirect to OTP verification page
+        return NextResponse.redirect(new URL("/verify-otp", request.url));
+      }
+
+      // If session is invalid or missing, redirect to sign-in
+      if (!session || !session.user) {
+        return NextResponse.redirect(new URL("/signin", request.url));
       }
     } catch (error) {
-      // If we can't verify the session, allow the request to continue
-      // The individual pages will handle session validation
       console.error("Middleware session check failed:", error);
+      
+      // For unexpected errors, allow the request to continue
+      // The individual pages will handle session validation
+      return NextResponse.next();
     }
   }
   

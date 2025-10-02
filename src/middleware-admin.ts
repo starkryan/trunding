@@ -28,6 +28,20 @@ export async function adminMiddleware(request: NextRequest) {
       console.log("Admin access granted for:", session.user.email);
     } catch (error) {
       console.error("Admin middleware check failed:", error);
+      
+      // Handle network errors more gracefully
+      if (error instanceof Error && (
+        error.message.includes('fetch failed') || 
+        error.message.includes('Network Error') ||
+        error.name === 'NetworkError'
+      )) {
+        // For network errors, allow the request to continue
+        // Individual admin pages will handle session validation
+        console.warn("Network error in admin middleware, allowing request to continue");
+        return NextResponse.next();
+      }
+      
+      // For other errors, redirect to sign-in for safety
       return NextResponse.redirect(new URL("/signin", request.url));
     }
   }
