@@ -5,7 +5,6 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { Bitcoin } from "lucide-react";
 import RewardServicesHome from "@/components/reward-services-home";
-import CarouselBanner from "@/components/carousel-banner";
 
 export default function HomePage() {
   const { session, loading } = useAuth();
@@ -39,8 +38,7 @@ export default function HomePage() {
       <div className="w-full max-w-none rounded-none border-0 bg-background">
         <div className="w-full">
           <div className="p-6 w-full">
-            {/* Carousel Banner */}
-            <CarouselBanner />
+      
             
             {/* Reward Services Section - Full Width */}
             <RewardServicesHome />
