@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
 import { z } from "zod";
 
 const tradeSchema = z.object({
@@ -11,9 +12,11 @@ const tradeSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
 
-    if (!session?.userId) {
+    if (!session?.session?.userId) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
@@ -25,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Get user's wallet
     const wallet = await prisma.wallet.findUnique({
-      where: { userId: session.userId },
+      where: { userId: session.session.userId },
     });
 
     if (!wallet) {
@@ -68,7 +71,7 @@ export async function POST(request: NextRequest) {
     // Create transaction record
     await prisma.transaction.create({
       data: {
-        userId: session.userId,
+        userId: session.session.userId,
         walletId: wallet.id,
         amount: tradeAmount,
         currency: "INR",

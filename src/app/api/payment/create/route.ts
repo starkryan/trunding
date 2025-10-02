@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession, auth } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { headers } from "next/headers"
 
@@ -9,9 +9,12 @@ const KUKUPAY_API_KEY = process.env.KUKUPAY_API_KEY || "1tqgOifuydEFIc5Ss8JzWuLf
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if user is authenticated
-    const session = await getServerSession()
-    if (!session?.userId) {
+    // Check if user is authenticated using modern Better Auth pattern
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+    
+    if (!session?.session?.userId) {
       return NextResponse.json(
         { success: false, error: "Authentication required" },
         { status: 401 }
@@ -20,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Get user details from the session directly
     // Since we have the userId from session, we can use it directly
-    const userId = session.userId
+    const userId = session.session.userId
 
     // Parse request body
     const body = await request.json()

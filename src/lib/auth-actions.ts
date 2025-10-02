@@ -44,7 +44,7 @@ export async function signOutAction(headers: Headers) {
   }
 }
 
-export async function getServerSession(headers: Headers) {
+export async function getSession(headers: Headers) {
   try {
     const session = await auth.api.getSession({
       headers: headers,
