@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,13 @@ export default function TradePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <TrendingUp className="absolute inset-0 m-auto text-primary size-6" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -47,41 +52,39 @@ export default function TradePage() {
   const selectedCryptoData = cryptoOptions.find(c => c.symbol === selectedCrypto);
 
   return (
-    <div className="h-screen w-full bg-background flex flex-col">
-      {/* Main content area with padding for mobile tabs */}
-      <div className="flex-1 overflow-y-auto pb-20">
-        <div className="p-6">
-       
-
+    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-2xl mx-auto my-8 overflow-y-auto">
+        <CardContent className="px-6 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Trading Panel */}
             <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Trade</CardTitle>
-                  <CardDescription>Execute trades in real-time</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="bg-muted/30">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-2">Quick Trade</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Execute trades in real-time</p>
                   <Tabs defaultValue="buy" onValueChange={(value) => setTradeType(value as "buy" | "sell")}>
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="buy">Buy</TabsTrigger>
                       <TabsTrigger value="sell">Sell</TabsTrigger>
                     </TabsList>
-                    
-                    <TabsContent value="buy" className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="crypto-select">Select Cryptocurrency</Label>
-                        <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose cryptocurrency" />
-                          </SelectTrigger>
+
+                    <TabsContent value="buy">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="crypto-select">Select Cryptocurrency</Label>
+                        <div className="relative group">
+                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
+                            <SelectTrigger className="h-12 pl-12 bg-muted/30 rounded-lg border border-muted-foreground/20">
+                              <SelectValue placeholder="Choose cryptocurrency" />
+                            </SelectTrigger>
                           <SelectContent>
                             {cryptoOptions.map((crypto) => (
                               <SelectItem key={crypto.symbol} value={crypto.symbol}>
                                 <div className="flex items-center justify-between w-full">
                                   <span className="font-medium">{crypto.name}</span>
-                                  <Badge 
-                                    variant={crypto.change >= 0 ? "default" : "destructive"} 
+                                  <Badge
+                                    variant={crypto.change >= 0 ? "default" : "destructive"}
                                     className="text-xs h-5 px-1.5 ml-2"
                                   >
                                     {crypto.change >= 0 ? '+' : ''}{crypto.change}%
@@ -90,22 +93,27 @@ export default function TradePage() {
                               </SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="amount">Amount (USD)</Label>
-                        <Input
-                          id="amount"
-                          type="number"
-                          placeholder="0.00"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                        />
+                        <div className="relative group">
+                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <Input
+                            id="amount"
+                            type="number"
+                            placeholder="0.00"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="pl-12 h-12 bg-muted/30 rounded-lg border border-muted-foreground/20"
+                          />
+                        </div>
                       </div>
 
                       {selectedCryptoData && amount && (
-                        <Card className="bg-muted/50">
+                        <Card className="bg-muted/30">
                           <CardContent className="p-4">
                             <div className="flex justify-between items-center">
                               <span className="text-sm text-muted-foreground">Estimated {selectedCryptoData.symbol}</span>
@@ -120,22 +128,26 @@ export default function TradePage() {
                       <Button className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700">
                         Buy {selectedCrypto}
                       </Button>
+                      </div>
                     </TabsContent>
 
-                    <TabsContent value="sell" className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="crypto-select-sell">Select Cryptocurrency</Label>
-                        <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose cryptocurrency" />
-                          </SelectTrigger>
+                    <TabsContent value="sell">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="crypto-select-sell">Select Cryptocurrency</Label>
+                        <div className="relative group">
+                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
+                            <SelectTrigger className="h-12 pl-12 bg-muted/30 rounded-lg border border-muted-foreground/20">
+                              <SelectValue placeholder="Choose cryptocurrency" />
+                            </SelectTrigger>
                           <SelectContent>
                             {cryptoOptions.map((crypto) => (
                               <SelectItem key={crypto.symbol} value={crypto.symbol}>
                                 <div className="flex items-center justify-between w-full">
                                   <span className="font-medium">{crypto.name}</span>
-                                  <Badge 
-                                    variant={crypto.change >= 0 ? "default" : "destructive"} 
+                                  <Badge
+                                    variant={crypto.change >= 0 ? "default" : "destructive"}
                                     className="text-xs h-5 px-1.5 ml-2"
                                   >
                                     {crypto.change >= 0 ? '+' : ''}{crypto.change}%
@@ -144,22 +156,27 @@ export default function TradePage() {
                               </SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="amount-sell">Amount (USD)</Label>
-                        <Input
-                          id="amount-sell"
-                          type="number"
-                          placeholder="0.00"
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                        />
+                        <div className="relative group">
+                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <Input
+                            id="amount-sell"
+                            type="number"
+                            placeholder="0.00"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="pl-12 h-12 bg-muted/30 rounded-lg border border-muted-foreground/20"
+                          />
+                        </div>
                       </div>
 
                       {selectedCryptoData && amount && (
-                        <Card className="bg-muted/50">
+                        <Card className="bg-muted/30">
                           <CardContent className="p-4">
                             <div className="flex justify-between items-center">
                               <span className="text-sm text-muted-foreground">Estimated {selectedCryptoData.symbol}</span>
@@ -174,6 +191,7 @@ export default function TradePage() {
                       <Button className="w-full h-12 text-lg font-semibold bg-red-600 hover:bg-red-700">
                         Sell {selectedCrypto}
                       </Button>
+                      </div>
                     </TabsContent>
                   </Tabs>
                 </CardContent>
@@ -181,13 +199,11 @@ export default function TradePage() {
             </div>
 
             {/* Market Info Panel */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Current Price */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Current Price</CardTitle>
-                </CardHeader>
-                <CardContent>
+              <Card className="bg-muted/30">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-2">Current Price</h3>
                   {selectedCryptoData && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -207,69 +223,109 @@ export default function TradePage() {
               </Card>
 
               {/* Market Stats */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Market Statistics</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <TrendingUp className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">24h High</span>
+              <Card className="bg-muted/30">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Market Statistics</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">24h High</span>
+                      </div>
+                      <span className="font-medium text-sm">$46,234.50</span>
                     </div>
-                    <span className="font-medium text-sm">$46,234.50</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <TrendingDown className="h-4 w-4 text-red-600" />
-                      <span className="text-sm">24h Low</span>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <span className="text-sm">24h Low</span>
+                      </div>
+                      <span className="font-medium text-sm">$44,123.80</span>
                     </div>
-                    <span className="font-medium text-sm">$44,123.80</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Volume (24h)</span>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">Volume (24h)</span>
+                      </div>
+                      <span className="font-medium text-sm">$28.5B</span>
                     </div>
-                    <span className="font-medium text-sm">$28.5B</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Percent className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Volatility</span>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Percent className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">Volatility</span>
+                      </div>
+                      <span className="font-medium text-sm">5.2%</span>
                     </div>
-                    <span className="font-medium text-sm">5.2%</span>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Quick Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
-                    <ArrowUpRight className="h-4 w-4 mr-2" />
-                    Limit Order
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <ArrowDownRight className="h-4 w-4 mr-2" />
-                    Stop Loss
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    Take Profit
-                  </Button>
+              <Card className="bg-muted/30">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+                  <div className="space-y-2">
+                    <Button variant="outline" className="w-full justify-start h-12">
+                      <ArrowUpRight className="h-4 w-4 mr-2" />
+                      Limit Order
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-12">
+                      <ArrowDownRight className="h-4 w-4 mr-2" />
+                      Stop Loss
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-12">
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Take Profit
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+
+        <CardFooter className="flex flex-col space-y-4 px-6 pb-8">
+          <div className="relative w-full my-4" role="separator" aria-label="Trading actions">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-muted-foreground/20"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-background px-3 text-muted-foreground">Trading Actions</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 p-0 flex-col items-center justify-center text-xs"
+            >
+              <ArrowUpRight className="h-4 w-4 mb-1" />
+              Orders
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 p-0 flex-col items-center justify-center text-xs"
+            >
+              <TrendingUp className="h-4 w-4 mb-1" />
+              Analytics
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 p-0 flex-col items-center justify-center text-xs"
+            >
+              <DollarSign className="h-4 w-4 mb-1" />
+              Portfolio
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

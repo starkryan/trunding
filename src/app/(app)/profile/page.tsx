@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import {
   FiUser,
@@ -23,18 +23,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Bell, Shield, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { session, loading } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const id = useId();
 
   useEffect(() => {
     setMounted(true);
@@ -77,7 +74,7 @@ export default function ProfilePage() {
 
         <CardContent className="px-6 space-y-6">
           {/* Profile Header */}
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col items-center space-y-4">
             <div className="relative">
               <Avatar className="w-20 h-20">
                 <AvatarImage src={session.user.image || ""} alt={session.user.name} />
@@ -86,14 +83,13 @@ export default function ProfilePage() {
                 </AvatarFallback>
               </Avatar>
             </div>
-            <div className="flex-1">
+            <div className="text-center">
               <h3 className="text-xl font-semibold">{session.user.name}</h3>
-              <p className="text-muted-foreground">{session.user.email}</p>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-xs">Active since {new Date(session.user.createdAt).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                <Badge variant="secondary" className="text-xs">Active since {new Date(session.user.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}</Badge>
               </div>
             </div>
@@ -128,50 +124,22 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Theme</label>
-              <div className="relative group">
-                {theme === 'light' && (
-                  <FiSun
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none"
-                    aria-hidden="true"
+              <Label htmlFor={id} className="text-sm font-medium text-muted-foreground">Theme</Label>
+              <div className="flex items-center space-x-3">
+                <div className="relative inline-grid h-9 grid-cols-[1fr_1fr] items-center text-sm font-medium">
+                  <Switch
+                    id={id}
+                    checked={theme === 'dark'}
+                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                    className="peer data-[state=unchecked]:bg-input/50 absolute inset-0 h-[inherit] w-auto rounded-md [&_span]:z-10 [&_span]:h-full [&_span]:w-1/2 [&_span]:rounded-sm [&_span]:transition-transform [&_span]:duration-300 [&_span]:ease-[cubic-bezier(0.16,1,0.3,1)] [&_span]:data-[state=checked]:translate-x-full [&_span]:data-[state=checked]:rtl:-translate-x-full"
                   />
-                )}
-                {theme === 'dark' && (
-                  <FiMoon
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none"
-                    aria-hidden="true"
-                  />
-                )}
-                {theme === 'system' && (
-                  <FiMonitor
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none"
-                    aria-hidden="true"
-                  />
-                )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-12 pl-12"
-                    >
-                      {theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center gap-2">
-                      <FiSun size={16} />
-                      <span>Light</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center gap-2">
-                      <FiMoon size={16} />
-                      <span>Dark</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTheme('system')} className="flex items-center gap-2">
-                      <FiMonitor size={16} />
-                      <span>System</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  <span className="pointer-events-none relative ms-0.5 flex items-center justify-center px-2 text-center transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] peer-data-[state=checked]:invisible peer-data-[state=unchecked]:translate-x-full peer-data-[state=unchecked]:rtl:-translate-x-full">
+                    <span className="text-[10px] font-medium uppercase">Light</span>
+                  </span>
+                  <span className="peer-data-[state=checked]:text-background pointer-events-none relative me-0.5 flex items-center justify-center px-2 text-center transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] peer-data-[state=checked]:-translate-x-full peer-data-[state=unchecked]:invisible peer-data-[state=checked]:rtl:translate-x-full">
+                    <span className="text-[10px] font-medium uppercase">Dark</span>
+                  </span>
+                </div>
               </div>
             </div>
 
