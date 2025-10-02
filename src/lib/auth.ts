@@ -16,23 +16,29 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  // Hook to create wallet for new users
-  async afterCreateUser(user: { id: string }) {
-    try {
-      // Create a wallet for the new user
-      await prisma.wallet.create({
-        data: {
-          userId: user.id,
-          balance: 0,
-          currency: "INR",
+  // Database hooks for automatic wallet creation
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            // Create a wallet for the new user
+            await prisma.wallet.create({
+              data: {
+                userId: user.id,
+                balance: 0,
+                currency: "INR",
+              },
+            });
+            console.log(`Wallet created for new user: ${user.id}`);
+          } catch (error) {
+            console.error("Failed to create wallet for new user:", error);
+            // Don't throw the error to prevent user creation from failing
+            // The wallet will be created when needed in the payment flow
+          }
         },
-      });
-      console.log(`Wallet created for new user: ${user.id}`);
-    } catch (error) {
-      console.error("Failed to create wallet for new user:", error);
-      // Don't throw the error to prevent user creation from failing
-      // The wallet will be created when needed in the payment flow
-    }
+      },
+    },
   },
   emailAndPassword: {
     enabled: true,

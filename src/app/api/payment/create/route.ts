@@ -143,21 +143,16 @@ export async function POST(request: NextRequest) {
           throw new Error("Order ID collision detected - please try again")
         }
         
-        // Ensure wallet exists for the user
-        let wallet = await tx.wallet.findUnique({
-          where: { userId: userId }
+        // Ensure wallet exists for the user using upsert operation
+        const wallet = await tx.wallet.upsert({
+          where: { userId: userId },
+          update: {}, // No update needed if wallet exists
+          create: {
+            userId: userId,
+            balance: 0,
+            currency: "INR",
+          },
         })
-        
-        if (!wallet) {
-          // Create wallet if it doesn't exist
-          wallet = await tx.wallet.create({
-            data: {
-              userId: userId,
-              balance: 0,
-              currency: "INR",
-            },
-          })
-        }
         
         // Store payment details in database
         const payment = await tx.payment.create({
