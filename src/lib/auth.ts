@@ -5,6 +5,8 @@ import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
 import { prisma } from "./prisma";
 import { oauthSecurity, OAuthErrorHandler } from "./oauth-security";
+import { headers } from "next/headers";
+import type { Session } from "better-auth";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -226,3 +228,18 @@ export const auth = betterAuth({
     }),
   ],
 });
+
+// Server-side session helper for API routes
+export async function getServerSession(): Promise<Session | null> {
+  try {
+    // Get session from Better Auth using headers
+    const result = await auth.api.getSession({
+      headers: await headers(),
+    });
+    // Extract just the session part from the response
+    return result?.session || null;
+  } catch (error) {
+    console.error("Error getting server session:", error);
+    return null;
+  }
+}

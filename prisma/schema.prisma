@@ -37,6 +37,9 @@ model User {
   accounts       Account[]
   rewardServices UserRewardService[]
   calculations   RewardCalculation[]
+  wallet        Wallet?
+  payments       Payment[]
+  transactions   Transaction[]
 
   banExpires DateTime?
 
@@ -156,4 +159,82 @@ model RewardCalculation {
   userService UserRewardService @relation(fields: [userServiceId], references: [id], onDelete: Cascade)
 
   @@map("reward_calculation")
+}
+
+// Payment System Models
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRADE_BUY
+  TRADE_SELL
+  REWARD
+  REFUND
+}
+
+model Wallet {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  balance       Float    @default(0.0)
+  currency      String   @default("INR")
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @default(now()) @db.Timestamptz @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  payments     Payment[]
+
+  @@map("wallet")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  amount          Float
+  currency        String        @default("INR")
+  status          PaymentStatus @default(PENDING)
+  provider        String        @default("KUKUPAY")
+  providerOrderId String?       @unique
+  paymentUrl      String?
+  phone           String?
+  webhookReceived Boolean       @default(false)
+  metadata        Json?
+  createdAt       DateTime      @default(now()) @db.Timestamptz
+  updatedAt       DateTime      @default(now()) @db.Timestamptz @updatedAt
+  completedAt     DateTime?     @db.Timestamptz
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "payment_user_fkey")
+  wallet Wallet? @relation(fields: [userId], references: [userId], map: "payment_wallet_fkey")
+
+  @@map("payment")
+}
+
+model Transaction {
+  id            String           @id @default(cuid())
+  userId        String
+  walletId      String
+  amount        Float
+  currency      String           @default("INR")
+  type          TransactionType
+  status        String           @default("COMPLETED")
+  description   String?
+  referenceId   String?          // Payment ID, Trade ID, etc.
+  metadata      Json?
+  createdAt     DateTime         @default(now()) @db.Timestamptz
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet  Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("transaction")
 }

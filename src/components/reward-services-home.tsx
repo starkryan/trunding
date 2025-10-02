@@ -11,13 +11,13 @@ interface RewardService {
   exampleAmount: number
   exampleReward: number
   exampleQuota: number
-
 }
 
 export default function RewardServicesHome() {
   const [services, setServices] = useState<RewardService[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null)
 
   useEffect(() => {
     loadServices()
@@ -40,6 +40,39 @@ export default function RewardServicesHome() {
       setError("Network error occurred")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleBuy = async (service: RewardService) => {
+    try {
+      setIsProcessingPayment(service.id)
+      
+      // Create payment request
+      const response = await fetch("/api/payment/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceId: service.id,
+          amount: service.exampleAmount,
+          serviceName: service.name,
+        }),
+      })
+
+      const result = await response.json()
+      
+      if (result.success && result.paymentUrl) {
+        // Redirect to payment URL
+        window.location.href = result.paymentUrl
+      } else {
+        setError(result.error || "Failed to initiate payment")
+      }
+    } catch (error) {
+      console.error("Payment initiation failed:", error)
+      setError("Network error occurred while initiating payment")
+    } finally {
+      setIsProcessingPayment(null)
     }
   }
 
@@ -161,11 +194,13 @@ export default function RewardServicesHome() {
                   variant="default"
                   size="sm"
                   className="w-full mt-2"
-                  onClick={() => {
-                    window.location.href = "/trade"
-                  }}
+                  onClick={() => handleBuy(service)}
+                  disabled={isProcessingPayment === service.id}
                 >
-                  Start Trading
+                  {isProcessingPayment === service.id ? (
+                    <Spinner variant="default" size={16} className="mr-2" />
+                  ) : null}
+                  {isProcessingPayment === service.id ? "Processing..." : "Buy"}
                 </Button>
               </div>
             </div>

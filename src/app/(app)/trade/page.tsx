@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, Percent } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, Percent, CreditCard, Wallet, AlertTriangle, Loader2 } from "lucide-react";
 
 export default function TradePage() {
   const { session, loading } = useAuth();
@@ -18,12 +18,98 @@ export default function TradePage() {
   const [tradeType, setTradeType] = useState<"buy" | "sell">("buy");
   const [amount, setAmount] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState("BTC");
+  const [walletData, setWalletData] = useState<{
+    balance: number;
+    currency: string;
+    recentTransactions: any[];
+    paymentStats: any;
+  } | null>(null);
+  const [isLoadingWallet, setIsLoadingWallet] = useState(true);
+  const [isProcessingTrade, setIsProcessingTrade] = useState(false);
+  const [tradeError, setTradeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !session) {
       router.push("/signin");
     }
   }, [session, loading, router]);
+
+  // Fetch wallet data
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      try {
+        const response = await fetch("/api/wallet");
+        if (response.ok) {
+          const data = await response.json();
+          setWalletData(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch wallet data:", error);
+      } finally {
+        setIsLoadingWallet(false);
+      }
+    };
+
+    if (session) {
+      fetchWalletData();
+    }
+  }, [session]);
+
+  const handleTrade = async () => {
+    if (!amount || !selectedCrypto) {
+      setTradeError("Please enter amount and select cryptocurrency");
+      return;
+    }
+
+    const tradeAmount = parseFloat(amount);
+    if (tradeAmount <= 0) {
+      setTradeError("Please enter a valid amount");
+      return;
+    }
+
+    if (tradeType === "buy" && tradeAmount > (walletData?.balance || 0)) {
+      setTradeError("Insufficient balance for this trade");
+      return;
+    }
+
+    setIsProcessingTrade(true);
+    setTradeError(null);
+
+    try {
+      // Here you would implement the actual trading logic
+      // For now, we'll simulate a trade
+      const response = await fetch("/api/trade", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: tradeType,
+          amount: tradeAmount,
+          cryptocurrency: selectedCrypto,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Refresh wallet data
+        const walletResponse = await fetch("/api/wallet");
+        if (walletResponse.ok) {
+          const walletData = await walletResponse.json();
+          setWalletData(walletData);
+        }
+        setAmount("");
+        // Show success message (you could add a toast notification here)
+      } else {
+        setTradeError(data.error || "Trade failed");
+      }
+    } catch (error) {
+      setTradeError("Network error occurred");
+    } finally {
+      setIsProcessingTrade(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -55,6 +141,46 @@ export default function TradePage() {
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-2xl mx-auto my-8 overflow-y-auto">
         <CardContent className="px-6 space-y-6">
+          {/* Wallet Balance */}
+          <Card className="bg-muted/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Wallet className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Available Balance</h3>
+                    <p className="text-sm text-muted-foreground">For trading</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {isLoadingWallet ? (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Loading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">
+                        ₹{walletData?.balance?.toLocaleString() || "0.00"}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push("/wallet")}
+                        className="mt-1"
+                      >
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Add Funds
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Trading Panel */}
             <div className="lg:col-span-2">
@@ -125,8 +251,40 @@ export default function TradePage() {
                         </Card>
                       )}
 
-                      <Button className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700">
-                        Buy {selectedCrypto}
+                      {tradeError && (
+                        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          {tradeError}
+                        </div>
+                      )}
+
+                      {tradeType === "buy" && amount && parseFloat(amount) > (walletData?.balance || 0) && (
+                        <div className="p-3 text-sm text-amber-600 bg-amber-50 rounded-lg flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          Insufficient balance. Please add funds to continue.
+                          <Button
+                            variant="link"
+                            className="text-amber-600 underline p-0 h-auto ml-auto"
+                            onClick={() => router.push("/wallet")}
+                          >
+                            Add Funds
+                          </Button>
+                        </div>
+                      )}
+
+                      <Button
+                        className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700"
+                        onClick={handleTrade}
+                        disabled={isProcessingTrade || !!(tradeType === "buy" && amount && parseFloat(amount) > (walletData?.balance || 0))}
+                      >
+                        {isProcessingTrade ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          `Buy ${selectedCrypto}`
+                        )}
                       </Button>
                       </div>
                     </TabsContent>
@@ -188,8 +346,26 @@ export default function TradePage() {
                         </Card>
                       )}
 
-                      <Button className="w-full h-12 text-lg font-semibold bg-red-600 hover:bg-red-700">
-                        Sell {selectedCrypto}
+                      {tradeError && (
+                        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          {tradeError}
+                        </div>
+                      )}
+
+                      <Button
+                        className="w-full h-12 text-lg font-semibold bg-red-600 hover:bg-red-700"
+                        onClick={handleTrade}
+                        disabled={isProcessingTrade}
+                      >
+                        {isProcessingTrade ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          `Sell ${selectedCrypto}`
+                        )}
                       </Button>
                       </div>
                     </TabsContent>
@@ -267,6 +443,14 @@ export default function TradePage() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
                   <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-12"
+                      onClick={() => router.push("/wallet")}
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Add Funds
+                    </Button>
                     <Button variant="outline" className="w-full justify-start h-12">
                       <ArrowUpRight className="h-4 w-4 mr-2" />
                       Limit Order
