@@ -28,7 +28,7 @@ import { Switch } from "@/components/ui/switch";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { session, loading } = useAuth();
+  const { session, loading, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const id = useId();
@@ -44,7 +44,7 @@ export default function ProfilePage() {
   }, [session, loading, router]);
 
   const handleSignOut = async () => {
-    await authClient.signOut();
+    await signOut();
     router.push("/signin");
   };
 

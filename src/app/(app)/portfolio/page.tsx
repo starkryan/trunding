@@ -33,8 +33,13 @@ export default function PortfolioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <PieChart className="absolute inset-0 m-auto text-primary size-6" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -110,7 +115,7 @@ export default function PortfolioPage() {
   ];
 
   return (
-    <div className="h-screen w-full bg-background flex flex-col">
+    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       {/* Main content area with padding for mobile tabs */}
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="p-6">

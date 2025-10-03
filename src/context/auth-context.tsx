@@ -25,6 +25,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,12 +70,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshSession = async () => {
+    try {
+      const result = await authClient.getSession();
+      if (result.data?.user) {
+        setSession({
+          user: result.data.user,
+          sessionToken: result.data.session.token || "",
+        });
+      } else {
+        setSession(null);
+      }
+    } catch (error) {
+      console.error("Error refreshing session:", error);
+      setSession(null);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         session,
         loading,
         signOut,
+        refreshSession,
       }}
     >
       {children}

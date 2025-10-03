@@ -39,7 +39,7 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
-  const { session, loading } = useAuth();
+  const { session, loading, refreshSession } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,8 +96,9 @@ export default function SignInPage() {
           callbackURL: "/home",
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast.success("Welcome back!");
+            await refreshSession();
             router.push("/home");
           },
           onError: (ctx) => handleSignInError(ctx, values.email),
@@ -217,7 +218,7 @@ export default function SignInPage() {
                         <Input
                           id="email-input"
                           type="email"
-                          placeholder="you@example.com"
+                          placeholder="Enter your email"
                           autoComplete="email"
                           className="pl-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
                           aria-describedby="email-description email-error"
