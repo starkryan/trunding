@@ -21,7 +21,7 @@ import { authClient } from "@/lib/auth-client";
 import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Bell, Shield, LogOut } from "lucide-react";
+import { CreditCard, Bell, Shield, LogOut, Wallet as WalletIcon, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -31,6 +31,11 @@ export default function ProfilePage() {
   const { session, loading, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [walletData, setWalletData] = useState<{
+    balance: number;
+    currency: string;
+  } | null>(null);
+  const [isLoadingWallet, setIsLoadingWallet] = useState(true);
   const id = useId();
 
   useEffect(() => {
@@ -42,6 +47,35 @@ export default function ProfilePage() {
       router.push("/signin");
     }
   }, [session, loading, router]);
+
+  // Fetch wallet data
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      try {
+        const response = await fetch("/api/wallet");
+        if (response.ok) {
+          const data = await response.json();
+          setWalletData({
+            balance: data.wallet?.balance || 0,
+            currency: data.wallet?.currency || "INR",
+          });
+        } else if (response.status === 401) {
+          // User is not authenticated, don't show wallet data
+          console.log("User not authenticated for wallet data");
+        }
+      } catch (error) {
+        console.error("Failed to fetch wallet data:", error);
+      } finally {
+        setIsLoadingWallet(false);
+      }
+    };
+
+    if (session) {
+      fetchWalletData();
+    } else {
+      setIsLoadingWallet(false);
+    }
+  }, [session]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -91,6 +125,44 @@ export default function ProfilePage() {
                   month: 'long',
                   day: 'numeric'
                 })}</Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Wallet Balance Card */}
+          <div className="bg-muted/30 rounded-lg p-6 border border-muted-foreground/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  <WalletIcon className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Wallet Balance</h3>
+                  <p className="text-sm text-muted-foreground">Available funds</p>
+                </div>
+              </div>
+              <div className="text-right">
+                {isLoadingWallet ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Loading...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">
+                      {walletData ? `${walletData.currency} ${walletData.balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'INR 0.00'}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push("/wallet")}
+                      className="mt-1"
+                    >
+                      <CreditCard className="h-4 w-4 mr-1" />
+                      Manage
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
