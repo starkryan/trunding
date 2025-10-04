@@ -1,60 +1,22 @@
-"use client";
-
-import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Spinner } from "@/components/ui/spinner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Smartphone, Zap, Shield, Palette } from "lucide-react";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AuthButtons } from "@/components/auth-buttons";
 
-export default function HomePage() {
-  const { session, loading } = useAuth();
-  const router = useRouter();
+export default async function HomePage() {
+  // Better-auth server-side session check (following official docs)
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
 
-  useEffect(() => {
-    if (!loading) {
-      if (session) {
-        router.push("/home");
-      }
-    }
-  }, [session, loading, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background safe-top safe-bottom">
-        <div className="flex flex-col items-center space-y-4">
-          <Spinner variant="bars" size={32} className="text-primary" />
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
+  // If user is authenticated, redirect to home
+  if (session) {
+    redirect("/home");
   }
 
-  // const features = [
-  //   {
-  //     icon: Smartphone,
-  //     title: "Mobile-First",
-  //     description: "Designed specifically for mobile devices"
-  //   },
-  //   {
-  //     icon: Zap,
-  //     title: "Lightning Fast",
-  //     description: "Built with Next.js for optimal performance"
-  //   },
-  //   {
-  //     icon: Shield,
-  //     title: "Secure",
-  //     description: "Protected with modern authentication"
-  //   },
-  //   {
-  //     icon: Palette,
-  //     title: "Beautiful UI",
-  //     description: "Clean interface with shadcn/ui components"
-  //   }
-  // ];
-
+  // Show landing page for unauthenticated users
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 safe-top safe-bottom">
       {/* Main Content */}
@@ -73,21 +35,6 @@ export default function HomePage() {
             Experience the future of mobile-first web applications with seamless authentication and beautiful design.
           </p>
         </div>
-
-        {/* Features Grid
-        <div className="grid grid-cols-2 gap-4 mb-12">
-          {features.map((feature, index) => (
-            <Card key={index} className="text-center border-0 shadow-sm bg-background/50">
-              <CardContent className="p-4">
-                <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-full flex items-center justify-center">
-                  <feature.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
-                <p className="text-xs text-muted-foreground">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div> */}
 
         {/* App Preview Cards */}
         <div className="space-y-4 mb-12">
@@ -110,32 +57,8 @@ export default function HomePage() {
         </div>
 
         {/* Start Button */}
-        <div className="space-y-4">
-          <Button 
-            className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg shadow-primary/25"
-            onClick={() => router.push("/signup")}
-            size="lg"
-          >
-            <Zap className="w-5 h-5 mr-2" />
-            Get Started
-          </Button>
-          
-          <div className="text-center">
-            <p className="text-muted-foreground">
-              Already have an account?{" "}
-              <Button 
-                variant="link" 
-                className="p-0 h-auto font-semibold text-primary"
-                onClick={() => router.push("/signin")}
-              >
-                Sign In
-              </Button>
-            </p>
-          </div>
-        </div>
+        <AuthButtons />
       </div>
-
-      
     </div>
   );
 }

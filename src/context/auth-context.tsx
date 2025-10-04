@@ -33,10 +33,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+    
     const checkSession = async () => {
       try {
+        if (!mounted) return;
+        
         const result = await authClient.getSession();
         if (result.data?.user) {
           setSession({
@@ -48,15 +53,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error("Error checking session:", error);
-        setSession(null);
+        if (mounted) setSession(null);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
       }
     };
 
     checkSession();
-  }, []);
 
+    // Set up session refresh interval
+    const interval = setInterval(() => {
+      if (mounted) {
+        checkSession();
+      }
+    }, 5 * 60 * 1000); // Refresh every 5 minutes
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const signOut = async () => {
     try {
@@ -66,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error("Sign out error:", error);
       toast.error(error.message || "An unexpected error occurred during sign out.");
-      // Do not re-throw to prevent UI from breaking, just log and show toast.
     }
   };
 
@@ -91,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         session,
-        loading,
+        loading: loading && !initialized,
         signOut,
         refreshSession,
       }}

@@ -5,8 +5,6 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = getSessionCookie(request);
   
-  // Routes that should be accessible to everyone
-  
   // Routes that should only be accessible to unauthenticated users
   const authRoutes = ["/signin", "/signup"];
   const isAuthRoute = authRoutes.includes(pathname);
@@ -15,9 +13,10 @@ export async function middleware(request: NextRequest) {
   const protectedRoutes = ["/home", "/dashboard", "/market", "/portfolio", "/profile", "/trade", "/wallet"];
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   
-  // Special route for OTP verification
-
-  // Admin routes - these are handled by the separate admin middleware
+  // Root path - let server component handle authentication logic
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
 
   // If user has a session cookie and tries to access auth routes, redirect to home
   // This is optimistic - actual validation happens in the pages

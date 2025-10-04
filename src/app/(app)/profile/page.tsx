@@ -5,24 +5,18 @@ import { useRouter } from "next/navigation";
 import {
   FiUser,
   FiMail,
-  FiCalendar,
-  FiSun,
-  FiMoon,
-  FiMonitor,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
-  CardHeader,
 } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
 import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { CreditCard, Bell, Shield, LogOut, Wallet as WalletIcon, Loader2 } from "lucide-react";
+import { CreditCard, Shield, LogOut, Wallet as WalletIcon, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
