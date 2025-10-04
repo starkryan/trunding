@@ -143,7 +143,7 @@ export default function ForgotPasswordPage() {
                             <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors size-5" />
                             <Input
                               type="email"
-                              placeholder="you@example.com"
+                              placeholder="Enter your email"
                               className="pl-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
                               {...field}
                               onFocus={() => setError(null)}

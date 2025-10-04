@@ -320,7 +320,7 @@ export default function SignUpPage() {
                           <Input
                             id="name-input"
                             type="text"
-                            placeholder="John Doe"
+                            placeholder="Your full name"
                             autoComplete="name"
                             className="pl-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
                             aria-describedby="name-description name-error"
@@ -361,7 +361,7 @@ export default function SignUpPage() {
                           <Input
                             id="email-input"
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="Enter your email"
                             autoComplete="email"
                             className="pl-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
                             aria-describedby="email-description email-error"
