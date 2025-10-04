@@ -12,12 +12,13 @@ import {
   User,
   Bell,
   Search,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-type Route = `/home` | `/market` | `/trade` | `/wallet` | `/portfolio` | `/profile`;
+type Route = `/home` | `/market` | `/trade` | `/portfolio` | `/profile`;
 
 interface NavigationItem {
   href: Route;
@@ -50,12 +51,6 @@ const navigationItems: NavigationItem[] = [
     label: "Portfolio",
     icon: <PieChart className="h-5 w-5" />,
     "aria-label": "Navigate to portfolio dashboard",
-  },
-  {
-    href: "/wallet",
-    label: "Wallet",
-    icon: <Wallet className="h-5 w-5" />,
-    "aria-label": "Navigate to wallet management",
   },
   {
     href: "/profile",

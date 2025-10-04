@@ -234,9 +234,10 @@ export default function ProfilePage() {
               type="button"
               variant="outline"
               className="h-12 p-0 flex-col items-center justify-center text-xs"
+              onClick={() => router.push("/transactions")}
             >
-              <Bell className="h-4 w-4 mb-1" />
-              Notifications
+              <WalletIcon className="h-4 w-4 mb-1" />
+              Transactions
             </Button>
 
             <Button
