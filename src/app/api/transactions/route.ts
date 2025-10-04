@@ -66,6 +66,63 @@ export async function GET(request: NextRequest) {
       prisma.transaction.count({ where })
     ]);
 
+    // Also get pending payments that don't have corresponding transactions
+    const paymentWhere: any = { userId };
+    
+    if (search) {
+      paymentWhere.OR = [
+        { providerOrderId: { contains: search, mode: "insensitive" } },
+        { id: { contains: search, mode: "insensitive" } }
+      ];
+    }
+
+    // Get payments that don't have corresponding transactions
+    const pendingPayments = await prisma.payment.findMany({
+      where: {
+        ...paymentWhere,
+        NOT: {
+          id: {
+            in: await prisma.transaction.findMany({
+              where: { userId },
+              select: { referenceId: true }
+            }).then(txs => txs.map(tx => tx.referenceId).filter(Boolean))
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        amount: true,
+        currency: true,
+        status: true,
+        providerOrderId: true,
+        metadata: true,
+        createdAt: true
+      }
+    });
+
+    // Convert payments to transaction format for display
+    const paymentTransactions = pendingPayments.map(payment => ({
+      id: payment.id,
+      type: "DEPOSIT" as const,
+      amount: payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+      description: `Payment ${payment.status.toLowerCase()} - Order: ${payment.providerOrderId}`,
+      referenceId: payment.id,
+      metadata: {
+        ...(payment.metadata as Record<string, any> || {}),
+        isPayment: true,
+        providerOrderId: payment.providerOrderId
+      },
+      createdAt: payment.createdAt
+    }));
+
+    // Combine transactions and pending payments
+    const allTransactions = [...transactions, ...paymentTransactions].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
     // Get transaction statistics
     const stats = await prisma.transaction.groupBy({
       by: ["type", "status"],
@@ -100,22 +157,22 @@ export async function GET(request: NextRequest) {
       .reduce((sum, s) => sum + s._count.id, 0);
 
     return NextResponse.json({
-      transactions,
+      transactions: allTransactions,
       pagination: {
         page,
         limit,
-        total,
-        pages: Math.ceil(total / limit),
-        hasNext: page * limit < total,
+        total: total + pendingPayments.length,
+        pages: Math.ceil((total + pendingPayments.length) / limit),
+        hasNext: page * limit < (total + pendingPayments.length),
         hasPrev: page > 1
       },
       stats: {
-        totalTransactions: total,
+        totalTransactions: total + pendingPayments.length,
         totalDeposits,
         totalWithdrawals,
         totalRewards,
         completedTransactions,
-        pendingTransactions,
+        pendingTransactions: pendingPayments.length + pendingTransactions,
         failedTransactions,
         netBalance: totalDeposits - totalWithdrawals
       }
