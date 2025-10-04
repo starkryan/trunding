@@ -68,7 +68,7 @@ const navigationItems: NavigationItem[] = [
 export function MobileTopBar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/50 md:hidden">
-      <div className="flex items-center justify-between px-4 py-2 h-[44px]">
+      <div className="flex items-center justify-between px-4 py-2 h-[64px]">
         {/* Logo/Title */}
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -87,7 +87,7 @@ export function MobileBottomNavigation() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t md:hidden">
-      <div className="flex items-center justify-around py-1">
+      <div className="flex items-center justify-around py-3">
         {navigationItems.map((item) => {
           const isActive = pathname === item.href;
           return (

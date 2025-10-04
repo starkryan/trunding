@@ -25,6 +25,7 @@ import { CreditCard, Bell, Shield, LogOut, Wallet as WalletIcon, Loader2 } from 
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { InputGroup, InputGroupAddon, InputGroupText } from "@/components/ui/input-group";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function ProfilePage() {
           const data = await response.json();
           setWalletData({
             balance: data.wallet?.balance || 0,
-            currency: data.wallet?.currency || "INR",
+            currency: data.wallet?.currency || "USD",
           });
         } else if (response.status === 401) {
           // User is not authenticated, don't show wallet data
@@ -131,39 +132,29 @@ export default function ProfilePage() {
 
           {/* Wallet Balance Card */}
           <div className="bg-muted/30 rounded-lg p-6 border border-muted-foreground/20">
-            <div className="flex items-center justify-between">
+            <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <WalletIcon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Wallet Balance</h3>
-                  <p className="text-sm text-muted-foreground">Available funds</p>
-                </div>
+                <WalletIcon className="h-5 w-5 text-muted-foreground" />
+                <h3 className="text-lg font-semibold">Wallet Balance</h3>
               </div>
-              <div className="text-right">
-                {isLoadingWallet ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Loading...</span>
+              
+              {isLoadingWallet ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">Loading balance...</span>
+                </div>
+              ) : (
+                <InputGroup className="h-12">
+                  <InputGroupAddon align="inline-start">
+                    <InputGroupText>
+                      {walletData?.currency || 'USD'}
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <div className="flex-1 flex items-center px-3 text-xl font-bold">
+                    {walletData ? walletData.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                   </div>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">
-                      {walletData ? `${walletData.currency} ${walletData.balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'INR 0.00'}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push("/wallet")}
-                      className="mt-1"
-                    >
-                      <CreditCard className="h-4 w-4 mr-1" />
-                      Manage
-                    </Button>
-                  </>
-                )}
-              </div>
+                </InputGroup>
+              )}
             </div>
           </div>
 
