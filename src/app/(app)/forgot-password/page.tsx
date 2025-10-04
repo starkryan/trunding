@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { FiMail, FiArrowLeft, FiCheck, FiLock } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-hot-toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -62,15 +69,19 @@ export default function ForgotPasswordPage() {
       });
 
       if (forgotPasswordResult.error) {
-        setError(forgotPasswordResult.error.message || "Failed to send reset email. Please try again.");
+        setError(
+          forgotPasswordResult.error.message ||
+            "Failed to send reset email. Please try again."
+        );
         return;
       }
 
       setIsEmailSent(true);
       toast.success("Password reset email sent! Please check your inbox.");
-
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred. Please try again.");
+      setError(
+        err.message || "An unexpected error occurred. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -97,32 +108,33 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
-      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-md mx-auto my-8">
-        
+      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:border sm:max-w-md mx-auto my-8">
         <CardHeader className="space-y-4 px-6 pt-8 text-center flex-shrink-0">
           <div className="relative mx-auto">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center">
               <FiLock className="text-white size-7" />
             </div>
             <div className="absolute -inset-1 bg-primary/20 rounded-2xl blur-sm -z-10"></div>
           </div>
-          
+
           <div className="space-y-2">
             <CardTitle className="text-2xl font-bold bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
               Forgot Password?
             </CardTitle>
             <CardDescription className="text-base text-muted-foreground">
-              {isEmailSent 
-                ? "Check your email for reset instructions" 
-                : "Enter your email and we'll send you a reset link"
-              }
+              {isEmailSent
+                ? "Check your email for reset instructions"
+                : "Enter your email and we'll send you a reset link"}
             </CardDescription>
           </div>
         </CardHeader>
-        
+
         {!isEmailSent ? (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex-1 flex flex-col"
+            >
               <CardContent className="px-6 flex-1 flex flex-col justify-center space-y-4">
                 {error && (
                   <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg flex items-center animate-in fade-in-50">
@@ -130,14 +142,16 @@ export default function ForgotPasswordPage() {
                     {error}
                   </div>
                 )}
-                
+
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem className="space-y-2">
-                        <FormLabel className="text-base font-medium">Email Address</FormLabel>
+                        <FormLabel className="text-base font-medium">
+                          Email Address
+                        </FormLabel>
                         <FormControl>
                           <div className="relative group">
                             <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors size-5" />
@@ -156,14 +170,18 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary mt-4"
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-semibold transition-all duration-200 disabled:opacity-50 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary mt-4"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-2">
-                      <Spinner variant="bars" size={16} className="text-current" />
+                      <Spinner
+                        variant="bars"
+                        size={16}
+                        className="text-current"
+                      />
                       <span>Sending Reset Link...</span>
                     </div>
                   ) : (
@@ -174,14 +192,16 @@ export default function ForgotPasswordPage() {
                   )}
                 </Button>
               </CardContent>
-              
+
               <CardFooter className="flex flex-col space-y-4 px-6 pb-8 flex-shrink-0">
                 <div className="relative w-full my-2">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-muted-foreground/20"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm uppercase">
-                    <span className="bg-card px-3 text-muted-foreground">Remember your password?</span>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-background px-3 text-muted-foreground">
+                      Remember your password?
+                    </span>
                   </div>
                 </div>
 
@@ -203,10 +223,13 @@ export default function ForgotPasswordPage() {
                 <FiCheck className="text-green-600 size-8" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Email Sent Successfully!</h3>
+                <h3 className="text-lg font-semibold">
+                  Email Sent Successfully!
+                </h3>
                 <p className="text-muted-foreground">
-                  We've sent a password reset link to <strong>{form.getValues("email")}</strong>. 
-                  Please check your inbox and follow the instructions to reset your password.
+                  We've sent a password reset link to{" "}
+                  <strong>{form.getValues("email")}</strong>. Please check your
+                  inbox and follow the instructions to reset your password.
                 </p>
               </div>
             </div>
@@ -226,7 +249,7 @@ export default function ForgotPasswordPage() {
 
               <Button
                 type="button"
-                className="w-full h-12 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                className="w-full h-12 text-base font-semibold transition-all duration-200 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
                 onClick={() => router.push("/signin")}
               >
                 Return to Sign In

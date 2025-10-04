@@ -25,7 +25,7 @@ import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import Link from "next/link";
 
 const formSchema = z.object({
-  email: z.string().email({
+  email: z.email({
     message: "Please enter a valid email address.",
   }),
   password: z.string().min(1, {
@@ -148,7 +148,7 @@ export default function SignInPage() {
 
   return (
     <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
-      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-md mx-auto my-8">
+      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:border sm:max-w-md mx-auto my-8">
         <CardHeader className="space-y-4 px-6 pt-8 text-center flex-shrink-0">
           <div className="relative mx-auto">
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
