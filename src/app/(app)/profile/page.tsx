@@ -21,6 +21,7 @@ import { authClient } from "@/lib/auth-client";
 import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import { CreditCard, Bell, Shield, LogOut, Wallet as WalletIcon, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
@@ -89,7 +90,7 @@ export default function ProfilePage() {
       <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <Spinner variant="bars" size={64} className="text-primary mx-auto" />
             <FiUser className="absolute inset-0 m-auto text-primary size-6" />
           </div>
         </div>

@@ -198,7 +198,7 @@ export default function RewardServicesHome() {
                   disabled={isProcessingPayment === service.id}
                 >
                   {isProcessingPayment === service.id ? (
-                    <Spinner variant="default" size={16} className="mr-2" />
+                    <Spinner variant="bars" size={16} className="mr-2" />
                   ) : null}
                   {isProcessingPayment === service.id ? "Processing..." : "Buy"}
                 </Button>

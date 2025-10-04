@@ -169,7 +169,7 @@ function VerifyOTPForm() {
       <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <Spinner variant="bars" size={64} className="text-primary mx-auto" />
             <FiShield className="absolute inset-0 m-auto text-primary size-6" />
           </div>
         </div>
@@ -318,7 +318,7 @@ export default function VerifyOTPPage() {
       <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <Spinner variant="bars" size={64} className="text-primary mx-auto" />
             <FiShield className="absolute inset-0 m-auto text-primary size-6" />
           </div>
         </div>
