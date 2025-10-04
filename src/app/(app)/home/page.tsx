@@ -36,11 +36,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="w-full max-w-none rounded-none border-0 bg-background">
+      <div className="w-full">
         <div className="w-full">
-          <div className="p-6 w-full">
-      
-            
+          <div className="w-full">
             {/* Reward Services Section - Full Width */}
             <RewardServicesHome />
           </div>

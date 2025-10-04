@@ -142,18 +142,18 @@ export default function RewardServicesHome() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
-      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-6xl mx-auto my-8 overflow-y-auto">
+      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-6xl mx-auto my-4 sm:my-8 overflow-y-auto">
         
-        <CardContent className="px-4 sm:px-6 space-y-6">
+        <CardContent className="px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6">
           {/* Header Section */}
-          <div className="flex flex-col items-center space-y-4 pt-6">
+          <div className="flex flex-col items-center space-y-3 sm:space-y-4 pt-4 sm:pt-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <FaGift className="h-10 w-10 text-primary" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <FaGift className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
               </div>
             </div>
             <div className="text-center">
-              <h3 className="text-2xl font-semibold">Reward Services</h3>
+              <h3 className="text-xl sm:text-2xl font-semibold">Reward Services</h3>
               <div className="flex items-center gap-2 mt-2 justify-center">
                 <Badge variant="secondary" className="text-xs">
                   <FaStar className="h-3 w-3 mr-1" />

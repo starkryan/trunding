@@ -99,23 +99,23 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
-      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-2xl mx-auto my-8 overflow-y-auto">
+      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-2xl mx-auto my-4 sm:my-8 overflow-y-auto">
        
 
-        <CardContent className="px-6 space-y-6">
+        <CardContent className="px-4 sm:px-6 space-y-4 sm:space-y-6">
           {/* Profile Header */}
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex flex-col items-center space-y-3 sm:space-y-4">
             <div className="relative">
-              <Avatar className="w-20 h-20">
+              <Avatar className="w-16 h-16 sm:w-20 sm:h-20">
                 <AvatarImage src={session.user.image || ""} alt={session.user.name} />
-                <AvatarFallback className="text-xl">
+                <AvatarFallback className="text-lg sm:text-xl">
                   {session.user.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             </div>
             <div className="text-center">
-              <h3 className="text-xl font-semibold">{session.user.name}</h3>
-              <div className="flex items-center gap-2 mt-1">
+              <h3 className="text-lg sm:text-xl font-semibold">{session.user.name}</h3>
+              <div className="flex items-center gap-2 mt-1 justify-center">
                 <Badge variant="secondary" className="text-xs">Active since {new Date(session.user.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -126,7 +126,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Wallet Balance Card */}
-          <div className="bg-muted/30 rounded-lg p-6 border border-muted-foreground/20">
+          <div className="bg-muted/30 rounded-lg p-4 sm:p-6 border border-muted-foreground/20">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <WalletIcon className="h-5 w-5 text-muted-foreground" />
@@ -204,7 +204,7 @@ export default function ProfilePage() {
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col space-y-4 px-6 pb-8">
+        <CardFooter className="flex flex-col space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
           <div className="relative w-full my-4" role="separator" aria-label="Quick actions">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-muted-foreground/20"></div>
@@ -214,7 +214,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <Button
               type="button"
               variant="outline"
