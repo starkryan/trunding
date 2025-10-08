@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -124,8 +125,19 @@ export default function RewardServicesHome() {
   if (isLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Spinner variant="bars" size={64} className="text-primary mx-auto" />
+        <div className="text-center space-y-6">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative w-16 h-16">
+              <Image
+                src="/logo.png"
+                alt="Montra Logo"
+                fill
+                className="object-contain animate-pulse"
+                priority
+              />
+            </div>
+            <Spinner variant="bars" size={32} className="text-primary" />
+          </div>
           <p className="text-muted-foreground">Loading services...</p>
         </div>
       </div>

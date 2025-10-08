@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   FiArrowLeft,
   FiSearch,
@@ -251,11 +252,19 @@ export default function TransactionsPage() {
   if (loading || !mounted) {
     return (
       <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="relative">
-            <Spinner variant="bars" size={24} className="text-primary" />
+        <div className="text-center space-y-6">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative w-16 h-16">
+              <Image
+                src="/logo.png"
+                alt="Montra Logo"
+                fill
+                className="object-contain animate-pulse"
+                priority
+              />
+            </div>
+            <Spinner variant="bars" size={32} className="text-primary" />
           </div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
     );

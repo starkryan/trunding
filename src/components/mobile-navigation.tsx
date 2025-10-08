@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import {
   FaHome,
   FaChartLine,
@@ -66,8 +67,14 @@ export function MobileTopBar() {
       <div className="flex items-center justify-between px-4 py-2 h-[64px]">
         {/* Logo/Title */}
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <FaWallet className="h-5 w-5 text-primary-foreground" />
+          <div className="relative w-8 h-8">
+            <Image
+              src="/logo.png"
+              alt="Montra Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
           <h1 className="text-lg font-bold">Montra</h1>
         </div>

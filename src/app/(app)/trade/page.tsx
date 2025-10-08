@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, Percent, CreditCard, Wallet, AlertTriangle, Loader2 } from "lucide-react";
+import { FaArrowUp, FaArrowDown, FaChartLine, FaDollarSign, FaPercent, FaCreditCard, FaWallet, FaExclamationTriangle, FaSpinner, FaArrowRight } from "react-icons/fa";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function TradePage() {
@@ -115,10 +116,18 @@ export default function TradePage() {
   if (loading) {
     return (
       <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="relative">
-            <Spinner variant="bars" size={64} className="text-primary mx-auto" />
-            <TrendingUp className="absolute inset-0 m-auto text-primary size-6" />
+        <div className="text-center space-y-6">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative w-16 h-16">
+              <Image
+                src="/logo.png"
+                alt="Montra Logo"
+                fill
+                className="object-contain animate-pulse"
+                priority
+              />
+            </div>
+            <Spinner variant="bars" size={32} className="text-primary" />
           </div>
         </div>
       </div>
@@ -148,7 +157,7 @@ export default function TradePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Wallet className="h-6 w-6 text-primary" />
+                    <FaWallet className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">Available Balance</h3>
@@ -158,7 +167,7 @@ export default function TradePage() {
                 <div className="text-right">
                   {isLoadingWallet ? (
                     <div className="flex items-center space-x-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <FaSpinner className="h-4 w-4 animate-spin" />
                       <span className="text-sm">Loading...</span>
                     </div>
                   ) : (
@@ -172,7 +181,7 @@ export default function TradePage() {
                         onClick={() => router.push("/wallet")}
                         className="mt-1"
                       >
-                        <CreditCard className="h-4 w-4 mr-1" />
+                        <FaCreditCard className="h-4 w-4 mr-1" />
                         Add Funds
                       </Button>
                     </>
@@ -200,7 +209,7 @@ export default function TradePage() {
                         <div className="space-y-2">
                           <Label htmlFor="crypto-select">Select Cryptocurrency</Label>
                         <div className="relative group">
-                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
                           <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
                             <SelectTrigger className="h-12 pl-12 bg-muted/30 rounded-lg border border-muted-foreground/20">
                               <SelectValue placeholder="Choose cryptocurrency" />
@@ -227,7 +236,7 @@ export default function TradePage() {
                       <div className="space-y-2">
                         <Label htmlFor="amount">Amount (USD)</Label>
                         <div className="relative group">
-                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
                           <Input
                             id="amount"
                             type="number"
@@ -254,14 +263,14 @@ export default function TradePage() {
 
                       {tradeError && (
                         <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4" />
+                          <FaExclamationTriangle className="h-4 w-4" />
                           {tradeError}
                         </div>
                       )}
 
                       {tradeType === "buy" && amount && parseFloat(amount) > (walletData?.balance || 0) && (
                         <div className="p-3 text-sm text-amber-600 bg-amber-50 rounded-lg flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4" />
+                          <FaExclamationTriangle className="h-4 w-4" />
                           Insufficient balance. Please add funds to continue.
                           <Button
                             variant="link"
@@ -280,7 +289,7 @@ export default function TradePage() {
                       >
                         {isProcessingTrade ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
                             Processing...
                           </>
                         ) : (
@@ -295,7 +304,7 @@ export default function TradePage() {
                         <div className="space-y-2">
                           <Label htmlFor="crypto-select-sell">Select Cryptocurrency</Label>
                         <div className="relative group">
-                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
                           <Select value={selectedCrypto} onValueChange={setSelectedCrypto}>
                             <SelectTrigger className="h-12 pl-12 bg-muted/30 rounded-lg border border-muted-foreground/20">
                               <SelectValue placeholder="Choose cryptocurrency" />
@@ -322,7 +331,7 @@ export default function TradePage() {
                       <div className="space-y-2">
                         <Label htmlFor="amount-sell">Amount (USD)</Label>
                         <div className="relative group">
-                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
+                          <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none" />
                           <Input
                             id="amount-sell"
                             type="number"
@@ -349,7 +358,7 @@ export default function TradePage() {
 
                       {tradeError && (
                         <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4" />
+                          <FaExclamationTriangle className="h-4 w-4" />
                           {tradeError}
                         </div>
                       )}
@@ -361,7 +370,7 @@ export default function TradePage() {
                       >
                         {isProcessingTrade ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
                             Processing...
                           </>
                         ) : (
@@ -406,7 +415,7 @@ export default function TradePage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <FaChartLine className="h-4 w-4 text-green-600" />
                         <span className="text-sm">24h High</span>
                       </div>
                       <span className="font-medium text-sm">$46,234.50</span>
@@ -414,7 +423,7 @@ export default function TradePage() {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <FaArrowDown className="h-4 w-4 text-red-600" />
                         <span className="text-sm">24h Low</span>
                       </div>
                       <span className="font-medium text-sm">$44,123.80</span>
@@ -422,7 +431,7 @@ export default function TradePage() {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <FaDollarSign className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">Volume (24h)</span>
                       </div>
                       <span className="font-medium text-sm">$28.5B</span>
@@ -430,7 +439,7 @@ export default function TradePage() {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <Percent className="h-4 w-4 text-muted-foreground" />
+                        <FaPercent className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">Volatility</span>
                       </div>
                       <span className="font-medium text-sm">5.2%</span>
@@ -449,19 +458,19 @@ export default function TradePage() {
                       className="w-full justify-start h-12"
                       onClick={() => router.push("/wallet")}
                     >
-                      <CreditCard className="h-4 w-4 mr-2" />
+                      <FaCreditCard className="h-4 w-4 mr-2" />
                       Add Funds
                     </Button>
                     <Button variant="outline" className="w-full justify-start h-12">
-                      <ArrowUpRight className="h-4 w-4 mr-2" />
+                      <FaArrowRight className="h-4 w-4 mr-2" />
                       Limit Order
                     </Button>
                     <Button variant="outline" className="w-full justify-start h-12">
-                      <ArrowDownRight className="h-4 w-4 mr-2" />
+                      <FaArrowDown className="h-4 w-4 mr-2" />
                       Stop Loss
                     </Button>
                     <Button variant="outline" className="w-full justify-start h-12">
-                      <TrendingUp className="h-4 w-4 mr-2" />
+                      <FaChartLine className="h-4 w-4 mr-2" />
                       Take Profit
                     </Button>
                   </div>
@@ -487,7 +496,7 @@ export default function TradePage() {
               variant="outline"
               className="h-12 p-0 flex-col items-center justify-center text-xs"
             >
-              <ArrowUpRight className="h-4 w-4 mb-1" />
+              <FaArrowRight className="h-4 w-4 mb-1" />
               Orders
             </Button>
 
@@ -496,7 +505,7 @@ export default function TradePage() {
               variant="outline"
               className="h-12 p-0 flex-col items-center justify-center text-xs"
             >
-              <TrendingUp className="h-4 w-4 mb-1" />
+              <FaChartLine className="h-4 w-4 mb-1" />
               Analytics
             </Button>
 
@@ -505,7 +514,7 @@ export default function TradePage() {
               variant="outline"
               className="h-12 p-0 flex-col items-center justify-center text-xs"
             >
-              <DollarSign className="h-4 w-4 mb-1" />
+              <FaDollarSign className="h-4 w-4 mb-1" />
               Portfolio
             </Button>
           </div>

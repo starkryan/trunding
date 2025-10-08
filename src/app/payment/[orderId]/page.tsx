@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Spinner } from "@/components/ui/spinner"
 import toast from "react-hot-toast"
 
@@ -65,15 +66,30 @@ export default function PaymentPage({ params }: PaymentPageProps) {
           transition: 'opacity 0.3s ease-out'
         }}
       >
-        <div style={{ 
+        <div style={{
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '1rem'
+          gap: '1.5rem'
         }}>
-          <Spinner variant="bars" size={48} className="text-primary" aria-hidden="true" />
-         
+          <div style={{
+            position: 'relative',
+            width: '4rem',
+            height: '4rem'
+          }}>
+            <Image
+              src="/logo.png"
+              alt="Montra Logo"
+              fill
+              style={{
+                objectFit: 'contain',
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+              }}
+              priority
+            />
+          </div>
+          <Spinner variant="bars" size={32} className="text-primary" aria-hidden="true" />
         </div>
       </div>
 
