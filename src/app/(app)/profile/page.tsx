@@ -17,7 +17,7 @@ import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaWallet as WalletIcon, FaSpinner } from "react-icons/fa";
+import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaExchangeAlt, FaWallet, FaSpinner } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -28,12 +28,15 @@ export default function ProfilePage() {
   const { session, loading, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const id = useId();
   const [walletData, setWalletData] = useState<{
     balance: number;
     currency: string;
+    totalTransactions: number;
+    totalDeposits: number;
+    totalWithdrawals: number;
   } | null>(null);
   const [isLoadingWallet, setIsLoadingWallet] = useState(true);
-  const id = useId();
 
   useEffect(() => {
     setMounted(true);
@@ -52,13 +55,15 @@ export default function ProfilePage() {
         const response = await fetch("/api/wallet");
         if (response.ok) {
           const data = await response.json();
-          setWalletData({
-            balance: data.wallet?.balance || 0,
-            currency: data.wallet?.currency || "USD",
-          });
-        } else if (response.status === 401) {
-          // User is not authenticated, don't show wallet data
-          console.log("User not authenticated for wallet data");
+          if (data.success) {
+            setWalletData({
+              balance: data.wallet.balance,
+              currency: data.wallet.currency,
+              totalTransactions: data.stats.totalTransactions,
+              totalDeposits: data.stats.totalDeposits,
+              totalWithdrawals: data.stats.totalWithdrawals,
+            });
+          }
         }
       } catch (error) {
         console.error("Failed to fetch wallet data:", error);
@@ -69,11 +74,10 @@ export default function ProfilePage() {
 
     if (session) {
       fetchWalletData();
-    } else {
-      setIsLoadingWallet(false);
     }
   }, [session]);
 
+  
   const handleSignOut = async () => {
     await signOut();
     router.push("/signin");
@@ -138,7 +142,7 @@ export default function ProfilePage() {
           <div className="bg-muted/30 rounded-lg p-4 sm:p-6 border border-muted-foreground/20">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <WalletIcon className="h-5 w-5 text-muted-foreground" />
+                <FaWallet className="h-5 w-5 text-muted-foreground" />
                 <h3 className="text-lg font-semibold">Wallet Balance</h3>
               </div>
               
@@ -148,16 +152,39 @@ export default function ProfilePage() {
                   <span className="text-sm text-muted-foreground">Loading balance...</span>
                 </div>
               ) : (
-                <InputGroup className="h-12">
-                  <InputGroupAddon align="inline-start">
-                    <InputGroupText>
-                      {walletData?.currency || 'USD'}
-                    </InputGroupText>
-                  </InputGroupAddon>
-                  <div className="flex-1 flex items-center px-3 text-xl font-bold">
-                    {walletData ? walletData.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                <div className="space-y-3">
+                  <InputGroup className="h-12">
+                    <InputGroupAddon align="inline-start">
+                      <InputGroupText>
+                        {walletData?.currency || 'INR'}
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <div className="flex-1 flex items-center px-3 text-xl font-bold">
+                      {walletData ? walletData.balance.toLocaleString('en-IN', { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                      }) : '0.00'}
+                    </div>
+                  </InputGroup>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="bg-background/50 rounded p-2">
+                      <div className="text-muted-foreground">Total Deposits</div>
+                      <div className="font-semibold text-green-600">
+                        +₹{walletData?.totalDeposits.toLocaleString('en-IN', { 
+                          minimumFractionDigits: 2, 
+                          maximumFractionDigits: 2 
+                        }) || '0.00'}
+                      </div>
+                    </div>
+                    <div className="bg-background/50 rounded p-2">
+                      <div className="text-muted-foreground">Transactions</div>
+                      <div className="font-semibold">
+                        {walletData?.totalTransactions || 0}
+                      </div>
+                    </div>
                   </div>
-                </InputGroup>
+                </div>
               )}
             </div>
           </div>
@@ -223,24 +250,14 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
-              onClick={() => router.push("/portfolio")}
-            >
-              <FaCreditCard className="h-4 w-4" />
-              Portfolio
-            </Button>
-
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <Button
               type="button"
               variant="outline"
               className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
               onClick={() => router.push("/transactions")}
             >
-              <WalletIcon className="h-4 w-4" />
+              <FaExchangeAlt className="h-4 w-4" />
               Transactions
             </Button>
 

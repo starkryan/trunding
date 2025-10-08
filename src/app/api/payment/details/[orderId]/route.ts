@@ -19,7 +19,6 @@ export async function GET(
     const payment = await prisma.payment.findFirst({
       where: {
         providerOrderId: orderId,
-        status: "PENDING", // Only return pending payments
       },
       select: {
         id: true,
@@ -29,12 +28,13 @@ export async function GET(
         status: true,
         providerOrderId: true,
         createdAt: true,
+        completedAt: true,
       },
     })
 
     if (!payment) {
       return NextResponse.json(
-        { success: false, error: "Payment not found or already processed" },
+        { success: false, error: "Payment not found" },
         { status: 404 }
       )
     }
@@ -49,6 +49,7 @@ export async function GET(
         status: payment.status,
         orderId: payment.providerOrderId,
         createdAt: payment.createdAt,
+        completedAt: payment.completedAt,
       },
     })
   } catch (error) {

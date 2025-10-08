@@ -81,9 +81,9 @@ export async function POST(request: NextRequest) {
     const userPhone = "USER_PHONE" // Using the exact placeholder from the example
 
     // Prepare webhook and return URLs
+    const webhookUrl = process.env.WEBHOOK_URL || "http://localhost:3000/api/payment/webhook"
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || "http://localhost:3000"
-    const webhookUrl = `${baseUrl}/api/payment/webhook`
-    const returnUrl = `${baseUrl}/wallet?payment_success=true&order_id=${orderId}`
+    const returnUrl = `${baseUrl}/transactions?payment_success=true&order_id=${orderId}`
 
     // Prepare Kukupay API request - use exact format from example
     const kukupayData = {
@@ -95,35 +95,23 @@ export async function POST(request: NextRequest) {
       order_id: orderId,
     }
 
-    // Also try the exact return URL format from the example
-    const exampleReturnUrl = `https://t.me/kukupaybot?start=${orderId}`
-
     console.log("Initiating payment with Kukupay:", {
       orderId,
       amount,
       serviceId,
       webhookUrl,
       returnUrl,
-      exampleReturnUrl,
       userPhone,
       kukupayData,
     })
 
-    // Try with the example return URL first
-    const kukupayDataWithExampleReturn = {
-      ...kukupayData,
-      return_url: exampleReturnUrl,
-    }
-
-    console.log("Trying with example return URL:", kukupayDataWithExampleReturn)
-
-    // Make request to Kukupay API
+    // Make request to Kukupay API with our return URL
     const response = await fetch(KUKUPAY_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(kukupayDataWithExampleReturn),
+      body: JSON.stringify(kukupayData),
     })
 
     const kukupayResponse = await response.json()

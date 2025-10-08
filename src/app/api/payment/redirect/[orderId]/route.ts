@@ -19,27 +19,43 @@ export async function GET(
     const payment = await prisma.payment.findFirst({
       where: {
         providerOrderId: orderId,
-        status: "PENDING", // Only redirect pending payments
       },
     })
 
     if (!payment) {
       return NextResponse.json(
-        { success: false, error: "Payment not found or already processed" },
+        { success: false, error: "Payment not found" },
         { status: 404 }
       )
     }
 
-    if (!payment.paymentUrl) {
-      return NextResponse.json(
-        { success: false, error: "Payment URL not available" },
-        { status: 400 }
+    // If payment is completed, redirect to transactions page
+    if (payment.status === "COMPLETED") {
+      return NextResponse.redirect(
+        new URL("/transactions?payment_success=true&order_id=" + orderId, request.url),
+        302
       )
     }
 
-    // Perform server-side redirect to Kukupay
-    // This completely hides the Kukupay URL from the client
-    return NextResponse.redirect(payment.paymentUrl, 302)
+    // If payment is pending and has a payment URL, redirect to payment provider
+    if (payment.status === "PENDING" && payment.paymentUrl) {
+      // Perform server-side redirect to Kukupay
+      // This completely hides the Kukupay URL from the client
+      return NextResponse.redirect(payment.paymentUrl, 302)
+    }
+
+    // For failed or cancelled payments, redirect to transactions with error
+    if (payment.status === "FAILED" || payment.status === "CANCELLED") {
+      return NextResponse.redirect(
+        new URL(`/transactions?payment_error=true&order_id=${orderId}&status=${payment.status}`, request.url),
+        302
+      )
+    }
+
+    return NextResponse.json(
+      { success: false, error: "Payment URL not available" },
+      { status: 400 }
+    )
   } catch (error) {
     console.error("Error redirecting to payment:", error)
     return NextResponse.json(

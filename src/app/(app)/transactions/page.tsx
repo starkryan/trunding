@@ -56,6 +56,12 @@ interface TransactionStats {
   netBalance: number;
 }
 
+interface WalletData {
+  balance: number;
+  currency: string;
+  updatedAt: string;
+}
+
 interface Pagination {
   page: number;
   limit: number;
@@ -72,6 +78,7 @@ export default function TransactionsPage() {
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<TransactionStats | null>(null);
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -112,16 +119,27 @@ export default function TransactionsPage() {
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (searchTerm) params.append("search", searchTerm);
 
-      const response = await fetch(`/api/transactions?${params}`);
+      const [transactionsResponse, walletResponse] = await Promise.all([
+        fetch(`/api/transactions?${params}`),
+        fetch('/api/wallet')
+      ]);
       
-      if (!response.ok) {
+      if (!transactionsResponse.ok) {
         throw new Error("Failed to fetch transactions");
       }
 
-      const data = await response.json();
+      const data = await transactionsResponse.json();
       setTransactions(data.transactions);
       setStats(data.stats);
       setPagination(data.pagination);
+
+      // Fetch wallet data
+      if (walletResponse.ok) {
+        const walletData = await walletResponse.json();
+        if (walletData.success) {
+          setWalletData(walletData.wallet);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -281,6 +299,35 @@ export default function TransactionsPage() {
 
 
         <CardContent className="px-6 flex-1 flex flex-col space-y-6">
+          {/* Current Wallet Balance */}
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6 border border-primary/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Current Balance</h3>
+                <p className="text-sm text-muted-foreground mt-1">Available for withdrawal</p>
+              </div>
+              <div className="text-right">
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Spinner variant="bars" size={16} />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-3xl font-bold text-primary">
+                      ₹{walletData?.balance.toLocaleString('en-IN', { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                      }) || '0.00'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {walletData?.currency || 'INR'}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Statistics */}
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">

@@ -7,9 +7,7 @@ import Image from "next/image";
 import {
   FaHome,
   FaChartLine,
-  FaChartBar,
-  FaChartPie,
-  FaWallet,
+  FaExchangeAlt,
   FaUser,
   FaBell,
   FaSearch,
@@ -19,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-type Route = `/home` | `/market` | `/trade` | `/portfolio` | `/profile`;
+type Route = `/home` | `/market` | `/transactions` | `/profile`;
 
 interface NavigationItem {
   href: Route;
@@ -42,16 +40,10 @@ const navigationItems: NavigationItem[] = [
     "aria-label": "Navigate to market overview",
   },
   {
-    href: "/trade",
-    label: "Trade",
-    icon: <FaChartBar className="h-5 w-5" />,
-    "aria-label": "Navigate to trading interface",
-  },
-  {
-    href: "/portfolio",
-    label: "Portfolio",
-    icon: <FaChartPie className="h-5 w-5" />,
-    "aria-label": "Navigate to portfolio dashboard",
+    href: "/transactions",
+    label: "Transactions",
+    icon: <FaExchangeAlt className="h-5 w-5" />,
+    "aria-label": "Navigate to transaction history",
   },
   {
     href: "/profile",

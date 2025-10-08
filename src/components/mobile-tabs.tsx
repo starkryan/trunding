@@ -12,11 +12,11 @@ import {
   FaChartBar,
   FaUser,
   FaChartPie,
-  FaWallet
+  FaExchangeAlt
 } from "react-icons/fa";
 
 // Type-safe navigation structure following Next.js best practices
-type Route = `/home` | `/market` | `/trade` | `/wallet` | `/portfolio` | `/profile`;
+type Route = `/home` | `/market` | `/transactions` | `/profile`;
 
 interface TabItem {
   href: Route;
@@ -43,25 +43,11 @@ const tabs: TabItem[] = [
     "aria-label": "Navigate to market overview",
   },
   {
-    href: "/trade",
-    label: "Trade",
-    icon: <FaChartBar className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <FaChartBar className="h-5 w-5" aria-hidden="true" />,
-    "aria-label": "Navigate to trading interface",
-  },
-  {
-    href: "/wallet",
-    label: "Wallet",
-    icon: <FaWallet className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <FaWallet className="h-5 w-5" aria-hidden="true" />,
-    "aria-label": "Navigate to wallet management",
-  },
-  {
-    href: "/portfolio",
-    label: "Portfolio",
-    icon: <FaChartPie className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <FaChartPie className="h-5 w-5" aria-hidden="true" />,
-    "aria-label": "Navigate to portfolio dashboard",
+    href: "/transactions",
+    label: "Transactions",
+    icon: <FaExchangeAlt className="h-5 w-5" aria-hidden="true" />,
+    activeIcon: <FaExchangeAlt className="h-5 w-5" aria-hidden="true" />,
+    "aria-label": "Navigate to transaction history",
   },
   {
     href: "/profile",
