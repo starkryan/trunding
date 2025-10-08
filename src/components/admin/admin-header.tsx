@@ -4,45 +4,45 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import {
-  Bell,
-  Search,
-  User,
-  Settings,
-  HelpCircle,
-  LogOut,
-  Moon,
-  Sun,
-  Menu,
-  X,
-  ChevronDown,
-  Shield,
-  Activity,
-  Database,
-  TrendingUp,
-  Users,
-  CreditCard,
-  BarChart3,
-  FileText,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Calendar,
-  Filter,
-  Download,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
-  GraduationCap,
-  Heart,
-  Star,
-  PanelLeft,
-  PanelRight
-} from "lucide-react";
+  FaBell,
+  FaSearch,
+  FaUser,
+  FaCog,
+  FaQuestionCircle,
+  FaSignOutAlt,
+  FaMoon,
+  FaSun,
+  FaBars,
+  FaTimes,
+  FaChevronDown,
+  FaChevronLeft,
+  FaChevronRight,
+  FaShieldAlt,
+  FaChartLine,
+  FaDatabase,
+  FaUsers,
+  FaCreditCard,
+  FaChartBar,
+  FaFileAlt,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaClock,
+  FaCalendar,
+  FaFilter,
+  FaDownload,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaEye,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaBriefcase,
+  FaGraduationCap,
+  FaHeart,
+  FaStar,
+  FaColumns
+} from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -74,7 +74,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
       description: "John Doe just signed up",
       time: "2 minutes ago",
       type: "success",
-      icon: Users,
+      icon: FaUsers,
       read: false
     },
     {
@@ -83,7 +83,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
       description: "₹50,000 investment received",
       time: "1 hour ago",
       type: "success",
-      icon: CreditCard,
+      icon: FaCreditCard,
       read: false
     },
     {
@@ -92,7 +92,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
       description: "High CPU usage detected",
       time: "3 hours ago",
       type: "warning",
-      icon: AlertTriangle,
+      icon: FaExclamationTriangle,
       read: true
     }
   ]);
@@ -143,7 +143,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
             className="md:hidden"
             onClick={onMenuClick}
           >
-            <Menu className="h-5 w-5" />
+            <FaBars className="h-5 w-5" />
             <span className="sr-only">Toggle menu</span>
           </Button>
 
@@ -155,9 +155,9 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
             onClick={onSidebarCollapse}
           >
             {isSidebarCollapsed ? (
-              <PanelRight className="h-5 w-5" />
+              <FaChevronRight className="h-5 w-5" />
             ) : (
-              <PanelLeft className="h-5 w-5" />
+              <FaChevronLeft className="h-5 w-5" />
             )}
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
@@ -165,7 +165,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
           {/* Search */}
           <div className="flex-1 max-w-md mx-4">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <FaSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search users, transactions, or analytics..."
@@ -182,7 +182,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <Plus className="h-4 w-4" />
+                  <FaPlus className="h-4 w-4" />
                   <span className="sr-only">Quick actions</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -190,28 +190,28 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
                 <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/admin/users")}>
-                  <User className="mr-2 h-4 w-4" />
+                  <FaUser className="mr-2 h-4 w-4" />
                   Manage Users
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/admin/transactions")}>
-                  <CreditCard className="mr-2 h-4 w-4" />
+                  <FaCreditCard className="mr-2 h-4 w-4" />
                   View Transactions
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/admin/reports")}>
-                  <FileText className="mr-2 h-4 w-4" />
+                  <FaFileAlt className="mr-2 h-4 w-4" />
                   Generate Report
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/admin/reward-services")}>
-                  <TrendingUp className="mr-2 h-4 w-4" />
+                  <FaChartLine className="mr-2 h-4 w-4" />
                   Reward Services
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/admin/analytics")}>
-                  <BarChart3 className="mr-2 h-4 w-4" />
+                  <FaChartBar className="mr-2 h-4 w-4" />
                   View Analytics
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/admin/security")}>
-                  <Shield className="mr-2 h-4 w-4" />
+                  <FaShieldAlt className="mr-2 h-4 w-4" />
                   Security Settings
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -223,8 +223,8 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
               size="icon"
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <FaSun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <FaMoon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
 
@@ -232,7 +232,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-4 w-4" />
+                  <FaBell className="h-4 w-4" />
                   {unreadCount > 0 && (
                     <Badge
                       variant="destructive"
@@ -249,7 +249,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
                 <DropdownMenuSeparator />
                 {notifications.length === 0 ? (
                   <div className="px-4 py-8 text-center text-muted-foreground">
-                    <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <FaBell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>No notifications</p>
                   </div>
                 ) : (
@@ -319,7 +319,7 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
                       <p className="text-xs text-muted-foreground">{session.user.email}</p>
                       {session.user.emailVerified && (
                         <Badge variant="secondary" className="w-fit text-xs">
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                          <FaCheckCircle className="w-3 h-3 mr-1" />
                           Verified
                         </Badge>
                       )}
@@ -327,20 +327,20 @@ export default function AdminHeader({ onMenuClick, onSidebarCollapse, isSidebarC
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push("/profile")}>
-                    <User className="mr-2 h-4 w-4" />
+                    <FaUser className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push("/admin/settings")}>
-                    <Settings className="mr-2 h-4 w-4" />
+                    <FaCog className="mr-2 h-4 w-4" />
                     <span>Admin Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <HelpCircle className="mr-2 h-4 w-4" />
+                    <FaQuestionCircle className="mr-2 h-4 w-4" />
                     <span>Help & Support</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <FaSignOutAlt className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

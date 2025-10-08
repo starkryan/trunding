@@ -16,7 +16,7 @@ import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { CreditCard, Shield, LogOut, Wallet as WalletIcon, Loader2 } from "lucide-react";
+import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaWallet as WalletIcon, FaSpinner } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -135,7 +135,7 @@ export default function ProfilePage() {
               
               {isLoadingWallet ? (
                 <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <FaSpinner className="h-4 w-4 animate-spin mr-2" />
                   <span className="text-sm text-muted-foreground">Loading balance...</span>
                 </div>
               ) : (
@@ -218,29 +218,29 @@ export default function ProfilePage() {
             <Button
               type="button"
               variant="outline"
-              className="h-12 p-0 flex-col items-center justify-center text-xs"
+              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
               onClick={() => router.push("/portfolio")}
             >
-              <CreditCard className="h-4 w-4 mb-1" />
+              <FaCreditCard className="h-4 w-4" />
               Portfolio
             </Button>
 
             <Button
               type="button"
               variant="outline"
-              className="h-12 p-0 flex-col items-center justify-center text-xs"
+              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
               onClick={() => router.push("/transactions")}
             >
-              <WalletIcon className="h-4 w-4 mb-1" />
+              <WalletIcon className="h-4 w-4" />
               Transactions
             </Button>
 
             <Button
               type="button"
               variant="outline"
-              className="h-12 p-0 flex-col items-center justify-center text-xs"
+              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
             >
-              <Shield className="h-4 w-4 mb-1" />
+              <FaShieldAlt className="h-4 w-4" />
               Security
             </Button>
           </div>
@@ -251,7 +251,7 @@ export default function ProfilePage() {
             className="w-full h-12 text-base border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={handleSignOut}
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <FaSignOutAlt className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
         </CardFooter>

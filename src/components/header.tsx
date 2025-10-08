@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ChevronLeft, Bell, Search, MoreVertical, X, Home } from "lucide-react";
+import { FaArrowLeft, FaChevronLeft, FaBell, FaSearch, FaEllipsisV, FaTimes, FaHome } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -89,10 +89,10 @@ export const Header = memo(function Header({
               asChild={!onBack}
             >
               {onBack ? (
-                <ChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
+                <FaChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
               ) : (
                 <Link href={backHref || "/home"}>
-                  <ChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
+                  <FaChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
                 </Link>
               )}
             </Button>
@@ -127,7 +127,7 @@ export const Header = memo(function Header({
                 size="icon-sm"
                 className="h-8 w-8 md:h-9 md:w-9"
               >
-                <MoreVertical className="h-5 w-5 md:h-6 md:w-6" />
+                <FaEllipsisV className="h-5 w-5 md:h-6 md:w-6" />
               </Button>
             )}
           </div>

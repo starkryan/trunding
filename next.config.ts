@@ -10,18 +10,13 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
     images: {
-    domains: ['images.unsplash.com'],
+    domains: ['bc.imgix.net'],
     // Or use remotePatterns for better security (recommended)
     remotePatterns: [
+   
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'plus.unsplash.com',
+        hostname: 'bc.imgix.net',
         port: '',
         pathname: '/**',
       }

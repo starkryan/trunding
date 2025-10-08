@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FaGift, FaChartLine, FaRupeeSign, FaCoins, FaBolt, FaShieldAlt, FaClock, FaStar, FaArrowRight } from "react-icons/fa"
+import { FaChartLine, FaRupeeSign, FaCoins, FaBolt, FaShieldAlt, FaClock, FaArrowRight, FaFilter } from "react-icons/fa"
 
 interface RewardService {
   id: string
@@ -15,11 +15,27 @@ interface RewardService {
   exampleQuota: number
 }
 
+interface PriceTab {
+  id: string
+  name: string
+  min: number
+  max: number
+  color: string
+}
+
+const priceTabs: PriceTab[] = [
+  { id: "all", name: "All", min: 0, max: Infinity, color: "bg-primary text-primary-foreground border-primary" },
+  { id: "low", name: "₹300-₹1K", min: 300, max: 1000, color: "bg-primary text-primary-foreground border-primary" },
+  { id: "medium", name: "₹1K-₹10K", min: 1000, max: 10000, color: "bg-primary text-primary-foreground border-primary" },
+  { id: "high", name: "₹10K+", min: 10000, max: Infinity, color: "bg-primary text-primary-foreground border-primary" },
+]
+
 export default function RewardServicesHome() {
   const [services, setServices] = useState<RewardService[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null)
+  const [selectedTab, setSelectedTab] = useState<string>("all")
 
   useEffect(() => {
     loadServices()
@@ -87,15 +103,30 @@ export default function RewardServicesHome() {
     return ((reward / amount) * 100).toFixed(1)
   }
 
+  const getFilteredServices = (): RewardService[] => {
+    if (selectedTab === "all") return services
+
+    const tab = priceTabs.find(t => t.id === selectedTab)
+    if (!tab) return services
+
+    return services.filter(service =>
+      service.exampleAmount >= tab.min && service.exampleAmount < tab.max
+    )
+  }
+
+  const getTabCount = (tab: PriceTab): number => {
+    if (tab.id === "all") return services.length
+    return services.filter(service =>
+      service.exampleAmount >= tab.min && service.exampleAmount < tab.max
+    ).length
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="relative">
-            <Spinner variant="bars" size={64} className="text-primary mx-auto" />
-            <FaGift className="absolute inset-0 m-auto size-6 text-primary" />
-          </div>
-          <p className="text-muted-foreground">Loading reward services...</p>
+          <Spinner variant="bars" size={64} className="text-primary mx-auto" />
+          <p className="text-muted-foreground">Loading services...</p>
         </div>
       </div>
     )
@@ -106,9 +137,6 @@ export default function RewardServicesHome() {
       <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-lg">
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-              <FaGift className="h-8 w-8 text-destructive" />
-            </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Unable to load services</h3>
               <p className="text-muted-foreground text-sm">{error}</p>
@@ -122,17 +150,16 @@ export default function RewardServicesHome() {
     )
   }
 
+  const filteredServices = getFilteredServices()
+
   if (services.length === 0) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-lg">
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
-              <FaGift className="h-8 w-8 text-muted-foreground" />
-            </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">No Services Available</h3>
-              <p className="text-muted-foreground text-sm">Check back soon for exciting rewards!</p>
+              <p className="text-muted-foreground text-sm">Check back soon!</p>
             </div>
           </CardContent>
         </Card>
@@ -145,38 +172,71 @@ export default function RewardServicesHome() {
       <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-6xl mx-auto my-4 sm:my-8 overflow-y-auto">
         
         <CardContent className="px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6">
-          {/* Header Section */}
-          <div className="flex flex-col items-center space-y-3 sm:space-y-4 pt-4 sm:pt-6">
-            <div className="relative">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <FaGift className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-              </div>
+          {/* Price Tabs */}
+          <div className="pt-4 sm:pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <FaFilter className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold text-muted-foreground">Filter by Investment Amount</h3>
             </div>
-            <div className="text-center">
-              <h3 className="text-xl sm:text-2xl font-semibold">Reward Services</h3>
-              <div className="flex items-center gap-2 mt-2 justify-center">
-                <Badge variant="secondary" className="text-xs">
-                  <FaStar className="h-3 w-3 mr-1" />
-                  {services.length} Premium Services
-                </Badge>
-              </div>
+
+            <div className="flex flex-wrap gap-2">
+              {priceTabs.map((tab) => {
+                const count = getTabCount(tab)
+                const isActive = selectedTab === tab.id
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setSelectedTab(tab.id)}
+                    className={`
+                      inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                      ${isActive
+                        ? tab.color + " border shadow-sm"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted border border-transparent"
+                      }
+                    `}
+                  >
+                    {tab.name}
+                    <span className={`
+                      inline-flex items-center justify-center w-5 h-5 text-xs rounded-full
+                      ${isActive
+                        ? "bg-white/80"
+                        : "bg-muted-foreground/20"
+                      }
+                    `}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
           {/* Services Section */}
           <div className="space-y-4">
-            <div className="relative my-6" role="separator">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-muted-foreground/20"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-background px-3 text-muted-foreground">Available Services</span>
-              </div>
-            </div>
 
             {/* Services List */}
             <div className="space-y-4">
-              {services.map((service) => {
+              {filteredServices.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="pt-6 text-center space-y-4">
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">No Services in This Range</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Try selecting a different price range to see available services.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => setSelectedTab("all")}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Show All Services
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredServices.map((service) => {
                 const roi = calculateROI(service.exampleAmount, service.exampleReward)
                 
                 return (
@@ -255,7 +315,8 @@ export default function RewardServicesHome() {
                     </CardContent>
                   </Card>
                 )
-              })}
+                })
+              )}
             </div>
           </div>
         </CardContent>

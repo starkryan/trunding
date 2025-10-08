@@ -4,16 +4,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import {
-  Home,
-  TrendingUp,
-  BarChart3,
-  PieChart,
-  Wallet,
-  User,
-  Bell,
-  Search,
-  CreditCard,
-} from "lucide-react";
+  FaHome,
+  FaChartLine,
+  FaChartBar,
+  FaChartPie,
+  FaWallet,
+  FaUser,
+  FaBell,
+  FaSearch,
+  FaCreditCard,
+} from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,31 +31,31 @@ const navigationItems: NavigationItem[] = [
   {
     href: "/home",
     label: "Home",
-    icon: <Home className="h-5 w-5" />,
+    icon: <FaHome className="h-5 w-5" />,
     "aria-label": "Navigate to home",
   },
   {
     href: "/market",
     label: "Market",
-    icon: <TrendingUp className="h-5 w-5" />,
+    icon: <FaChartLine className="h-5 w-5" />,
     "aria-label": "Navigate to market overview",
   },
   {
     href: "/trade",
     label: "Trade",
-    icon: <BarChart3 className="h-5 w-5" />,
+    icon: <FaChartBar className="h-5 w-5" />,
     "aria-label": "Navigate to trading interface",
   },
   {
     href: "/portfolio",
     label: "Portfolio",
-    icon: <PieChart className="h-5 w-5" />,
+    icon: <FaChartPie className="h-5 w-5" />,
     "aria-label": "Navigate to portfolio dashboard",
   },
   {
     href: "/profile",
     label: "Profile",
-    icon: <User className="h-5 w-5" />,
+    icon: <FaUser className="h-5 w-5" />,
     "aria-label": "Navigate to user profile",
   },
 ];
@@ -67,7 +67,7 @@ export function MobileTopBar() {
         {/* Logo/Title */}
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Wallet className="h-5 w-5 text-primary-foreground" />
+            <FaWallet className="h-5 w-5 text-primary-foreground" />
           </div>
           <h1 className="text-lg font-bold">Montra</h1>
         </div>
@@ -90,7 +90,7 @@ export function MobileBottomNavigation() {
               key={item.href}
               variant="ghost"
               className={cn(
-                "flex flex-col items-center space-y-0.5 h-auto py-1.5 px-2 min-w-[48px]",
+                "flex flex-col items-center space-y-1 h-auto py-2 px-2 min-w-[48px]",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-primary"

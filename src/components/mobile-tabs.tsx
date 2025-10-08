@@ -7,13 +7,13 @@ import { useAuth } from "@/context/auth-context";
 // import { useLinkStatus } from "next/link"; // Removed due to hooks order issues
 import { memo, useState, useCallback } from "react";
 import {
-  Home,
-  TrendingUp,
-  BarChart3,
-  User,
-  PieChart,
-  Wallet
-} from "lucide-react";
+  FaHome,
+  FaChartLine,
+  FaChartBar,
+  FaUser,
+  FaChartPie,
+  FaWallet
+} from "react-icons/fa";
 
 // Type-safe navigation structure following Next.js best practices
 type Route = `/home` | `/market` | `/trade` | `/wallet` | `/portfolio` | `/profile`;
@@ -31,43 +31,43 @@ const tabs: TabItem[] = [
   {
     href: "/home",
     label: "Home",
-    icon: <Home className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <Home className="h-5 w-5" aria-hidden="true" />,
+    icon: <FaHome className="h-5 w-5" aria-hidden="true" />,
+    activeIcon: <FaHome className="h-5 w-5" aria-hidden="true" />,
     "aria-label": "Navigate to home dashboard",
   },
   {
     href: "/market",
     label: "Market",
-    icon: <TrendingUp className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <TrendingUp className="h-5 w-5" aria-hidden="true" />,
+    icon: <FaChartLine className="h-5 w-5" aria-hidden="true" />,
+    activeIcon: <FaChartLine className="h-5 w-5" aria-hidden="true" />,
     "aria-label": "Navigate to market overview",
   },
   {
     href: "/trade",
     label: "Trade",
-    icon: <BarChart3 className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <BarChart3 className="h-5 w-5" aria-hidden="true" />,
+    icon: <FaChartBar className="h-5 w-5" aria-hidden="true" />,
+    activeIcon: <FaChartBar className="h-5 w-5" aria-hidden="true" />,
     "aria-label": "Navigate to trading interface",
   },
   {
     href: "/wallet",
     label: "Wallet",
-    icon: <Wallet className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <Wallet className="h-5 w-5" aria-hidden="true" />,
+    icon: <FaWallet className="h-5 w-5" aria-hidden="true" />,
+    activeIcon: <FaWallet className="h-5 w-5" aria-hidden="true" />,
     "aria-label": "Navigate to wallet management",
   },
   {
     href: "/portfolio",
     label: "Portfolio",
-    icon: <PieChart className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <PieChart className="h-5 w-5" aria-hidden="true" />,
+    icon: <FaChartPie className="h-5 w-5" aria-hidden="true" />,
+    activeIcon: <FaChartPie className="h-5 w-5" aria-hidden="true" />,
     "aria-label": "Navigate to portfolio dashboard",
   },
   {
     href: "/profile",
     label: "Profile",
-    icon: <User className="h-5 w-5" aria-hidden="true" />,
-    activeIcon: <User className="h-5 w-5" aria-hidden="true" />,
+    icon: <FaUser className="h-5 w-5" aria-hidden="true" />,
+    activeIcon: <FaUser className="h-5 w-5" aria-hidden="true" />,
     "aria-label": "Navigate to user profile",
   },
 ] as const;

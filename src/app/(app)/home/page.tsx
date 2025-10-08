@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Bitcoin } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import RewardServicesHome from "@/components/reward-services-home";
+import Banner from "@/components/banner";
+import RecentWins from "@/components/recent-wins";
 
 export default function HomePage() {
   const { session, loading } = useAuth();
@@ -39,6 +41,12 @@ export default function HomePage() {
       <div className="w-full">
         <div className="w-full">
           <div className="w-full">
+            {/* Banner Section */}
+            <Banner />
+
+            {/* Recent Big Wins Section */}
+            <RecentWins />
+
             {/* Reward Services Section - Full Width */}
             <RewardServicesHome />
           </div>
