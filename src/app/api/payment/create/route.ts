@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     // Prepare webhook and return URLs
     const webhookUrl = process.env.WEBHOOK_URL || "http://localhost:3000/api/payment/webhook"
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || "http://localhost:3000"
-    const returnUrl = `${baseUrl}/transactions?payment_success=true&order_id=${orderId}`
+    const returnUrl = `${baseUrl}/home?payment_success=true&order_id=${orderId}`
 
     // Prepare Kukupay API request - use exact format from example
     const kukupayData = {

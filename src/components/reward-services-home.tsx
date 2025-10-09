@@ -191,7 +191,7 @@ export default function RewardServicesHome() {
               <h3 className="text-sm font-semibold text-muted-foreground">Filter by Investment Amount</h3>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 no-scrollbar">
               {priceTabs.map((tab) => {
                 const count = getTabCount(tab)
                 const isActive = selectedTab === tab.id
@@ -201,7 +201,7 @@ export default function RewardServicesHome() {
                     key={tab.id}
                     onClick={() => setSelectedTab(tab.id)}
                     className={`
-                      inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                      inline-flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0
                       ${isActive
                         ? tab.color + " border shadow-sm"
                         : "bg-muted/50 text-muted-foreground hover:bg-muted border border-transparent"

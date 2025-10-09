@@ -28,11 +28,37 @@ export default function HomePage() {
     const orderId = searchParams.get("order_id");
 
     if (paymentSuccess === "true" && orderId) {
-      toast.success(`Payment completed successfully! Order: ${orderId}`, {
-        duration: 5000,
-        position: "top-center",
-        icon: "✅"
-      });
+      // Clear any existing toasts first to prevent duplicates
+      toast.dismiss();
+
+      // Show user-friendly success notification
+      toast.success(
+        (
+          <div className="text-left">
+            <div className="font-semibold text-lg mb-1">Payment Successful!</div>
+            <div className="text-sm opacity-90">Your account has been credited successfully</div>
+          </div>
+        ),
+        {
+          duration: 6000,
+          position: "top-center",
+          style: {
+            background: '#10b981',
+            color: '#ffffff',
+            fontWeight: '400',
+            padding: '20px 24px',
+            borderRadius: '12px',
+            minWidth: '320px',
+            fontSize: '14px',
+            lineHeight: '1.5',
+          },
+          iconTheme: {
+            primary: '#ffffff',
+            secondary: '#10b981',
+          },
+          id: `payment-success-${orderId}`, // Unique ID to prevent duplicates
+        }
+      );
 
       // Clean URL parameters after showing notification
       const cleanUrl = window.location.pathname;

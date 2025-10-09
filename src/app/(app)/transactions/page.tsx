@@ -105,6 +105,7 @@ export default function TransactionsPage() {
     }
   }, [session, currentPage, typeFilter, statusFilter, searchTerm]);
 
+  
   const fetchTransactions = async () => {
     try {
       setIsLoading(true);

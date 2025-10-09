@@ -18,6 +18,19 @@ export async function POST(request: NextRequest) {
 
     console.log("Parsed Kukupay webhook:", webhookData)
 
+    // If the data is a JSON string in the 'data' parameter, parse it
+    let parsedData = webhookData
+    if (webhookData.data && typeof webhookData.data === 'string') {
+      try {
+        parsedData = JSON.parse(webhookData.data)
+        console.log("Parsed JSON data from webhook:", parsedData)
+      } catch (error) {
+        console.error("Failed to parse JSON data from webhook:", error)
+        // Fall back to original data if JSON parsing fails
+        parsedData = webhookData
+      }
+    }
+
     // Extract relevant data from webhook
     const {
       order_id,
@@ -25,7 +38,7 @@ export async function POST(request: NextRequest) {
       amount,
       transaction_id,
       payment_id
-    } = webhookData
+    } = parsedData
 
     if (!order_id) {
       console.error("Webhook missing order_id")
@@ -59,14 +72,15 @@ export async function POST(request: NextRequest) {
     let transactionType: "DEPOSIT" | "WITHDRAWAL" | "TRADE_BUY" | "TRADE_SELL" | "REWARD" | "REFUND" = "DEPOSIT"
     let transactionDescription = ""
 
-    if (status === "success" || status === "completed") {
+    // Kukupay sends status as numeric (200 for success)
+    if (status === "success" || status === "completed" || status === 200 || status === "200") {
       paymentStatus = "COMPLETED"
       transactionDescription = `Payment completed for order ${order_id}`
-    } else if (status === "failed") {
+    } else if (status === "failed" || status === "failure") {
       paymentStatus = "FAILED"
       transactionType = "REFUND"
       transactionDescription = `Payment failed for order ${order_id}`
-    } else if (status === "cancelled") {
+    } else if (status === "cancelled" || status === "cancel") {
       paymentStatus = "CANCELLED"
       transactionType = "REFUND"
       transactionDescription = `Payment cancelled for order ${order_id}`
@@ -80,7 +94,7 @@ export async function POST(request: NextRequest) {
         webhookReceived: true,
         metadata: {
           ...(payment.metadata as Record<string, any> || {}),
-          webhookData: webhookData,
+          webhookData: parsedData,
           transactionId: transaction_id,
           paymentId: payment_id,
         },
