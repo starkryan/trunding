@@ -17,7 +17,7 @@ import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaExchangeAlt, FaWallet, FaSpinner } from "react-icons/fa";
+import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaExchangeAlt, FaWallet, FaSpinner, FaFileContract, FaLock } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -268,6 +268,37 @@ export default function ProfilePage() {
             >
               <FaShieldAlt className="h-4 w-4" />
               Security
+            </Button>
+          </div>
+
+          <div className="relative w-full my-4" role="separator" aria-label="Legal & Support">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-muted-foreground/20"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-background px-3 text-muted-foreground">Legal & Support</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
+              onClick={() => router.push("/terms")}
+            >
+              <FaFileContract className="h-4 w-4" />
+              Terms of Service
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
+              onClick={() => router.push("/privacy")}
+            >
+              <FaLock className="h-4 w-4" />
+              Privacy Policy
             </Button>
           </div>
 

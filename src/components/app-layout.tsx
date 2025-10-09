@@ -3,6 +3,7 @@
 import MobileLayout from "@/components/mobile-layout";
 import { useAuth } from "@/context/auth-context";
 import { usePathname } from "next/navigation";
+import FloatingContactButton from "@/components/floating-contact-button";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -26,6 +27,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       fullHeight={true}
     >
       {children}
+      <FloatingContactButton />
     </MobileLayout>
   );
 }
