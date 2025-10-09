@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     // Get user phone number - use the exact format from the example
     // In a real implementation, you might want to add a phone field to the User model
-    const userPhone = "USER_PHONE" // Using the exact placeholder from the example
+    const userPhone = "9876543210" // Using a test phone number for demo
 
     // Prepare webhook and return URLs
     const webhookUrl = process.env.WEBHOOK_URL || "http://localhost:3000/api/payment/webhook"

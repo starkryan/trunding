@@ -4,18 +4,28 @@ import { auth } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse the webhook payload
-    const body = await request.json()
-    console.log("Received Kukupay webhook:", body)
+    // Kukupay sends URL-encoded form data, not JSON
+    const body = await request.text()
+    console.log("Received Kukupay webhook raw:", body)
+
+    // Parse URL-encoded data
+    const params = new URLSearchParams(body)
+    const webhookData: any = {}
+
+    for (const [key, value] of params.entries()) {
+      webhookData[key] = value
+    }
+
+    console.log("Parsed Kukupay webhook:", webhookData)
 
     // Extract relevant data from webhook
-    const { 
-      order_id, 
-      status, 
-      amount, 
+    const {
+      order_id,
+      status,
+      amount,
       transaction_id,
-      payment_id 
-    } = body
+      payment_id
+    } = webhookData
 
     if (!order_id) {
       console.error("Webhook missing order_id")
@@ -70,7 +80,7 @@ export async function POST(request: NextRequest) {
         webhookReceived: true,
         metadata: {
           ...(payment.metadata as Record<string, any> || {}),
-          webhookData: body,
+          webhookData: webhookData,
           transactionId: transaction_id,
           paymentId: payment_id,
         },

@@ -378,17 +378,49 @@ body {
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge Legacy */
   }
-  
-  *::-webkit-scrollbar {
-    display: none; /* WebKit browsers */
-  }
-  
+
   body {
     @apply bg-background text-foreground;
     -webkit-overflow-scrolling: touch;
     overflow: auto;
+  }
+
+  /* Production-ready scrollbar hiding for payment page */
+  .hide-scrollbars {
+    overflow: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  .hide-scrollbars::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera, Edge */
+  }
+
+  /* Payment page specific rules */
+  html.payment-page-active,
+  body.payment-page-active {
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .payment-page-no-scroll {
+    overflow: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  .payment-page-no-scroll::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera, Edge */
+  }
+
+  /* Global scrollbar hiding for specific elements */
+  .no-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera, Edge */
   }
 }

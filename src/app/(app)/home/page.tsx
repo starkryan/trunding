@@ -2,23 +2,43 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { FaBitcoin } from "react-icons/fa";
 import { Spinner } from "@/components/ui/spinner";
 import RewardServicesHome from "@/components/reward-services-home";
 import Banner from "@/components/banner";
 import RecentWins from "@/components/recent-wins";
+import toast from "react-hot-toast";
 
 export default function HomePage() {
   const { session, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!loading && !session) {
       router.push("/signin");
     }
   }, [session, loading, router]);
+
+  // Handle payment success notification
+  useEffect(() => {
+    const paymentSuccess = searchParams.get("payment_success");
+    const orderId = searchParams.get("order_id");
+
+    if (paymentSuccess === "true" && orderId) {
+      toast.success(`Payment completed successfully! Order: ${orderId}`, {
+        duration: 5000,
+        position: "top-center",
+        icon: "✅"
+      });
+
+      // Clean URL parameters after showing notification
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, "", cleanUrl);
+    }
+  }, [searchParams]);
 
   if (loading) {
     return (
