@@ -1,241 +1,260 @@
-"use client"
+import React, { useEffect, useState, useRef } from "react";
+import { motion, PanInfo, useMotionValue, useTransform } from "framer-motion";
 
-import * as React from "react"
-import useEmblaCarousel, {
-  type UseEmblaCarouselType,
-} from "embla-carousel-react"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import {
+  FiCircle,
+  FiCode,
+  FiFileText,
+  FiLayers,
+  FiLayout,
+} from "react-icons/fi";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-
-type CarouselApi = UseEmblaCarouselType[1]
-type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
-type CarouselOptions = UseCarouselParameters[0]
-type CarouselPlugin = UseCarouselParameters[1]
-
-type CarouselProps = {
-  opts?: CarouselOptions
-  plugins?: CarouselPlugin
-  orientation?: "horizontal" | "vertical"
-  setApi?: (api: CarouselApi) => void
+// Interfaces
+export interface CarouselItem {
+  title: string;
+  description: string;
+  id: number;
+  icon: React.ReactElement;
 }
 
-type CarouselContextProps = {
-  carouselRef: ReturnType<typeof useEmblaCarousel>[0]
-  api: ReturnType<typeof useEmblaCarousel>[1]
-  scrollPrev: () => void
-  scrollNext: () => void
-  canScrollPrev: boolean
-  canScrollNext: boolean
-} & CarouselProps
-
-const CarouselContext = React.createContext<CarouselContextProps | null>(null)
-
-function useCarousel() {
-  const context = React.useContext(CarouselContext)
-
-  if (!context) {
-    throw new Error("useCarousel must be used within a <Carousel />")
-  }
-
-  return context
+export interface CarouselProps {
+  items?: CarouselItem[];
+  baseWidth?: number;
+  autoplay?: boolean;
+  autoplayDelay?: number;
+  pauseOnHover?: boolean;
+  loop?: boolean;
+  round?: boolean;
 }
 
-function Carousel({
-  orientation = "horizontal",
-  opts,
-  setApi,
-  plugins,
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"div"> & CarouselProps) {
-  const [carouselRef, api] = useEmblaCarousel(
-    {
-      ...opts,
-      axis: orientation === "horizontal" ? "x" : "y",
-    },
-    plugins
-  )
-  const [canScrollPrev, setCanScrollPrev] = React.useState(false)
-  const [canScrollNext, setCanScrollNext] = React.useState(false)
+// Constants and Default Items
+const DEFAULT_ITEMS: CarouselItem[] = [
+  {
+    title: "Banner 1",
+    description: "Investment platform banner",
+    id: 1,
+    icon: <img src="/banner1.jpeg" alt="Banner 1" className="w-full h-full object-cover" />,
+  },
+  {
+    title: "Banner 2",
+    description: "Investment platform banner",
+    id: 2,
+    icon: <img src="/banner2.jpeg" alt="Banner 2" className="w-full h-full object-cover" />,
+  },
+  {
+    title: "Banner 3",
+    description: "Investment platform banner",
+    id: 3,
+    icon: <img src="/banner3.jpeg" alt="Banner 3" className="w-full h-full object-cover" />,
+  },
+];
 
-  const onSelect = React.useCallback((api: CarouselApi) => {
-    if (!api) return
-    setCanScrollPrev(api.canScrollPrev())
-    setCanScrollNext(api.canScrollNext())
-  }, [])
+const DRAG_BUFFER = 0;
+const VELOCITY_THRESHOLD = 500;
+const GAP = 16;
+const SPRING_OPTIONS = { type: "spring" as const, stiffness: 300, damping: 30 };
 
-  const scrollPrev = React.useCallback(() => {
-    api?.scrollPrev()
-  }, [api])
+// Component definition
+export const Component = ({ // Changed from export default function Carousel
+  items = DEFAULT_ITEMS,
+  baseWidth = 300,
+  autoplay = false,
+  autoplayDelay = 3000,
+  pauseOnHover = false,
+  loop = false,
+  round = false,
+}: CarouselProps): React.ReactElement => {
+  const containerPadding = 16;
+  const itemWidth = baseWidth - containerPadding * 2;
+  const trackItemOffset = itemWidth + GAP;
 
-  const scrollNext = React.useCallback(() => {
-    api?.scrollNext()
-  }, [api])
+  // If loop is true, a clone of the first item is added to the end for seamless transition.
+  const carouselItems = loop ? [...items, items[0]] : items;
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const x = useMotionValue(0);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isResetting, setIsResetting] = useState<boolean>(false);
 
-  const handleKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === "ArrowLeft") {
-        event.preventDefault()
-        scrollPrev()
-      } else if (event.key === "ArrowRight") {
-        event.preventDefault()
-        scrollNext()
-      }
-    },
-    [scrollPrev, scrollNext]
-  )
-
-  React.useEffect(() => {
-    if (!api || !setApi) return
-    setApi(api)
-  }, [api, setApi])
-
-  React.useEffect(() => {
-    if (!api) return
-    onSelect(api)
-    api.on("reInit", onSelect)
-    api.on("select", onSelect)
-
-    return () => {
-      api?.off("select", onSelect)
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (pauseOnHover && containerRef.current) {
+      const container = containerRef.current;
+      const handleMouseEnter = () => setIsHovered(true);
+      const handleMouseLeave = () => setIsHovered(false);
+      container.addEventListener("mouseenter", handleMouseEnter);
+      container.addEventListener("mouseleave", handleMouseLeave);
+      return () => {
+        container.removeEventListener("mouseenter", handleMouseEnter);
+        container.removeEventListener("mouseleave", handleMouseLeave);
+      };
     }
-  }, [api, onSelect])
+  }, [pauseOnHover]);
+
+  useEffect(() => {
+    if (autoplay && (!pauseOnHover || !isHovered)) {
+      const timer = setInterval(() => {
+        setCurrentIndex((prev) => {
+          // If at the last original item and looping, go to the clone.
+          if (prev === items.length - 1 && loop) {
+            return prev + 1;
+          }
+          // If at the last item (or clone if looping), loop back to start or stay.
+          if (prev === carouselItems.length - 1) {
+            return loop ? 0 : prev;
+          }
+          return prev + 1;
+        });
+      }, autoplayDelay);
+      return () => clearInterval(timer);
+    }
+  }, [
+    autoplay,
+    autoplayDelay,
+    isHovered,
+    loop,
+    items.length,
+    carouselItems.length,
+    pauseOnHover,
+  ]);
+
+  const effectiveTransition = isResetting ? { duration: 0 } : SPRING_OPTIONS;
+
+  // Handles the instant jump when the animation completes on the cloned item.
+  const handleAnimationComplete = () => {
+    if (loop && currentIndex === carouselItems.length - 1) { // If animated to the clone (which is at `items.length` index)
+      setIsResetting(true); // Disable transition for the jump
+      x.set(0); // Immediately set x position back to the first item
+      setCurrentIndex(0); // Immediately set index back to the first item
+      setTimeout(() => setIsResetting(false), 50); // Re-enable transitions after a brief moment
+    }
+  };
+
+  const handleDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ): void => {
+    const offset = info.offset.x;
+    const velocity = info.velocity.x;
+
+    if (offset < -DRAG_BUFFER || velocity < -VELOCITY_THRESHOLD) { // Drag left (swipe to next item)
+      if (loop && currentIndex === items.length - 1) { // If currently on the last original item, go to the clone
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        setCurrentIndex((prev) => Math.min(prev + 1, carouselItems.length - 1)); // Move to next, but not past the last
+      }
+    } else if (offset > DRAG_BUFFER || velocity > VELOCITY_THRESHOLD) { // Drag right (swipe to previous item)
+      if (loop && currentIndex === 0) { // If currently on the first item, loop to the last original item
+        // Note: This animation will appear to go "backwards" through all items to reach the last.
+        // For a perfectly seamless loop, a two-clone setup and more complex x.set jumps are needed.
+        setCurrentIndex(items.length - 1);
+      } else {
+        setCurrentIndex((prev) => Math.max(prev - 1, 0)); // Move to previous, but not before the first
+      }
+    }
+  };
+
+  // Drag properties for framer-motion. Constraints are applied only when not looping.
+  const dragProps = loop
+    ? {} // No specific dragConstraints when looping, relying on state updates and onAnimationComplete for boundary handling
+    : {
+        dragConstraints: {
+          left: -trackItemOffset * (carouselItems.length - 1),
+          right: 0,
+        },
+      };
 
   return (
-    <CarouselContext.Provider
-      value={{
-        carouselRef,
-        api: api,
-        opts,
-        orientation:
-          orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
-        scrollPrev,
-        scrollNext,
-        canScrollPrev,
-        canScrollNext,
+    <div
+      ref={containerRef}
+      className={`relative overflow-hidden p-4 ${
+        round
+          ? "rounded-full border border-white"
+          : ""
+      }`}
+      style={{
+        width: `${baseWidth}px`,
+        ...(round && { height: `${baseWidth}px` }),
+        maxWidth: '100vw',
       }}
     >
-      <div
-        onKeyDownCapture={handleKeyDown}
-        className={cn("relative", className)}
-        role="region"
-        aria-roledescription="carousel"
-        data-slot="carousel"
-        {...props}
+      <motion.div
+        className="flex"
+        drag="x"
+        {...dragProps}
+        style={{
+          width: itemWidth,
+          gap: `${GAP}px`,
+          perspective: 1000,
+          // Correct perspective origin calculation relative to current item
+          perspectiveOrigin: `${currentIndex * trackItemOffset + itemWidth / 2}px 50%`,
+          x, // Bind x to the useMotionValue
+        }}
+        onDragEnd={handleDragEnd}
+        animate={{ x: -(currentIndex * trackItemOffset) }} // Animate x to the current item's position
+        transition={effectiveTransition}
+        onAnimationComplete={handleAnimationComplete} // Callback when animation finishes
       >
-        {children}
-      </div>
-    </CarouselContext.Provider>
-  )
-}
-
-function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
-  const { carouselRef, orientation } = useCarousel()
-
-  return (
-    <div
-      ref={carouselRef}
-      className="overflow-hidden"
-      data-slot="carousel-content"
-    >
+        {carouselItems.map((item, index) => {
+          // Define the range for x values corresponding to the current item's position, and its neighbors
+          const range = [
+            -(index + 1) * trackItemOffset, // When the item to the right is centered
+            -index * trackItemOffset,      // When this item is centered
+            -(index - 1) * trackItemOffset, // When the item to the left is centered
+          ];
+          // Define the output range for rotateY. Item in center is 0deg, items to side are +/-90deg
+          const outputRange = [90, 0, -90];
+          const rotateY = useTransform(x, range, outputRange, { clamp: false });
+          return (
+            <motion.div
+              key={index} // Using index as key is fine here because the `carouselItems` array structure is stable and indices are unique.
+              className={`relative shrink-0 flex flex-col ${
+                round
+                  ? "items-center justify-center text-center bg-[#060606] border-0"
+                  : "items-start justify-between bg-background rounded-lg p-[2px] bg-gradient-to-r from-primary/50 via-primary to-primary/50"
+              } overflow-hidden cursor-grab active:cursor-grabbing`}
+              style={{
+                width: itemWidth,
+                height: round ? itemWidth : "100%",
+                rotateY: rotateY,
+                ...(round && { borderRadius: "50%" }),
+              }}
+              transition={effectiveTransition}
+            >
+              <div className="w-full h-full relative bg-background rounded-lg overflow-hidden">
+                {item.icon}
+              </div>
+            </motion.div>
+          );
+        })}
+      </motion.div>
       <div
-        className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className
-        )}
-        {...props}
-      />
+        className={`flex w-full justify-center ${
+          round ? "absolute z-20 bottom-12 left-1/2 -translate-x-1/2" : ""
+        }`}
+      >
+        <div className="mt-4 flex w-[150px] justify-between px-8">
+          {/* Render dots for the original number of items, mapping current index to original item index */}
+          {items.map((_, index) => (
+            <motion.div
+              key={index}
+              className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
+                currentIndex % items.length === index // Use modulo for looping dot highlight
+                  ? round
+                    ? "bg-white"
+                    : "bg-[#333333]"
+                  : round
+                    ? "bg-[#555]"
+                    : "bg-[rgba(51,51,51,0.4)]"
+              }`}
+              animate={{
+                scale: currentIndex % items.length === index ? 1.2 : 1,
+              }}
+              onClick={() => setCurrentIndex(index)} // Set current index to the clicked dot's item
+              transition={{ duration: 0.15 }}
+            />
+          ))}
+        </div>
+      </div>
     </div>
-  )
-}
-
-function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
-  const { orientation } = useCarousel()
-
-  return (
-    <div
-      role="group"
-      aria-roledescription="slide"
-      data-slot="carousel-item"
-      className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full",
-        orientation === "horizontal" ? "pl-4" : "pt-4",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function CarouselPrevious({
-  className,
-  variant = "outline",
-  size = "icon",
-  ...props
-}: React.ComponentProps<typeof Button>) {
-  const { orientation, scrollPrev, canScrollPrev } = useCarousel()
-
-  return (
-    <Button
-      data-slot="carousel-previous"
-      variant={variant}
-      size={size}
-      className={cn(
-        "absolute size-8 rounded-full",
-        orientation === "horizontal"
-          ? "top-1/2 -left-12 -translate-y-1/2"
-          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
-        className
-      )}
-      disabled={!canScrollPrev}
-      onClick={scrollPrev}
-      {...props}
-    >
-      <ArrowLeft />
-      <span className="sr-only">Previous slide</span>
-    </Button>
-  )
-}
-
-function CarouselNext({
-  className,
-  variant = "outline",
-  size = "icon",
-  ...props
-}: React.ComponentProps<typeof Button>) {
-  const { orientation, scrollNext, canScrollNext } = useCarousel()
-
-  return (
-    <Button
-      data-slot="carousel-next"
-      variant={variant}
-      size={size}
-      className={cn(
-        "absolute size-8 rounded-full",
-        orientation === "horizontal"
-          ? "top-1/2 -right-12 -translate-y-1/2"
-          : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
-        className
-      )}
-      disabled={!canScrollNext}
-      onClick={scrollNext}
-      {...props}
-    >
-      <ArrowRight />
-      <span className="sr-only">Next slide</span>
-    </Button>
-  )
-}
-
-export {
-  type CarouselApi,
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-}
+  );
+};

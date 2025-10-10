@@ -12,10 +12,13 @@ import {
   FaBell,
   FaSearch,
   FaCreditCard,
+  FaWallet,
+  FaRupeeSign,
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useWallet } from "@/hooks/use-wallet";
 
 type Route = `/home` | `/market` | `/transactions` | `/profile`;
 
@@ -54,6 +57,9 @@ const navigationItems: NavigationItem[] = [
 ];
 
 export function MobileTopBar() {
+  const { session } = useAuth();
+  const { balance, formatBalance, loading: walletLoading } = useWallet();
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/50 md:hidden">
       <div className="flex items-center justify-between px-4 py-2 h-[64px]">
@@ -70,6 +76,19 @@ export function MobileTopBar() {
           </div>
           <h1 className="text-lg font-bold">Montra</h1>
         </div>
+
+        {/* Balance Display - Only show for authenticated users */}
+        {session && (
+          <div className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950 rounded-lg border border-emerald-200 dark:border-emerald-800">
+            <FaWallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span className={cn(
+              "font-semibold text-emerald-700 dark:text-emerald-300 text-sm",
+              walletLoading && "animate-pulse"
+            )}>
+              {walletLoading ? "₹..." : formatBalance(balance)}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

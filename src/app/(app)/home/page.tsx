@@ -7,8 +7,6 @@ import Image from "next/image";
 import { FaBitcoin } from "react-icons/fa";
 import { Spinner } from "@/components/ui/spinner";
 import RewardServicesHome from "@/components/reward-services-home";
-import Banner from "@/components/banner";
-import RecentWins from "@/components/recent-wins";
 import toast from "react-hot-toast";
 
 export default function HomePage() {
@@ -92,21 +90,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="w-full">
-        <div className="w-full">
-          <div className="w-full">
-            {/* Banner Section */}
-            <Banner />
-
-            {/* Recent Big Wins Section */}
-            <RecentWins />
-
-            {/* Reward Services Section - Full Width */}
-            <RewardServicesHome />
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen w-full bg-background">
+      <RewardServicesHome />
     </div>
   );
 }

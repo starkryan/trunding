@@ -3,12 +3,13 @@
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
-import { FaArrowLeft, FaChevronLeft, FaBell, FaSearch, FaEllipsisV, FaTimes, FaHome } from "react-icons/fa";
+import { FaArrowLeft, FaChevronLeft, FaBell, FaSearch, FaEllipsisV, FaTimes, FaHome, FaWallet, FaRupeeSign } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { memo, useCallback } from "react";
 import Link from "next/link";
+import { useWallet } from "@/hooks/use-wallet";
 
 interface HeaderProps {
   title?: string;
@@ -37,6 +38,7 @@ export const Header = memo(function Header({
 }: HeaderProps) {
   const pathname = usePathname();
   const { session } = useAuth();
+  const { balance, formatBalance, loading: walletLoading } = useWallet();
 
   // Get page title from pathname if not provided
   const getPageTitle = useCallback(() => {
@@ -117,6 +119,19 @@ export const Header = memo(function Header({
         {/* Right Section - Minimal actions */}
         {showActions && (
           <div className="flex items-center space-x-1">
+            {/* Balance Display - Only show for authenticated users */}
+            {session && (
+              <div className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                <FaWallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span className={cn(
+                  "font-semibold text-emerald-700 dark:text-emerald-300 text-sm",
+                  walletLoading && "animate-pulse"
+                )}>
+                  {walletLoading ? "₹..." : formatBalance(balance)}
+                </span>
+              </div>
+            )}
+
             {/* Custom actions if provided */}
             {actions}
 

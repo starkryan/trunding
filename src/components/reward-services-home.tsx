@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FaChartLine, FaRupeeSign, FaCoins, FaBolt, FaShieldAlt, FaClock, FaArrowRight, FaFilter } from "react-icons/fa"
+import { Component as Carousel } from "@/components/ui/carousel"
+import Marquee from "react-fast-marquee"
 
 interface RewardService {
   id: string
@@ -24,6 +26,13 @@ interface PriceTab {
   color: string
 }
 
+interface RecentWin {
+  id: string
+  userName: string
+  amount: string
+  gameImage: string
+}
+
 const priceTabs: PriceTab[] = [
   { id: "all", name: "All", min: 0, max: Infinity, color: "bg-primary text-primary-foreground border-primary" },
   { id: "low", name: "₹300-₹1K", min: 300, max: 1000, color: "bg-primary text-primary-foreground border-primary" },
@@ -37,9 +46,175 @@ export default function RewardServicesHome() {
   const [error, setError] = useState<string | null>(null)
   const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null)
   const [selectedTab, setSelectedTab] = useState<string>("all")
+  const [carouselWidth, setCarouselWidth] = useState(1200)
+
+  // Recent wins data
+  const [wins] = useState<RecentWin[]>([
+    {
+      id: "1",
+      userName: "Hidden",
+      amount: "3,628 XMR",
+      gameImage: "https://bc.imgix.net/game/image/f3c529b0a2.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "2",
+      userName: "Btxsyekheucc",
+      amount: "120.3 ETH",
+      gameImage: "https://bc.imgix.net/game/image/3758_Sweet Bonanza.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "3",
+      userName: "Hidden",
+      amount: "498K USDT",
+      gameImage: "https://bc.imgix.net/game/image/13106_The Zeus vs Hades.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "4",
+      userName: "Fhdrehopoxcc",
+      amount: "381K USDT",
+      gameImage: "https://bc.imgix.net/game/image/97e458b32f.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "5",
+      userName: "Hidden",
+      amount: "1,101 XMR",
+      gameImage: "https://bc.imgix.net/game/image/15935_Sugar rush 1000.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "6",
+      userName: "BETPORTALL",
+      amount: "NGN 464.84M",
+      gameImage: "https://bc.imgix.net/game/image/8944712a5d.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "7",
+      userName: "EllieEllie",
+      amount: "218.4K USDT",
+      gameImage: "https://bc.imgix.net/game/image/c5235e23d9.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "8",
+      userName: "Hidden",
+      amount: "¥32M",
+      gameImage: "https://bc.imgix.net/game/image/e62d2fed8c.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "9",
+      userName: "CryptoKing",
+      amount: "2,847 ETH",
+      gameImage: "https://bc.imgix.net/game/image/2f2fb0a3e8.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "10",
+      userName: "Hidden",
+      amount: "892K USDT",
+      gameImage: "https://bc.imgix.net/game/image/0afd1d52b2.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "11",
+      userName: "Zyvptdiggtac",
+      amount: "119.88K USDT",
+      gameImage: "https://bc.imgix.net/game/image/aa1281b64a.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "12",
+      userName: "tony1100",
+      amount: "199.8K USDT",
+      gameImage: "https://bc.imgix.net/game/image/3660abce4d.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "13",
+      userName: "Hidden",
+      amount: "156.7 BTC",
+      gameImage: "https://bc.imgix.net/game/image/1c27672ffd.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "14",
+      userName: "Ocpyghsucycc",
+      amount: "198.8K USDT",
+      gameImage: "https://bc.imgix.net/game/image/78b232954e.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "15",
+      userName: "Hidden",
+      amount: "777.3 XRP",
+      gameImage: "https://bc.imgix.net/game/image/84a331af34.png?_v=4&auto=format&dpr=1&w=200",
+    },
+    {
+      id: "16",
+      userName: "EliteTrader",
+      amount: "3.2M USDT",
+      gameImage: "https://bc.imgix.net/game/image/15547_Land of the Free.png?_v=4&auto=format&dpr=1&w=200",
+    },
+  ])
+
+  // Recent wins component
+  const WinCard = ({ win }: { win: RecentWin }) => (
+    <div className="flex-none flex flex-col items-center w-14 hover:opacity-80 transition-opacity cursor-pointer mr-3">
+      {/* Card with Image */}
+      <div className="relative mb-1 w-full rounded-lg pt-[133%] overflow-hidden">
+        <Image
+          src={win.gameImage}
+          alt="Game"
+          fill
+          className="object-cover rounded-lg"
+          sizes="(max-width: 768px) 56px, 56px"
+          onError={(e) => {
+            // Fallback to a solid color with initials if image fails
+            const target = e.target as HTMLImageElement;
+            target.src = `https://via.placeholder.com/200x267/hsl(var(--primary))/hsl(var(--primary-foreground))?text=${win.userName.substring(0, 2).toUpperCase()}`;
+          }}
+        />
+      </div>
+
+      {/* User Info */}
+      <div className="w-[118%] text-center">
+        {/* Username */}
+        <div className="flex items-center justify-center font-extrabold text-muted-foreground text-xs">
+          <Image
+            src="https://bc.imgix.net/assets/vip/badge-diamond.png?_v=4&auto=format&dpr=1&w=20"
+            alt="VIP"
+            width={14}
+            height={14}
+            className="mr-1"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+          <span className="truncate -ml-0.5" style={{ fontSize: '10px' }}>
+            {win.userName}
+          </span>
+        </div>
+
+        {/* Amount */}
+        <div className="whitespace-nowrap text-center font-extrabold text-primary" style={{ fontSize: '10px' }}>
+          {win.amount}
+        </div>
+      </div>
+    </div>
+  )
 
   useEffect(() => {
     loadServices()
+  }, [])
+
+  useEffect(() => {
+    const updateCarouselWidth = () => {
+      // Use visual viewport width for better mobile compatibility
+      const vw = window.visualViewport?.width || window.innerWidth
+      // Ensure minimum width for desktop, but use full viewport for mobile
+      setCarouselWidth(vw)
+    }
+
+    updateCarouselWidth()
+    window.addEventListener('resize', updateCarouselWidth)
+    window.addEventListener('orientationchange', updateCarouselWidth)
+
+    return () => {
+      window.removeEventListener('resize', updateCarouselWidth)
+      window.removeEventListener('orientationchange', updateCarouselWidth)
+    }
   }, [])
 
   const loadServices = async () => {
@@ -180,9 +355,51 @@ export default function RewardServicesHome() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
-      <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-6xl mx-auto my-4 sm:my-8 overflow-y-auto">
-        
+    <div className="w-full bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Carousel Section */}
+      <div className="w-full pt-[64px] md:pt-0 relative z-10">
+        <div className="relative w-full bg-background" style={{ height: '280px', overflow: 'hidden' }}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="[&>div]:border-0 [&>div]:p-0 [&>div]:rounded-none [&>div]:bg-transparent [&>div]:pb-4 [&>div>div]:border-0 [&>div>div]:rounded-none [&>div>div]:bg-transparent w-full [&>div>div]:max-w-full [&>div>div]:mx-auto [&>div>div]:transform [&>div>div]:translate-x-0">
+              <Carousel
+                baseWidth={carouselWidth}  // Add 32px to account for carousel internal padding (16px each side)
+                autoplay={true}
+                autoplayDelay={3000}
+                pauseOnHover={true}
+                loop={true}
+                round={false}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Wins Section */}
+        <div className="px-4 pt-0 pb-4">
+          <div className="text-center mb-4">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <FaChartLine className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Recent Wins</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">See what our winners are achieving</p>
+          </div>
+          <div className="bg-background/50 backdrop-blur-sm rounded-lg border border-border/20 p-4">
+            <Marquee
+              speed={30}
+              pauseOnHover={true}
+              gradient={false}
+              className="gap-8"
+            >
+              {wins.map((win) => (
+                <WinCard key={win.id} win={win} />
+              ))}
+            </Marquee>
+          </div>
+        </div>
+
+      {/* Reward Services Section */}
+      <Card className="w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-6xl mx-auto my-4 sm:my-8 overflow-y-auto" style={{ minHeight: '500px' }}>
+
         <CardContent className="px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6">
           {/* Price Tabs */}
           <div className="pt-4 sm:pt-6">
