@@ -64,7 +64,7 @@ export default function BannerCarousel() {
   }, [emblaApi])
 
   return (
-    <div className="relative w-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 -mt-4">
+    <div className="relative w-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
       {/* Main Carousel */}
       <div className="relative" ref={emblaRef}>
         <div className="flex">

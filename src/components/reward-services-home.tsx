@@ -191,9 +191,9 @@ export default function RewardServicesHome() {
       {/* Reward Services Section */}
       <Card className="w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-6xl mx-auto my-4 sm:my-8 overflow-y-auto" style={{ minHeight: '500px' }}>
 
-        <CardContent className="px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6">
+        <CardContent className="px-3 sm:px-4 md:px-6">
           {/* Price Tabs */}
-          <div className="pt-4 sm:pt-6">
+          <div className="-mt-5">
             <div className="flex items-center gap-2 mb-4">
               <FaFilter className="h-4 w-4 text-muted-foreground" />
               <h3 className="text-sm font-semibold text-muted-foreground">Filter by Investment Amount</h3>
