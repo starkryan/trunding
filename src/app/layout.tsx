@@ -5,7 +5,6 @@ import { AuthProvider } from "@/context/auth-context";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "react-hot-toast";
 import HydrationGuard from "@/components/hydration-guard";
-import NetworkStatus from "@/components/network-status";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -113,7 +112,6 @@ export default function RootLayout({
         >
           <AuthProvider>
             <HydrationGuard>
-              <NetworkStatus />
               {children}
               <Toaster />
             </HydrationGuard>
