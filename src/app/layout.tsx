@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     default: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
     template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "Montra"}`,
   },
-  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Next.js app with better-auth integration",
+  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Montra - Investment Platform",
   keywords: ["Next.js", "React", "TypeScript", "Investment", "Platform"],
   authors: [{ name: process.env.NEXT_PUBLIC_APP_AUTHOR || "Montra Team" }],
   creator: process.env.NEXT_PUBLIC_APP_AUTHOR || "Montra Team",

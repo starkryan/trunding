@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -14,52 +8,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-  SUPER_ADMIN
-}
-
 model User {
-  id            String   @id @default(cuid())
-  name          String?
-  email         String   @unique
-  emailVerified Boolean  @default(false)
-  image         String?
-  role          Role     @default(USER)
-  banned        Boolean  @default(false)
-  banReason     String?
-  createdAt     DateTime @default(now()) @db.Timestamptz
-  updatedAt     DateTime @default(now()) @db.Timestamptz @updatedAt
-
-  // Relations
-  sessions       Session[]
-  accounts       Account[]
-  rewardServices UserRewardService[]
-  calculations   RewardCalculation[]
-  wallet        Wallet?
-  payments       Payment[]
-  transactions   Transaction[]
-
-  banExpires DateTime?
+  id                 String              @id @default(cuid())
+  name               String?
+  email              String              @unique
+  emailVerified      Boolean             @default(false)
+  image              String?
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
+  banExpires         DateTime?
+  banReason          String?
+  banned             Boolean             @default(false)
+  role               Role                @default(USER)
+  accounts           Account[]
+  payments           Payment[]
+  calculations       RewardCalculation[]
+  sessions           Session[]
+  transactions       Transaction[]
+  rewardServices     UserRewardService[]
+  wallet             Wallet?
+  withdrawalMethods  WithdrawalMethod[]
+  withdrawalRequests WithdrawalRequest[]
 
   @@map("user")
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  expiresAt DateTime @db.Timestamptz
-  token     String   @unique
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @default(now()) @db.Timestamptz
-  ipAddress String?
-  userAgent String?
-  userId    String
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id             String   @id @default(cuid())
+  expiresAt      DateTime @db.Timestamptz(6)
+  token          String   @unique
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @db.Timestamptz(6)
+  ipAddress      String?
+  userAgent      String?
+  userId         String
   impersonatedBy String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("session")
 }
@@ -72,15 +56,13 @@ model Account {
   accessToken           String?
   refreshToken          String?
   idToken               String?
-  accessTokenExpiresAt  DateTime? @db.Timestamptz
-  refreshTokenExpiresAt DateTime? @db.Timestamptz
+  accessTokenExpiresAt  DateTime? @db.Timestamptz(6)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(6)
   scope                 String?
   password              String?
-  createdAt             DateTime  @default(now()) @db.Timestamptz
-  updatedAt             DateTime  @default(now()) @db.Timestamptz
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt             DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @db.Timestamptz(6)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@map("account")
@@ -90,17 +72,15 @@ model Verification {
   id         String   @id @default(cuid())
   identifier String
   value      String
-  expiresAt  DateTime @db.Timestamptz
-  createdAt  DateTime @default(now()) @db.Timestamptz
-  updatedAt  DateTime @default(now()) @db.Timestamptz @updatedAt
+  expiresAt  DateTime @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   @@map("verification")
 }
 
-// Reward Services Models
-
 model RewardService {
-  id             String   @id @default(cuid())
+  id             String              @id @default(cuid())
   name           String
   description    String
   formula        String
@@ -108,41 +88,37 @@ model RewardService {
   exampleAmount  Float
   exampleReward  Float
   exampleQuota   Float
-  isActive       Boolean  @default(true)
+  isActive       Boolean             @default(true)
   metadata       Json?
-  createdAt      DateTime @default(now()) @db.Timestamptz
-  updatedAt      DateTime @default(now()) @db.Timestamptz @updatedAt
-
-  // Relations
-  userServices UserRewardService[]
-  calculations RewardCalculation[]
+  createdAt      DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
+  calculations   RewardCalculation[]
+  userServices   UserRewardService[]
 
   @@map("reward_service")
 }
 
 model UserRewardService {
-  id             String    @id @default(cuid())
-  userId         String
-  serviceId      String
-  totalInvested  Float     @default(0.0)
-  totalRewards   Float     @default(0.0)
-  totalQuota     Float     @default(0.0)
-  calculations   Int       @default(0)
-  lastCalculated DateTime? @db.Timestamptz
-  createdAt      DateTime  @default(now()) @db.Timestamptz
-  updatedAt      DateTime  @default(now()) @db.Timestamptz @updatedAt
-
-  // Relations
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  service            RewardService       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  id                 String              @id @default(cuid())
+  userId             String
+  serviceId          String
+  totalInvested      Float               @default(0.0)
+  totalRewards       Float               @default(0.0)
+  totalQuota         Float               @default(0.0)
+  calculations       Int                 @default(0)
+  lastCalculated     DateTime?           @db.Timestamptz(6)
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
   rewardCalculations RewardCalculation[]
+  service            RewardService       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, serviceId])
   @@map("user_reward_service")
 }
 
 model RewardCalculation {
-  id            String   @id @default(cuid())
+  id            String            @id @default(cuid())
   userId        String
   serviceId     String
   userServiceId String
@@ -151,17 +127,115 @@ model RewardCalculation {
   quota         Float
   formula       String
   metadata      Json?
-  createdAt     DateTime @default(now()) @db.Timestamptz
-
-  // Relations
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  service     RewardService     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  userService UserRewardService @relation(fields: [userServiceId], references: [id], onDelete: Cascade)
+  createdAt     DateTime          @default(now()) @db.Timestamptz(6)
+  service       RewardService     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userService   UserRewardService @relation(fields: [userServiceId], references: [id], onDelete: Cascade)
 
   @@map("reward_calculation")
 }
 
-// Payment System Models
+model Wallet {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  balance      Float         @default(0.0)
+  currency     String        @default("INR")
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  payments     Payment[]
+  transactions Transaction[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wallet")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  amount          Float
+  currency        String        @default("INR")
+  status          PaymentStatus @default(PENDING)
+  provider        String        @default("KUKUPAY")
+  providerOrderId String?       @unique
+  paymentUrl      String?
+  phone           String?
+  webhookReceived Boolean       @default(false)
+  metadata        Json?
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  completedAt     DateTime?     @db.Timestamptz(6)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade, map: "payment_user_fkey")
+  wallet          Wallet        @relation(fields: [userId], references: [userId], map: "payment_wallet_fkey")
+
+  @@map("payment")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String
+  walletId    String
+  amount      Float
+  currency    String          @default("INR")
+  type        TransactionType
+  status      String          @default("COMPLETED")
+  description String?
+  referenceId String?
+  metadata    Json?
+  createdAt   DateTime        @default(now()) @db.Timestamptz(6)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("transaction")
+}
+
+model WithdrawalMethod {
+  id                 String               @id @default(cuid())
+  userId             String
+  type               WithdrawalMethodType
+  isDefault          Boolean              @default(false)
+  isActive           Boolean              @default(true)
+  accountName        String?
+  accountNumber      String?
+  bankName           String?
+  ifscCode           String?
+  upiId              String?
+  upiName            String?
+  phoneNumber        String?
+  metadata           Json?
+  createdAt          DateTime             @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime             @default(now()) @updatedAt @db.Timestamptz(6)
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawalRequests WithdrawalRequest[]
+
+  @@map("withdrawal_method")
+}
+
+model WithdrawalRequest {
+  id                 String                  @id @default(cuid())
+  userId             String
+  withdrawalMethodId String
+  amount             Float
+  currency           String                  @default("INR")
+  status             WithdrawalRequestStatus @default(PENDING)
+  adminNotes         String?
+  processedBy        String?
+  processedAt        DateTime?               @db.Timestamptz(6)
+  transactionId      String?
+  rejectionReason    String?
+  metadata           Json?
+  createdAt          DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime                @default(now()) @updatedAt @db.Timestamptz(6)
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawalMethod   WithdrawalMethod        @relation(fields: [withdrawalMethodId], references: [id])
+
+  @@map("withdrawal_request")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
 
 enum PaymentStatus {
   PENDING
@@ -180,61 +254,16 @@ enum TransactionType {
   REFUND
 }
 
-model Wallet {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  balance       Float    @default(0.0)
-  currency      String   @default("INR")
-  createdAt     DateTime @default(now()) @db.Timestamptz
-  updatedAt     DateTime @default(now()) @db.Timestamptz @updatedAt
-
-  // Relations
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-  payments     Payment[]
-
-  @@map("wallet")
+enum WithdrawalMethodType {
+  BANK_ACCOUNT
+  UPI
 }
 
-model Payment {
-  id              String        @id @default(cuid())
-  userId          String
-  amount          Float
-  currency        String        @default("INR")
-  status          PaymentStatus @default(PENDING)
-  provider        String        @default("KUKUPAY")
-  providerOrderId String?       @unique
-  paymentUrl      String?
-  phone           String?
-  webhookReceived Boolean       @default(false)
-  metadata        Json?
-  createdAt       DateTime      @default(now()) @db.Timestamptz
-  updatedAt       DateTime      @default(now()) @db.Timestamptz @updatedAt
-  completedAt     DateTime?     @db.Timestamptz
-
-  // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "payment_user_fkey")
-  wallet Wallet? @relation(fields: [userId], references: [userId], map: "payment_wallet_fkey")
-
-  @@map("payment")
-}
-
-model Transaction {
-  id            String           @id @default(cuid())
-  userId        String
-  walletId      String
-  amount        Float
-  currency      String           @default("INR")
-  type          TransactionType
-  status        String           @default("COMPLETED")
-  description   String?
-  referenceId   String?          // Payment ID, Trade ID, etc.
-  metadata      Json?
-  createdAt     DateTime         @default(now()) @db.Timestamptz
-
-  // Relations
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet  Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
-
-  @@map("transaction")
+enum WithdrawalRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSING
+  COMPLETED
+  FAILED
 }

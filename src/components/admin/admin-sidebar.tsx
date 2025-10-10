@@ -71,6 +71,12 @@ const adminNavItems = [
     description: "Payment transactions"
   },
   {
+    title: "Withdrawal Requests",
+    href: "/admin/withdrawal-requests",
+    icon: DollarSign,
+    description: "Process withdrawal requests"
+  },
+  {
     title: "Reward Services",
     href: "/admin/reward-services",
     icon: Gift,

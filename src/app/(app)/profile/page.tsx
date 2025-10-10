@@ -265,9 +265,10 @@ export default function ProfilePage() {
               type="button"
               variant="outline"
               className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
+              onClick={() => router.push("/withdrawal")}
             >
-              <FaShieldAlt className="h-4 w-4" />
-              Security
+              <FaCreditCard className="h-4 w-4" />
+              Withdrawal
             </Button>
           </div>
 
