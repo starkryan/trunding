@@ -165,7 +165,7 @@ model Payment {
   updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
   completedAt     DateTime?     @db.Timestamptz(6)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade, map: "payment_user_fkey")
-  wallet          Wallet        @relation(fields: [userId], references: [userId], map: "payment_wallet_fkey")
+  user            Wallet        @relation(fields: [userId], references: [userId], map: "payment_user_fkey")
 
   @@map("payment")
 }

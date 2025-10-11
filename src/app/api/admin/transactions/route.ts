@@ -39,8 +39,13 @@ export async function GET(request: NextRequest) {
     // Check admin authorization
     const authResult = await checkAdminAuth()
     if (authResult.error) {
+      console.error("Admin auth failed:", authResult.error)
       return NextResponse.json(
-        { success: false, error: authResult.error },
+        {
+          success: false,
+          error: authResult.error,
+          message: "Authentication failed. Please ensure you are logged in as an admin user."
+        },
         { status: authResult.status }
       )
     }
@@ -317,8 +322,16 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Admin transactions fetch error:", error)
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      {
+        success: false,
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : 'Unknown error occurred'
+      },
       { status: 500 }
     )
   }
