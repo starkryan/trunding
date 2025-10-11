@@ -144,7 +144,8 @@ export async function GET(request: NextRequest) {
           wallet: {
             select: {
               id: true,
-              currency: true
+              currency: true,
+              balance: true
             }
           }
         },
@@ -179,7 +180,7 @@ export async function GET(request: NextRequest) {
     // Process statistics
     const processedStats = {
       totalTransactions: totalCount,
-      totalVolume: transactions.reduce((sum, t) => sum + t.amount, 0),
+      totalVolume: transactions.reduce((sum, t) => sum + (typeof t.amount === 'bigint' ? Number(t.amount) : t.amount), 0),
       byStatus: {
         PENDING: 0,
         COMPLETED: 0,
@@ -203,7 +204,7 @@ export async function GET(request: NextRequest) {
           processedStats.byType[stat.type] = { count: 0, volume: 0 }
         }
         processedStats.byType[stat.type].count += stat._count.id
-        processedStats.byType[stat.type].volume += stat._sum.amount
+        processedStats.byType[stat.type].volume += typeof stat._sum.amount === 'bigint' ? Number(stat._sum.amount) : stat._sum.amount
       }
     })
 
@@ -225,7 +226,7 @@ export async function GET(request: NextRequest) {
 
     processedStats.dailyVolume = dailyVolume.map(d => ({
       date: d.date.toISOString().split('T')[0],
-      volume: d.amount || 0,
+      volume: typeof d.amount === 'bigint' ? Number(d.amount) : (d.amount || 0),
       count: d.count
     }))
 
@@ -273,8 +274,12 @@ export async function GET(request: NextRequest) {
 
       return {
         ...transaction,
+        // Convert BigInt to Number if present
+        amount: typeof transaction.amount === 'bigint' ? Number(transaction.amount) : transaction.amount,
         method,
-        userBalance: transaction.wallet ? transaction.amount : 0 // Placeholder
+        userBalance: transaction.wallet ? (typeof transaction.wallet.balance === 'bigint' ? Number(transaction.wallet.balance) : transaction.wallet.balance) : 0,
+        // Add updatedAt field if not present (use createdAt as fallback)
+        updatedAt: transaction.createdAt // Transaction model doesn't have updatedAt field
       }
     })
 
@@ -285,7 +290,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({
+    // Custom JSON serializer to handle BigInt
+    const jsonString = JSON.stringify({
       success: true,
       transactions: processedTransactions,
       pagination: {
@@ -307,6 +313,16 @@ export async function GET(request: NextRequest) {
           minAmount: filters.minAmount,
           maxAmount: filters.maxAmount
         }
+      }
+    }, (key, value) => {
+      // Convert BigInt to Number
+      return typeof value === 'bigint' ? Number(value) : value
+    })
+
+    return new NextResponse(jsonString, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
       }
     })
   } catch (error) {
@@ -401,7 +417,8 @@ export async function POST(request: NextRequest) {
         },
         wallet: {
           select: {
-            currency: true
+            currency: true,
+            balance: true
           }
         }
       },

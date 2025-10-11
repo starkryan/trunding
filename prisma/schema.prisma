@@ -9,26 +9,34 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid())
-  name               String?
-  email              String              @unique
-  emailVerified      Boolean             @default(false)
-  image              String?
-  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
-  banExpires         DateTime?
-  banReason          String?
-  banned             Boolean             @default(false)
-  role               Role                @default(USER)
-  accounts           Account[]
-  payments           Payment[]
-  calculations       RewardCalculation[]
-  sessions           Session[]
-  transactions       Transaction[]
-  rewardServices     UserRewardService[]
-  wallet             Wallet?
-  withdrawalMethods  WithdrawalMethod[]
-  withdrawalRequests WithdrawalRequest[]
+  id                   String              @id @default(cuid())
+  name                 String?
+  email                String              @unique
+  emailVerified        Boolean             @default(false)
+  image                String?
+  createdAt            DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
+  banExpires           DateTime?
+  banReason            String?
+  banned               Boolean             @default(false)
+  role                 Role                @default(USER)
+  referredBy           String?
+  referralCode         String?             @unique
+  totalReferralEarnings Float              @default(0.0)
+  successfulReferrals  Int                 @default(0)
+  accounts             Account[]
+  payments             Payment[]
+  calculations         RewardCalculation[]
+  sessions             Session[]
+  transactions         Transaction[]
+  rewardServices       UserRewardService[]
+  wallet               Wallet?
+  withdrawalMethods    WithdrawalMethod[]
+  withdrawalRequests   WithdrawalRequest[]
+  referralCodeObj      ReferralCode?
+  referredByRelation   ReferralRelationship? @relation("ReferredUser")
+  referrals            ReferralRelationship[] @relation("Referrer")
+  referralPayouts      ReferralPayout[]
 
   @@map("user")
 }
@@ -94,6 +102,7 @@ model RewardService {
   updatedAt      DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
   calculations   RewardCalculation[]
   userServices   UserRewardService[]
+  payments       Payment[]
 
   @@map("reward_service")
 }
@@ -161,11 +170,13 @@ model Payment {
   phone           String?
   webhookReceived Boolean       @default(false)
   metadata        Json?
+  rewardServiceId String?       // Optional: Link to reward service if this is a reward service payment
   createdAt       DateTime      @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
   completedAt     DateTime?     @db.Timestamptz(6)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade, map: "payment_user_fkey")
   wallet          Wallet        @relation(fields: [userId], references: [userId], map: "payment_wallet_fkey")
+  rewardService   RewardService? @relation(fields: [rewardServiceId], references: [id], onDelete: SetNull)
 
   @@map("payment")
 }
@@ -231,6 +242,77 @@ model WithdrawalRequest {
   @@map("withdrawal_request")
 }
 
+model ReferralSettings {
+  id                        String   @id @default(cuid())
+  isActive                  Boolean  @default(false)
+  referrerRewardType        RewardType @default(FLAT)
+  referrerRewardAmount      Float    @default(0.0)
+  referrerRewardPercentage  Float    @default(0.0)
+  referredRewardType        RewardType @default(FLAT)
+  referredRewardAmount      Float    @default(0.0)
+  referredRewardPercentage  Float    @default(0.0)
+  minimumDepositAmount      Float    @default(300.0)
+  referralCodeExpiryDays    Int      @default(30)
+  maxReferralsPerUser       Int      @default(-1) // -1 for unlimited
+  enableMultiLevel          Boolean  @default(false)
+  multiLevelRewards         Json?    // Store tier-wise reward configuration
+  referralBaseUrl           String?  @default("https://montra.in") // Base URL for referral links
+  createdAt                 DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt                 DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("referral_settings")
+}
+
+model ReferralCode {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  code        String   @unique
+  isActive    Boolean  @default(true)
+  expiresAt   DateTime? @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relationships ReferralRelationship[]
+
+  @@map("referral_code")
+}
+
+model ReferralRelationship {
+  id               String              @id @default(cuid())
+  referrerId       String
+  referredUserId   String              @unique
+  referralCodeId   String
+  status           ReferralStatus      @default(PENDING)
+  completedAt      DateTime?           @db.Timestamptz(6)
+  createdAt        DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
+  referrer         User                @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUser     User                @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  referralCode     ReferralCode        @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  payouts          ReferralPayout[]
+
+  @@map("referral_relationship")
+}
+
+model ReferralPayout {
+  id                 String              @id @default(cuid())
+  referralId         String
+  userId             String              // Who receives this payout (referrer or referred)
+  amount             Float
+  currency           String              @default("INR")
+  type               PayoutType          @default(REFERRER_REWARD)
+  status             PayoutStatus        @default(PENDING)
+  transactionId      String?             @unique // Link to wallet transaction
+  metadata           Json?
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
+  processedAt        DateTime?           @db.Timestamptz(6)
+  referral           ReferralRelationship @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("referral_payout")
+}
+
 enum Role {
   USER
   ADMIN
@@ -248,9 +330,8 @@ enum PaymentStatus {
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
-  TRADE_BUY
-  TRADE_SELL
   REWARD
+  REFERRAL
   REFUND
 }
 
@@ -265,5 +346,30 @@ enum WithdrawalRequestStatus {
   REJECTED
   PROCESSING
   COMPLETED
+  FAILED
+}
+
+enum RewardType {
+  FLAT
+  PERCENTAGE
+}
+
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum PayoutType {
+  REFERRER_REWARD
+  REFERRED_BONUS
+  MULTI_LEVEL_BONUS
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSED
+  CANCELLED
   FAILED
 }

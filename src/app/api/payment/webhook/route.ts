@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { ReferralService } from "@/lib/referral-service"
+import { RewardService } from "@/lib/reward-service"
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
       include: {
         user: true,
         wallet: true,
+        rewardService: true,
       },
     })
 
@@ -104,48 +107,75 @@ export async function POST(request: NextRequest) {
 
     // If payment is completed, update wallet and create transaction
     if (paymentStatus === "COMPLETED") {
-      // Update or create wallet
-      let wallet = payment.wallet
-      if (!wallet) {
-        wallet = await prisma.wallet.create({
+      // Check if this is a reward service payment
+      if (payment.rewardServiceId) {
+        console.log(`Processing reward service payment: ${payment.rewardService?.name}`)
+        try {
+          // Use RewardService to handle reward service payouts
+          await RewardService.processRewardServicePayout(
+            payment.userId,
+            payment.amount,
+            payment.id
+          )
+          console.log(`Reward service payout completed for user ${payment.userId}, payment: ${payment.id}`)
+        } catch (rewardError) {
+          console.error("Error processing reward service payout:", rewardError)
+          // Don't fail the payment if reward processing fails
+        }
+      } else {
+        // Regular payment processing (non-reward service)
+        // Update or create wallet
+        let wallet = payment.wallet
+        if (!wallet) {
+          wallet = await prisma.wallet.create({
+            data: {
+              userId: payment.userId,
+              balance: 0,
+              currency: payment.currency,
+            },
+          })
+        }
+
+        // Update wallet balance
+        await prisma.wallet.update({
+          where: { id: wallet.id },
           data: {
-            userId: payment.userId,
-            balance: 0,
-            currency: payment.currency,
+            balance: {
+              increment: payment.amount,
+            },
           },
         })
+
+        // Create transaction record
+        await prisma.transaction.create({
+          data: {
+            userId: payment.userId,
+            walletId: wallet.id,
+            amount: payment.amount,
+            currency: payment.currency,
+            type: transactionType,
+            status: "COMPLETED",
+            description: transactionDescription,
+            referenceId: payment.id,
+            metadata: {
+              paymentId: payment.id,
+              providerOrderId: order_id,
+              transactionId: transaction_id,
+            },
+          },
+        })
+
+        console.log(`Regular payment completed for user ${payment.userId}, amount: ${payment.amount}`)
+
+        // Process referral rewards if applicable (only for regular deposits, not reward services)
+        try {
+          await ReferralService.processReferralReward(payment.userId, payment.amount)
+          console.log(`Referral reward processed for user ${payment.userId}`)
+        } catch (referralError) {
+          console.error("Error processing referral reward:", referralError)
+          // Don't fail the payment if referral processing fails
+        }
       }
-
-      // Update wallet balance
-      await prisma.wallet.update({
-        where: { id: wallet.id },
-        data: {
-          balance: {
-            increment: payment.amount,
-          },
-        },
-      })
-
-      // Create transaction record
-      await prisma.transaction.create({
-        data: {
-          userId: payment.userId,
-          walletId: wallet.id,
-          amount: payment.amount,
-          currency: payment.currency,
-          type: transactionType,
-          status: "COMPLETED",
-          description: transactionDescription,
-          referenceId: payment.id,
-          metadata: {
-            paymentId: payment.id,
-            providerOrderId: order_id,
-            transactionId: transaction_id,
-          },
-        },
-      })
-
-      console.log(`Payment completed for user ${payment.userId}, amount: ${payment.amount}`)
     } else if (paymentStatus === "FAILED" || paymentStatus === "CANCELLED") {
       // Create failed transaction record for tracking
       if (payment.wallet) {

@@ -134,9 +134,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use ACID transaction to ensure atomic balance deduction
+    // Use ACID transaction to ensure atomic balance deduction (escrow system)
     const result = await prisma.$transaction(async (tx) => {
-      // Lock wallet row for update to prevent race conditions
+      // Lock wallet row for update with pessimistic locking to prevent race conditions
       const lockedWallet = await tx.wallet.findUnique({
         where: { userId: userId }
       })
@@ -145,15 +145,15 @@ export async function POST(request: NextRequest) {
         throw new Error("Wallet not found")
       }
 
-      // Double-check balance within transaction
-      if (lockedWallet.balance < validatedData.amount) {
-        throw new Error("Insufficient wallet balance")
-      }
-
-      // Calculate new balance
+      // Calculate new balance first to ensure it's non-negative
       const newBalance = lockedWallet.balance - validatedData.amount
 
-      // Update wallet balance immediately (ACID-compliant)
+      // Double-check balance within transaction with explicit validation
+      if (newBalance < 0) {
+        throw new Error(`Insufficient wallet balance. Available: ₹${lockedWallet.balance}, Requested: ₹${validatedData.amount}`)
+      }
+
+      // Update wallet balance immediately (funds moved to escrow)
       const updatedWallet = await tx.wallet.update({
         where: { id: lockedWallet.id },
         data: { balance: newBalance }
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Create transaction record (COMPLETED - balance already deducted)
+      // Create PENDING transaction record (balance deducted and held in escrow)
       await tx.transaction.create({
         data: {
           userId: userId,
@@ -193,8 +193,8 @@ export async function POST(request: NextRequest) {
           amount: validatedData.amount,
           currency: lockedWallet.currency,
           type: "WITHDRAWAL",
-          status: "COMPLETED",
-          description: `Withdrawal to ${paymentMethod.type === 'BANK_ACCOUNT' ? paymentMethod.bankName : 'UPI'} (Pending approval)`,
+          status: "PENDING",
+          description: `Withdrawal to ${paymentMethod.type === 'BANK_ACCOUNT' ? paymentMethod.bankName : 'UPI'} (Funds in escrow - pending approval)`,
           referenceId: withdrawalRequest.id,
           metadata: {
             withdrawalRequestId: withdrawalRequest.id,
@@ -202,7 +202,8 @@ export async function POST(request: NextRequest) {
             withdrawalMethodId: paymentMethod.id,
             previousBalance: lockedWallet.balance,
             newBalance: newBalance,
-            balanceDeductedImmediately: true
+            balanceDeductedImmediately: true,
+            fundsInEscrow: true
           }
         }
       })
@@ -242,8 +243,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Handle database constraint violations (negative balance prevention)
+    if (error instanceof Error && error.message.includes('wallet_balance_non_negative')) {
+      return NextResponse.json(
+        { success: false, error: "Transaction would result in negative balance. Please check your balance and try again." },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     )
   }

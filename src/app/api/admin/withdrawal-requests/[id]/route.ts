@@ -225,62 +225,31 @@ export async function PUT(
 
       // Handle different status changes
       if (validatedData.status === 'APPROVED') {
-        // Update related transaction to completed
+        // No balance deduction needed (already deducted in escrow)
+        // Just update the existing PENDING transaction to COMPLETED
         await tx.transaction.updateMany({
           where: {
             userId: existingRequest.userId,
             referenceId: id,
             type: "WITHDRAWAL",
+            status: "PENDING"
           },
           data: {
             status: "COMPLETED",
-            description: `Withdrawal approved to ${existingRequest.withdrawalMethod.type === 'BANK_ACCOUNT' ? existingRequest.withdrawalMethod.bankName : 'UPI'}`,
-          }
-        })
-
-        // Deduct from wallet balance
-        await tx.wallet.update({
-          where: { id: wallet.id },
-          data: {
-            balance: wallet.balance - existingRequest.amount
-          }
-        })
-
-        // Create withdrawal completion transaction
-        await tx.transaction.create({
-          data: {
-            userId: existingRequest.userId,
-            walletId: wallet.id,
-            amount: existingRequest.amount,
-            currency: existingRequest.currency,
-            type: "WITHDRAWAL",
-            status: "COMPLETED",
-            description: `Withdrawal processed to ${existingRequest.withdrawalMethod.type === 'BANK_ACCOUNT' ? existingRequest.withdrawalMethod.bankName : 'UPI'}`,
-            referenceId: id,
+            description: `Withdrawal approved to ${existingRequest.withdrawalMethod.type === 'BANK_ACCOUNT' ? existingRequest.withdrawalMethod.bankName : 'UPI'} (Payment successful)`,
             metadata: {
               withdrawalRequestId: id,
               withdrawalMethodType: existingRequest.withdrawalMethod.type,
               processedBy: adminId,
-              processedAt: new Date().toISOString()
+              processedAt: new Date().toISOString(),
+              paymentCompletedAt: new Date().toISOString(),
+              escrowReleased: true
             }
           }
         })
 
       } else if (validatedData.status === 'REJECTED') {
-        // Update related transaction to failed
-        await tx.transaction.updateMany({
-          where: {
-            userId: existingRequest.userId,
-            referenceId: id,
-            type: "WITHDRAWAL",
-          },
-          data: {
-            status: "FAILED",
-            description: `Withdrawal rejected: ${validatedData.rejectionReason || 'Admin rejected'}`,
-          }
-        })
-
-        // Return amount to wallet balance (if it was deducted)
+        // Return funds to wallet balance (refund from escrow)
         await tx.wallet.update({
           where: { id: wallet.id },
           data: {
@@ -288,38 +257,71 @@ export async function PUT(
           }
         })
 
-        // Create rejection transaction
+        // Update PENDING transaction to FAILED and create refund transaction
+        await tx.transaction.updateMany({
+          where: {
+            userId: existingRequest.userId,
+            referenceId: id,
+            type: "WITHDRAWAL",
+            status: "PENDING"
+          },
+          data: {
+            status: "FAILED",
+            description: `Withdrawal rejected: ${validatedData.rejectionReason || 'Admin rejected'} (Funds refunded)`,
+            metadata: {
+              withdrawalRequestId: id,
+              withdrawalMethodType: existingRequest.withdrawalMethod.type,
+              processedBy: adminId,
+              processedAt: new Date().toISOString(),
+              rejectionReason: validatedData.rejectionReason || 'Admin rejected',
+              refundedAt: new Date().toISOString(),
+              refundAmount: existingRequest.amount
+            }
+          }
+        })
+
+        // Create refund transaction to return funds
         await tx.transaction.create({
           data: {
             userId: existingRequest.userId,
             walletId: wallet.id,
             amount: existingRequest.amount,
             currency: existingRequest.currency,
-            type: "REWARD", // Type as reward to add balance back
+            type: "REFUND", // Using REFUND type to properly categorize the returned funds
             status: "COMPLETED",
-            description: `Withdrawal rejected - amount refunded: ${validatedData.rejectionReason || 'Admin rejected'}`,
+            description: `Withdrawal refund - ${validatedData.rejectionReason || 'Admin rejected'}`,
             referenceId: id,
             metadata: {
               withdrawalRequestId: id,
               withdrawalMethodType: existingRequest.withdrawalMethod.type,
               processedBy: adminId,
               processedAt: new Date().toISOString(),
-              isRefund: true
+              isRefund: true,
+              refundReason: validatedData.rejectionReason || 'Admin rejected'
             }
           }
         })
 
       } else if (validatedData.status === 'PROCESSING') {
-        // Update related transaction to processing
+        // Update PENDING transaction to PROCESSING (funds already in escrow)
         await tx.transaction.updateMany({
           where: {
             userId: existingRequest.userId,
             referenceId: id,
             type: "WITHDRAWAL",
+            status: "PENDING"
           },
           data: {
             status: "PROCESSING",
-            description: `Withdrawal being processed to ${existingRequest.withdrawalMethod.type === 'BANK_ACCOUNT' ? existingRequest.withdrawalMethod.bankName : 'UPI'}`,
+            description: `Withdrawal being processed to ${existingRequest.withdrawalMethod.type === 'BANK_ACCOUNT' ? existingRequest.withdrawalMethod.bankName : 'UPI'} (Funds in escrow)`,
+            metadata: {
+              withdrawalRequestId: id,
+              withdrawalMethodType: existingRequest.withdrawalMethod.type,
+              processedBy: adminId,
+              processedAt: new Date().toISOString(),
+              balanceDeducted: true,
+              fundsInEscrow: true
+            }
           }
         })
       }

@@ -1,0 +1,27 @@
+-- AlterEnum
+ALTER TYPE "TransactionType" ADD VALUE 'REFERRAL';
+
+-- AlterTable
+ALTER TABLE "payment" ADD COLUMN     "rewardServiceId" TEXT;
+
+-- AlterTable
+ALTER TABLE "referral_code" ALTER COLUMN "expiresAt" SET DATA TYPE TIMESTAMPTZ(6),
+ALTER COLUMN "createdAt" SET DATA TYPE TIMESTAMPTZ(6),
+ALTER COLUMN "updatedAt" SET DATA TYPE TIMESTAMPTZ(6);
+
+-- AlterTable
+ALTER TABLE "referral_payout" ALTER COLUMN "createdAt" SET DATA TYPE TIMESTAMPTZ(6),
+ALTER COLUMN "updatedAt" SET DATA TYPE TIMESTAMPTZ(6),
+ALTER COLUMN "processedAt" SET DATA TYPE TIMESTAMPTZ(6);
+
+-- AlterTable
+ALTER TABLE "referral_relationship" ALTER COLUMN "completedAt" SET DATA TYPE TIMESTAMPTZ(6),
+ALTER COLUMN "createdAt" SET DATA TYPE TIMESTAMPTZ(6),
+ALTER COLUMN "updatedAt" SET DATA TYPE TIMESTAMPTZ(6);
+
+-- AlterTable
+ALTER TABLE "referral_settings" ALTER COLUMN "createdAt" SET DATA TYPE TIMESTAMPTZ(6),
+ALTER COLUMN "updatedAt" SET DATA TYPE TIMESTAMPTZ(6);
+
+-- AddForeignKey
+ALTER TABLE "payment" ADD CONSTRAINT "payment_rewardServiceId_fkey" FOREIGN KEY ("rewardServiceId") REFERENCES "reward_service"("id") ON DELETE SET NULL ON UPDATE CASCADE;

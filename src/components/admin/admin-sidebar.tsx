@@ -48,7 +48,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Gift
+  Gift,
+  UserPlus
 } from "lucide-react";
 
 const adminNavItems = [
@@ -81,6 +82,12 @@ const adminNavItems = [
     href: "/admin/reward-services",
     icon: Gift,
     description: "Manage reward calculation services"
+  },
+  {
+    title: "Referral Settings",
+    href: "/admin/referral-settings",
+    icon: UserPlus,
+    description: "Configure referral program and settings"
   },
     {
     title: "Analytics",

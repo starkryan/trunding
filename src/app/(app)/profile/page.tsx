@@ -17,7 +17,7 @@ import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaExchangeAlt, FaWallet, FaSpinner, FaFileContract, FaLock } from "react-icons/fa";
+import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaExchangeAlt, FaWallet, FaSpinner, FaFileContract, FaLock, FaGift, FaShare, FaCopy, FaUsers, FaLink, FaTrophy, FaChartLine } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -37,6 +37,19 @@ export default function ProfilePage() {
     totalWithdrawals: number;
   } | null>(null);
   const [isLoadingWallet, setIsLoadingWallet] = useState(true);
+  const [referralData, setReferralData] = useState<{
+    referralCode: string;
+    isActive: boolean;
+    expiresAt: string | null;
+    stats: {
+      totalReferrals: number;
+      completedReferrals: number;
+      totalEarnings: number;
+    };
+  } | null>(null);
+  const [referralBaseUrl, setReferralBaseUrl] = useState<string>('https://montra.in');
+  const [isLoadingReferral, setIsLoadingReferral] = useState(true);
+  const [copiedItem, setCopiedItem] = useState<'code' | 'link' | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -74,13 +87,75 @@ export default function ProfilePage() {
 
     if (session) {
       fetchWalletData();
+      fetchReferralData();
+      fetchReferralBaseUrl();
     }
   }, [session]);
+
+  // Fetch referral base URL
+  const fetchReferralBaseUrl = async () => {
+    try {
+      const response = await fetch('/api/referral/base-url');
+      const data = await response.json();
+      setReferralBaseUrl(data.baseUrl || 'https://montra.in');
+    } catch (error) {
+      console.error('Failed to fetch referral base URL:', error);
+      setReferralBaseUrl('https://montra.in'); // Fallback
+    }
+  };
+
+  // Fetch referral data
+  const fetchReferralData = async () => {
+    try {
+      const response = await fetch('/api/referral/code');
+      if (response.ok) {
+        const data = await response.json();
+        setReferralData({
+          referralCode: data.referralCode.code,
+          isActive: data.referralCode.isActive,
+          expiresAt: data.referralCode.expiresAt,
+          stats: data.stats
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch referral data:", error);
+    } finally {
+      setIsLoadingReferral(false);
+    }
+  };
 
   
   const handleSignOut = async () => {
     await signOut();
     router.push("/signin");
+  };
+
+  // Copy referral code to clipboard
+  const copyReferralCode = () => {
+    if (referralData?.referralCode) {
+      navigator.clipboard.writeText(referralData.referralCode);
+      setCopiedItem('code');
+      setTimeout(() => setCopiedItem(null), 2000);
+    }
+  };
+
+  // Copy referral link to clipboard
+  const copyReferralLink = async () => {
+    if (referralData?.referralCode) {
+      const referralUrl = `${referralBaseUrl}/signup?ref=${referralData.referralCode}`;
+      navigator.clipboard.writeText(referralUrl);
+      setCopiedItem('link');
+      setTimeout(() => setCopiedItem(null), 2000);
+    }
+  };
+
+  // Format currency
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   // Show loading state while checking authentication
@@ -189,6 +264,76 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Referral Program */}
+          {isLoadingReferral ? (
+            <div className="flex items-center justify-center py-4">
+              <FaSpinner className="h-4 w-4 animate-spin mr-2" />
+              <span className="text-sm text-muted-foreground">Loading referral info...</span>
+            </div>
+          ) : referralData ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Referral Code</h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={copyReferralCode}
+                  className="h-6 px-2 text-xs text-primary"
+                >
+                  {copiedItem === 'code' ? (
+                    <>
+                      <span className="mr-1">✓</span>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <FaCopy className="h-3 w-3 mr-1" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="bg-muted/30 rounded p-3 flex items-center justify-between">
+                <code className="text-sm font-mono font-bold">{referralData.referralCode}</code>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={copyReferralLink}
+                  className="h-6 px-2 text-xs"
+                >
+                  {copiedItem === 'link' ? (
+                    <>
+                      <span className="mr-1">✓</span>
+                      Copied!
+                    </>
+                  ) : (
+                    <FaShare className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="text-center">
+                  <div className="font-bold">{referralData.stats.totalReferrals}</div>
+                  <div className="text-xs text-muted-foreground">Referrals</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-bold text-green-600">
+                    {formatCurrency(referralData.stats.totalEarnings)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Earnings</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground">Referral program not available</p>
+            </div>
+          )}
+
           {/* Profile Information */}
           <div className="space-y-6">
             <div className="space-y-2">
@@ -250,7 +395,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <Button
               type="button"
               variant="outline"
@@ -269,6 +414,25 @@ export default function ProfilePage() {
             >
               <FaCreditCard className="h-4 w-4" />
               Withdrawal
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
+              onClick={copyReferralLink}
+            >
+              {copiedItem === 'link' ? (
+                <>
+                  <span className="text-lg">✓</span>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <FaShare className="h-4 w-4" />
+                  Share
+                </>
+              )}
             </Button>
           </div>
 

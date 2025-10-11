@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
             providerOrderId: orderId,
             paymentUrl: kukupayResponse.data.payment_url,
             phone: userPhone,
+            rewardServiceId: serviceId, // Set reward service ID if this is a reward service payment
             metadata: {
               serviceId: serviceId,
               serviceName: serviceName,

@@ -3,8 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   FiSearch, FiTrendingUp, FiTrendingDown, FiRefreshCw, FiBarChart2,
-  FiActivity, FiDollarSign, FiStar, FiChevronUp, FiChevronDown,
-  FiDatabase
+  FiActivity, FiDollarSign, FiStar, FiChevronUp, FiChevronDown, FiFilter
 } from "react-icons/fi";
 import {
   FaBitcoin, FaEthereum, FaCoins, FaChartLine, FaExchangeAlt,
@@ -17,7 +16,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  LineChart, Line, AreaChart, Area, Tooltip, ResponsiveContainer
+  AreaChart, Area, ResponsiveContainer
 } from "recharts";
 import toast from "react-hot-toast";
 
@@ -179,7 +178,6 @@ export default function MarketPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"price" | "change" | "volume">("change");
 
   // Computed values
@@ -314,15 +312,7 @@ export default function MarketPage() {
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3 mb-2">
-                <FiBarChart2 className="text-primary" />
-                Crypto Market
-              </h1>
-              <p className="text-muted-foreground">
-                Real-time cryptocurrency prices and market data
-              </p>
-            </div>
+        
 
             <div className="flex gap-2 items-center">
               <div className="relative flex-1 lg:w-80">
@@ -360,17 +350,17 @@ export default function MarketPage() {
 
         {/* Market Stats Cards */}
         {marketStats.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-3 mb-8">
             {marketStats.map((stat, index) => (
               <Card key={index} className="border-muted-foreground/10 bg-gradient-to-br from-background to-muted/5">
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                      <p className={`text-sm ${stat.color}`}>{stat.change}</p>
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-0.5">{stat.title}</p>
+                      <p className="text-lg font-bold">{stat.value}</p>
+                      <p className={`text-xs ${stat.color}`}>{stat.change}</p>
                     </div>
-                    <div className="text-2xl opacity-50">
+                    <div className="text-xl opacity-50 ml-2">
                       {stat.icon}
                     </div>
                   </div>
@@ -381,30 +371,8 @@ export default function MarketPage() {
         )}
 
         {/* Controls Section */}
-        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "grid" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("grid")}
-              className="flex items-center gap-2"
-            >
-              <FiDatabase className="size-4" />
-              Grid
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-              className="flex items-center gap-2"
-            >
-              <FiActivity className="size-4" />
-              List
-            </Button>
-          </div>
-
-          <div className="flex gap-2">
-            <span className="text-sm text-muted-foreground self-center">Sort by:</span>
+        <div className="mb-6 flex justify-end">
+          <div className="flex gap-2 items-center">
             <Button
               variant={sortBy === "change" ? "default" : "outline"}
               size="sm"
@@ -432,6 +400,7 @@ export default function MarketPage() {
               <FiBarChart2 className="size-4" />
               Volume
             </Button>
+            <FiFilter className="size-4 text-muted-foreground" />
           </div>
         </div>
 
@@ -464,37 +433,19 @@ export default function MarketPage() {
 
         {/* Crypto Display */}
         {sortedAndFilteredData.length > 0 && (
-          <>
-            {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedAndFilteredData.map((crypto) => (
-                  <CryptoCard
-                    key={crypto.symbol}
-                    crypto={crypto}
-                    formatPrice={formatPrice}
-                    formatVolume={formatVolume}
-                    formatPercent={formatPercent}
-                    isPositive={isPositive}
-                    getCryptoIcon={getCryptoIcon}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {sortedAndFilteredData.map((crypto) => (
-                  <CryptoListItem
-                    key={crypto.symbol}
-                    crypto={crypto}
-                    formatPrice={formatPrice}
-                    formatVolume={formatVolume}
-                    formatPercent={formatPercent}
-                    isPositive={isPositive}
-                    getCryptoIcon={getCryptoIcon}
-                  />
-                ))}
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedAndFilteredData.map((crypto) => (
+              <CryptoCard
+                key={crypto.symbol}
+                crypto={crypto}
+                formatPrice={formatPrice}
+                formatVolume={formatVolume}
+                formatPercent={formatPercent}
+                isPositive={isPositive}
+                getCryptoIcon={getCryptoIcon}
+              />
+            ))}
+          </div>
         )}
 
       </div>
@@ -624,103 +575,3 @@ function CryptoCard({
   );
 }
 
-// List item component for list view
-function CryptoListItem({
-  crypto,
-  formatPrice,
-  formatVolume,
-  formatPercent,
-  isPositive,
-  getCryptoIcon
-}: {
-  crypto: CryptoData;
-  formatPrice: (price: number) => string;
-  formatVolume: (volume: string) => string;
-  formatPercent: (percent: number) => string;
-  isPositive: (value: number) => boolean;
-  getCryptoIcon: (symbol: string) => React.ReactNode;
-}) {
-  const priceHistory = generateMockPriceData(crypto.price, isPositive(crypto.changePercent24h));
-
-  return (
-    <Card className="border-muted-foreground/10 bg-gradient-to-r from-background to-muted/5 hover:shadow-lg transition-all duration-200 hover:border-primary/20">
-      <CardContent className="p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          {/* Left: Icon and basic info */}
-          <div className="flex items-center gap-4 flex-1">
-            <div className="text-3xl">
-              {getCryptoIcon(crypto.symbol)}
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                {crypto.symbol}
-                <Badge
-                  variant={isPositive(crypto.changePercent24h) ? "default" : "secondary"}
-                  className={`text-xs ${
-                    !isPositive(crypto.changePercent24h) ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400" : ""
-                  }`}
-                >
-                  {isPositive(crypto.changePercent24h) ? (
-                    <FiTrendingUp size={10} className="mr-1" />
-                  ) : (
-                    <FiTrendingDown size={10} className="mr-1" />
-                  )}
-                  {formatPercent(crypto.changePercent24h)}
-                </Badge>
-              </h3>
-              <p className="text-sm text-muted-foreground">{crypto.name}</p>
-            </div>
-          </div>
-
-          {/* Center: Mini chart */}
-          <div className="flex-1 max-w-xs hidden sm:block">
-            <div className="h-16">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={priceHistory}>
-                  <Line
-                    type="monotone"
-                    dataKey="price"
-                    stroke={isPositive(crypto.changePercent24h) ? "#10b981" : "#ef4444"}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Right: Price and volume info */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-8">
-            <div className="text-center sm:text-left">
-              <div className="text-2xl font-bold">
-                {formatPrice(crypto.price)}
-              </div>
-              <div className={`text-sm font-medium ${
-                isPositive(crypto.change24h) ? "text-green-600" : "text-red-600"
-              }`}>
-                {isPositive(crypto.change24h) ? "+" : ""}
-                {formatPrice(crypto.change24h)}
-              </div>
-            </div>
-
-            <div className="text-center sm:text-left">
-              <div className="text-sm text-muted-foreground">24h Volume</div>
-              <div className="font-medium">{formatVolume(crypto.quoteVolume24h)}</div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-center sm:text-left">
-              <div>
-                <div className="text-xs text-muted-foreground">High</div>
-                <div className="font-medium">{formatPrice(crypto.high24h)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Low</div>
-                <div className="font-medium">{formatPrice(crypto.low24h)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}

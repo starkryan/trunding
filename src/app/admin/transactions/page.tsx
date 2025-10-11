@@ -45,7 +45,7 @@ interface Transaction {
   description: string;
   referenceId?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string; // Optional since it doesn't exist in database
   metadata: Record<string, any>;
   user: {
     id: string;
@@ -741,7 +741,10 @@ export default function AdminTransactionsPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Updated</p>
                   <p className="text-sm mt-1">
-                    {format(parseISO(selectedTransaction.updatedAt), 'PPpp')}
+                    {selectedTransaction.updatedAt
+                      ? format(parseISO(selectedTransaction.updatedAt), 'PPpp')
+                      : format(parseISO(selectedTransaction.createdAt), 'PPpp')
+                    }
                   </p>
                 </div>
               </div>
