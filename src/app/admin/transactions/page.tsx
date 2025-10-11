@@ -107,7 +107,7 @@ export default function AdminTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
-  const [methodFilter, setMethodFilter] = useState("");
+  const [methodFilter, setMethodFilter] = useState("ALL");
   const [userIdFilter, setUserIdFilter] = useState("");
   const [dateFromFilter, setDateFromFilter] = useState("");
   const [dateToFilter, setDateToFilter] = useState("");
@@ -163,7 +163,7 @@ export default function AdminTransactionsPage() {
         search: searchTerm || undefined,
         status: statusFilter !== "ALL" ? statusFilter : undefined,
         type: typeFilter !== "ALL" ? typeFilter : undefined,
-        method: methodFilter || undefined,
+        method: methodFilter !== "ALL" ? methodFilter : undefined,
         userId: userIdFilter || undefined,
         dateFrom: dateFromFilter || undefined,
         dateTo: dateToFilter || undefined,
@@ -220,7 +220,7 @@ export default function AdminTransactionsPage() {
     if (searchTerm) filters.search = searchTerm;
     if (statusFilter !== "ALL") filters.status = statusFilter;
     if (typeFilter !== "ALL") filters.type = typeFilter;
-    if (methodFilter) filters.method = methodFilter;
+    if (methodFilter !== "ALL") filters.method = methodFilter;
     if (userIdFilter) filters.userId = userIdFilter;
     if (dateFromFilter) filters.dateFrom = dateFromFilter;
     if (dateToFilter) filters.dateTo = dateToFilter;
@@ -475,7 +475,7 @@ export default function AdminTransactionsPage() {
                 <SelectValue placeholder="Method" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Methods</SelectItem>
+                <SelectItem value="ALL">All Methods</SelectItem>
                 <SelectItem value="KukuPay">KukuPay</SelectItem>
                 <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                 <SelectItem value="UPI">UPI</SelectItem>

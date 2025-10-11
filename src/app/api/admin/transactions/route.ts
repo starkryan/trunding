@@ -89,6 +89,12 @@ export async function GET(request: NextRequest) {
       where.type = filters.type
     }
 
+    // Method filter (we need to filter based on extracted method from metadata/referenceId)
+    if (filters.method && filters.method !== 'ALL') {
+      // For method filtering, we need to handle it after fetching the data
+      // since method is derived from metadata or referenceId
+    }
+
     // User filter
     if (filters.userId) {
       where.userId = filters.userId
@@ -257,7 +263,7 @@ export async function GET(request: NextRequest) {
     }))
 
     // Process transactions for response
-    const processedTransactions = transactions.map(transaction => {
+    let processedTransactions = transactions.map(transaction => {
       // Extract method from metadata or reference
       let method = 'Unknown'
       if (transaction.metadata) {
@@ -277,6 +283,13 @@ export async function GET(request: NextRequest) {
         userBalance: transaction.wallet ? transaction.amount : 0 // Placeholder
       }
     })
+
+    // Apply method filter if specified (since method is derived)
+    if (filters.method && filters.method !== 'ALL') {
+      processedTransactions = processedTransactions.filter(transaction =>
+        transaction.method === filters.method
+      )
+    }
 
     return NextResponse.json({
       success: true,
