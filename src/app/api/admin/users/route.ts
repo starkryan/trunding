@@ -166,9 +166,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // Prevent self-deletion
+    // Prevent self-deletion for security reasons
     if (userId === session.user.id) {
-      return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+      return NextResponse.json({ error: "Cannot delete your own account for security reasons" }, { status: 400 });
     }
 
     // Delete user and all related data
@@ -204,9 +204,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Action and userId are required" }, { status: 400 });
     }
 
-    // Prevent self-modification
-    if (userId === adminId) {
-      return NextResponse.json({ error: "Cannot modify your own account" }, { status: 400 });
+    // Prevent self-modification for balance adjustments, but allow role changes
+    // Super admins can modify other aspects of their account but not their own balance for security reasons
+    if (userId === adminId && action === 'adjust_balance') {
+      return NextResponse.json({ error: "Cannot modify your own account balance for security reasons" }, { status: 400 });
     }
 
     if (action === 'adjust_balance') {
@@ -242,17 +243,17 @@ export async function PUT(request: NextRequest) {
 
         if (validatedData.action === 'add') {
           newBalance += validatedData.amount;
-          transactionType = 'ADMIN_ADJUSTMENT_ADD';
+          transactionType = 'DEPOSIT';
         } else if (validatedData.action === 'subtract') {
           if (newBalance < validatedData.amount) {
             throw new Error("Insufficient balance for subtraction");
           }
           newBalance -= validatedData.amount;
-          transactionType = 'ADMIN_ADJUSTMENT_SUBTRACT';
+          transactionType = 'WITHDRAWAL';
         } else if (validatedData.action === 'set') {
           const difference = validatedData.amount - wallet.balance;
           newBalance = validatedData.amount;
-          transactionType = difference >= 0 ? 'ADMIN_ADJUSTMENT_ADD' : 'ADMIN_ADJUSTMENT_SUBTRACT';
+          transactionType = difference >= 0 ? 'DEPOSIT' : 'WITHDRAWAL';
         } else {
           throw new Error("Invalid action");
         }

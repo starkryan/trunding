@@ -40,7 +40,7 @@ interface Transaction {
   userId: string;
   amount: number;
   currency: string;
-  type: "DEPOSIT" | "WITHDRAWAL" | "ADMIN_ADJUSTMENT_ADD" | "ADMIN_ADJUSTMENT_SUBTRACT" | "REWARD" | "TRADE_BUY" | "TRADE_SELL";
+  type: "DEPOSIT" | "WITHDRAWAL" | "REWARD" | "TRADE_BUY" | "TRADE_SELL";
   status: "PENDING" | "COMPLETED" | "FAILED" | "PROCESSING";
   description: string;
   referenceId?: string;

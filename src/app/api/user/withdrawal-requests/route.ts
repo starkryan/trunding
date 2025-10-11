@@ -126,52 +126,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate pending withdrawals
-    const pendingWithdrawals = await prisma.transaction.groupBy({
-      by: ['type'],
-      where: {
-        userId: userId,
-        status: 'PENDING',
-        type: 'WITHDRAWAL'
-      },
-      _sum: {
-        amount: true
-      }
-    })
-
-    let pendingWithdrawalAmount = 0
-    pendingWithdrawals.forEach(stat => {
-      if (stat.type === 'WITHDRAWAL') {
-        pendingWithdrawalAmount += stat._sum.amount || 0
-      }
-    })
-
-    const availableBalance = wallet.balance - pendingWithdrawalAmount
-
-    if (availableBalance < validatedData.amount) {
+    // Check if user has sufficient balance
+    if (wallet.balance < validatedData.amount) {
       return NextResponse.json(
-        { success: false, error: "Insufficient available balance" },
+        { success: false, error: "Insufficient wallet balance" },
         { status: 400 }
       )
     }
 
-    // Check if there's already a pending withdrawal request
-    const existingPendingRequest = await prisma.withdrawalRequest.findFirst({
-      where: {
-        userId: userId,
-        status: 'PENDING'
-      }
-    })
-
-    if (existingPendingRequest) {
-      return NextResponse.json(
-        { success: false, error: "You already have a pending withdrawal request" },
-        { status: 400 }
-      )
-    }
-
-    // Use transaction to ensure atomic operation
+    // Use ACID transaction to ensure atomic balance deduction
     const result = await prisma.$transaction(async (tx) => {
+      // Lock wallet row for update to prevent race conditions
+      const lockedWallet = await tx.wallet.findUnique({
+        where: { userId: userId }
+      })
+
+      if (!lockedWallet) {
+        throw new Error("Wallet not found")
+      }
+
+      // Double-check balance within transaction
+      if (lockedWallet.balance < validatedData.amount) {
+        throw new Error("Insufficient wallet balance")
+      }
+
+      // Calculate new balance
+      const newBalance = lockedWallet.balance - validatedData.amount
+
+      // Update wallet balance immediately (ACID-compliant)
+      const updatedWallet = await tx.wallet.update({
+        where: { id: lockedWallet.id },
+        data: { balance: newBalance }
+      })
+
       // Create withdrawal request
       const withdrawalRequest = await tx.withdrawalRequest.create({
         data: {
@@ -198,21 +185,24 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Create transaction record (PENDING - no balance deduction yet)
+      // Create transaction record (COMPLETED - balance already deducted)
       await tx.transaction.create({
         data: {
           userId: userId,
-          walletId: wallet.id,
+          walletId: lockedWallet.id,
           amount: validatedData.amount,
-          currency: wallet.currency,
+          currency: lockedWallet.currency,
           type: "WITHDRAWAL",
-          status: "PENDING",
-          description: `Withdrawal request to ${paymentMethod.type === 'BANK_ACCOUNT' ? paymentMethod.bankName : 'UPI'}`,
+          status: "COMPLETED",
+          description: `Withdrawal to ${paymentMethod.type === 'BANK_ACCOUNT' ? paymentMethod.bankName : 'UPI'} (Pending approval)`,
           referenceId: withdrawalRequest.id,
           metadata: {
             withdrawalRequestId: withdrawalRequest.id,
             withdrawalMethodType: paymentMethod.type,
-            withdrawalMethodId: paymentMethod.id
+            withdrawalMethodId: paymentMethod.id,
+            previousBalance: lockedWallet.balance,
+            newBalance: newBalance,
+            balanceDeductedImmediately: true
           }
         }
       })

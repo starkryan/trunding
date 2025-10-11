@@ -73,25 +73,11 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Calculate pending withdrawals for available balance
-    const pendingWithdrawals = await prisma.transaction.groupBy({
-      by: ['type'],
-      where: {
-        userId: userId,
-        status: 'PENDING',
-        type: 'WITHDRAWAL'
-      },
-      _sum: {
-        amount: true
-      }
-    })
-
     // Calculate totals
     let totalDeposits = 0
     let totalWithdrawals = 0
     let depositCount = 0
     let withdrawalCount = 0
-    let pendingWithdrawalAmount = 0
 
     transactionStats.forEach(stat => {
       if (stat.type === 'DEPOSIT' || stat.type === 'REWARD') {
@@ -100,13 +86,6 @@ export async function GET(request: NextRequest) {
       } else if (stat.type === 'WITHDRAWAL' || stat.type === 'TRADE_BUY') {
         totalWithdrawals += stat._sum.amount || 0
         withdrawalCount += stat._count.id
-      }
-    })
-
-    // Calculate pending withdrawals
-    pendingWithdrawals.forEach(stat => {
-      if (stat.type === 'WITHDRAWAL') {
-        pendingWithdrawalAmount += stat._sum.amount || 0
       }
     })
 
@@ -126,8 +105,7 @@ export async function GET(request: NextRequest) {
         depositCount,
         withdrawalCount,
         netFlow: totalDeposits - totalWithdrawals,
-        pendingWithdrawals: pendingWithdrawalAmount,
-        availableBalance: wallet.balance - pendingWithdrawalAmount
+        availableBalance: wallet.balance
       },
       recentTransactions: recentTransactions.map(tx => ({
         id: tx.id,

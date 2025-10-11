@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,7 +15,6 @@ import {
   Smartphone,
   ArrowRight,
   AlertCircle,
-  CheckCircle,
   Info
 } from "lucide-react"
 
@@ -41,8 +41,6 @@ interface WithdrawalRequestFormProps {
 export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: WithdrawalRequestFormProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     withdrawalMethodId: "",
@@ -56,7 +54,6 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
   // Fetch payment methods
   const fetchPaymentMethods = async () => {
     try {
-      setError(null)
       const response = await fetch("/api/user/payment-methods")
       const data = await response.json()
 
@@ -66,10 +63,10 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
         setActivePaymentMethods(active)
         setDefaultPaymentMethod(defaultMethod || null)
       } else {
-        setError(data.error || "Failed to fetch payment methods")
+        toast.error(data.error || "Failed to fetch payment methods")
       }
     } catch (error) {
-      setError("Network error. Please try again.")
+      toast.error("Network error. Please try again.")
       console.error("Payment methods fetch error:", error)
     } finally {
       setIsLoading(false)
@@ -85,8 +82,6 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
     return () => {
       // Reset states when component unmounts
       setFormData({ withdrawalMethodId: "", amount: "" })
-      setError(null)
-      setSuccess(null)
       setIsSubmitting(false)
     }
   }, [])
@@ -102,32 +97,30 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setError(null)
-    setSuccess(null)
 
     try {
       const amount = parseFloat(formData.amount)
 
       if (!formData.withdrawalMethodId) {
-        setError("Please select a payment method")
+        toast.error("Please select a payment method")
         setIsSubmitting(false)
         return
       }
 
       if (isNaN(amount) || amount < 300) {
-        setError("Minimum withdrawal amount is ₹300")
+        toast.error("Minimum withdrawal amount is ₹300")
         setIsSubmitting(false)
         return
       }
 
       if (amount > 100000) {
-        setError("Maximum withdrawal amount is ₹100,000")
+        toast.error("Maximum withdrawal amount is ₹100,000")
         setIsSubmitting(false)
         return
       }
 
       if (amount > walletBalance) {
-        setError("Insufficient wallet balance")
+        toast.error("Insufficient wallet balance")
         setIsSubmitting(false)
         return
       }
@@ -146,14 +139,14 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
       const data = await response.json()
 
       if (data.success) {
-        setSuccess("Withdrawal request submitted successfully! It will be reviewed by our team.")
+        toast.success("Withdrawal submitted successfully!")
         setFormData({ withdrawalMethodId: defaultPaymentMethod?.id || "", amount: "" })
         onSuccess?.()
       } else {
-        setError(data.error || "Failed to submit withdrawal request")
+        toast.error(data.error || "Failed to submit withdrawal request")
       }
     } catch (error) {
-      setError("Network error. Please try again.")
+      toast.error("Network error. Please try again.")
       console.error("Withdrawal request error:", error)
     } finally {
       setIsSubmitting(false)
@@ -173,20 +166,6 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
 
   return (
     <div className="space-y-6">
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {success && (
-        <Alert className="border-green-200 bg-green-50 text-green-800">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

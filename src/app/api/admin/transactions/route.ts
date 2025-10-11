@@ -22,7 +22,7 @@ const transactionFiltersSchema = z.object({
   limit: z.number().min(1).max(100).default(20),
   search: z.string().optional(),
   status: z.enum(['ALL', 'PENDING', 'COMPLETED', 'FAILED', 'PROCESSING']).optional(),
-  type: z.enum(['ALL', 'DEPOSIT', 'WITHDRAWAL', 'ADMIN_ADJUSTMENT_ADD', 'ADMIN_ADJUSTMENT_SUBTRACT', 'REWARD', 'TRADE_BUY', 'TRADE_SELL']).optional(),
+  type: z.enum(['ALL', 'DEPOSIT', 'WITHDRAWAL', 'REWARD', 'TRADE_BUY', 'TRADE_SELL']).optional(),
   method: z.string().optional(),
   userId: z.string().optional(),
   dateFrom: z.string().optional(),
@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
       userId: searchParams.get('userId') || undefined,
       dateFrom: searchParams.get('dateFrom') || undefined,
       dateTo: searchParams.get('dateTo') || undefined,
-      minAmount: searchParams.get('minAmount') ? parseFloat(searchParams.get('minAmount')) : undefined,
-      maxAmount: searchParams.get('maxAmount') ? parseFloat(searchParams.get('maxAmount')) : undefined,
+      minAmount: searchParams.get('minAmount') ? parseFloat(searchParams.get('minAmount')!) : undefined,
+      maxAmount: searchParams.get('maxAmount') ? parseFloat(searchParams.get('maxAmount')!) : undefined,
       sortBy: searchParams.get('sortBy') || 'createdAt',
       sortOrder: searchParams.get('sortOrder') || 'desc'
     })
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
         FAILED: 0,
         PROCESSING: 0
       },
-      byType: {},
+      byType: {} as Record<string, { count: number; volume: number }>,
       paymentMethods: {} as Record<string, { count: number; volume: number }>,
       dailyVolume: [] as Array<{ date: string; volume: number; count: number }>,
       monthlyTrends: [] as Array<{ month: string; deposits: number; withdrawals: number; net: number }>
@@ -211,43 +211,32 @@ export async function GET(request: NextRequest) {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    const dailyVolume = await prisma.transaction.groupBy({
-      by: {
-        date: {
-          date: 'createdAt'
-        }
-      },
-      where: {
-        createdAt: {
-          gte: thirtyDaysAgo
-        },
-        status: 'COMPLETED'
-      },
-      _sum: {
-        amount: true
-      },
-      _count: {
-        id: true
-      },
-      orderBy: {
-        date: 'desc'
-      }
-    })
+    const dailyVolume = await prisma.$queryRaw`
+      SELECT
+        DATE("createdAt") as date,
+        SUM("amount") as amount,
+        COUNT(*) as count
+      FROM "transaction"
+      WHERE "createdAt" >= ${thirtyDaysAgo}
+      AND "status" = 'COMPLETED'
+      GROUP BY DATE("createdAt")
+      ORDER BY date DESC
+    ` as Array<{ date: Date; amount: number; count: number }>
 
     processedStats.dailyVolume = dailyVolume.map(d => ({
-      date: d.date,
-      volume: d._sum.amount || 0,
-      count: d._count.id
+      date: d.date.toISOString().split('T')[0],
+      volume: d.amount || 0,
+      count: d.count
     }))
 
     // Get monthly trends
     const monthlyTrends = await prisma.$queryRaw`
       SELECT
         DATE_TRUNC('month', "createdAt") as month,
-        SUM(CASE WHEN "type" IN ('DEPOSIT', 'REWARD', 'ADMIN_ADJUSTMENT_ADD') THEN "amount" ELSE 0 END) as deposits,
-        SUM(CASE WHEN "type" IN ('WITHDRAWAL', 'ADMIN_ADJUSTMENT_SUBTRACT') THEN "amount" ELSE 0 END) as withdrawals,
+        SUM(CASE WHEN "type" IN ('DEPOSIT', 'REWARD') THEN "amount" ELSE 0 END) as deposits,
+        SUM(CASE WHEN "type" IN ('WITHDRAWAL') THEN "amount" ELSE 0 END) as withdrawals,
         COUNT(*) as count
-      FROM "Transaction"
+      FROM "transaction"
       WHERE "status" = 'COMPLETED'
       AND "createdAt" >= NOW() - INTERVAL '12 months'
       GROUP BY DATE_TRUNC('month', "createdAt")
@@ -433,8 +422,7 @@ export async function POST(request: NextRequest) {
       'Method',
       'Description',
       'Reference ID',
-      'Created At',
-      'Updated At'
+      'Created At'
     ]
 
     const csvRows = transactions.map(transaction => {
@@ -462,8 +450,7 @@ export async function POST(request: NextRequest) {
         method,
         `"${transaction.description}"`,
         transaction.referenceId || '',
-        transaction.createdAt.toISOString(),
-        transaction.updatedAt.toISOString()
+        transaction.createdAt.toISOString()
       ].join(',')
     })
 
