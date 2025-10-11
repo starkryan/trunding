@@ -12,10 +12,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
 import {
   CreditCard,
-  DollarSign,
   TrendingUp,
   TrendingDown,
-  Filter,
   Search,
   Download,
   RefreshCw,
@@ -23,39 +21,19 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertTriangle,
-  User,
-  Calendar,
   ArrowUpRight,
   ArrowDownRight,
-  MoreHorizontal,
-  FileText,
   BarChart3,
   Activity,
-  Shield,
   Wallet,
-  ArrowRight,
   IndianRupee,
-  CalendarDays,
   Copy,
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Building,
-  Zap,
-  FilterX,
-  DownloadCloud,
-  History,
-  Receipt,
-  FileSearch,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Home
+  Plus
 } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth, parseISO } from "date-fns";
-import { toast } from "sonner";
+import { format, parseISO } from "date-fns";
+import toast from "react-hot-toast";
 
 interface Transaction {
   id: string;
@@ -124,7 +102,6 @@ export default function AdminTransactionsPage() {
   const [transactionsResponse, setTransactionsResponse] = useState<TransactionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -139,20 +116,17 @@ export default function AdminTransactionsPage() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit] = useState(20);
 
   // Modal states
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-  const [filtersModalOpen, setFiltersModalOpen] = useState(false);
 
   // Fetch transactions from API
   const fetchTransactions = async (page = 1, newFilters = {}, isExport = false) => {
     try {
       if (!isExport) {
         setLoading(true);
-      } else {
-        setIsLoading(true);
       }
 
       const params = new URLSearchParams({
@@ -176,8 +150,6 @@ export default function AdminTransactionsPage() {
     } finally {
       if (!isExport) {
         setLoading(false);
-      } else {
-        setIsLoading(false);
       }
     }
   };
@@ -229,38 +201,6 @@ export default function AdminTransactionsPage() {
     }
   };
 
-  // Clear all filters
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("ALL");
-    setTypeFilter("ALL");
-    setMethodFilter("");
-    setUserIdFilter("");
-    setDateFromFilter("");
-    setDateToFilter("");
-    setMinAmountFilter("");
-    setMaxAmountFilter("");
-    setCurrentPage(1);
-  };
-
-  // Apply filters
-  const applyFilters = () => {
-    const filters = {};
-
-    if (searchTerm) filters.search = searchTerm;
-    if (statusFilter !== "ALL") filters.status = statusFilter;
-    if (typeFilter !== "ALL") filters.type = typeFilter;
-    if (methodFilter) filters.method = methodFilter;
-    if (userIdFilter) filters.userId = userIdFilter;
-    if (dateFromFilter) filters.dateFrom = dateFromFilter;
-    if (dateToFilter) filters.dateTo = dateToFilter;
-    if (minAmountFilter) filters.minAmount = parseFloat(minAmountFilter);
-    if (maxAmountFilter) filters.maxAmount = parseFloat(maxAmountFilter);
-
-    setCurrentPage(1);
-    fetchTransactions(1, filters);
-  };
-
   // Auto-refresh and initial load
   useEffect(() => {
     fetchTransactions();
@@ -275,7 +215,7 @@ export default function AdminTransactionsPage() {
 
   // Auto-refresh when filters change
   useEffect(() => {
-    const filters = {};
+    const filters: Record<string, any> = {};
 
     if (searchTerm) filters.search = searchTerm;
     if (statusFilter !== "ALL") filters.status = statusFilter;
@@ -824,8 +764,10 @@ export default function AdminTransactionsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        navigator.clipboard.writeText(selectedTransaction.referenceId);
-                        toast.success('Reference ID copied to clipboard');
+                        if (selectedTransaction.referenceId) {
+                          navigator.clipboard.writeText(selectedTransaction.referenceId);
+                          toast.success('Reference ID copied to clipboard');
+                        }
                       }}
                     >
                       <Copy className="h-4 w-4" />
