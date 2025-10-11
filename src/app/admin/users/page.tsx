@@ -80,7 +80,17 @@ import {
   Zap,
   Ban,
   Lock,
-  Unlock
+  Unlock,
+  Wallet,
+  PlusCircle,
+  MinusCircle,
+  DollarSign,
+  IndianRupee,
+  ArrowUpRight,
+  ArrowDownRight,
+  PiggyBank,
+  Receipt,
+  History
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -96,9 +106,25 @@ interface User {
   banExpires?: string;
   createdAt: string;
   updatedAt: string;
+  wallet?: {
+    id: string;
+    balance: number;
+    currency: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  stats: {
+    totalDeposits: number;
+    totalWithdrawals: number;
+    pendingWithdrawals: number;
+    availableBalance: number;
+    netFlow: number;
+  };
   _count: {
     sessions: number;
     accounts: number;
+    transactions: number;
+    withdrawalRequests: number;
   };
 }
 
@@ -127,6 +153,14 @@ export default function AdminUsersPage() {
   const [selectedUserForBan, setSelectedUserForBan] = useState<User | null>(null);
   const [selectedUserForDelete, setSelectedUserForDelete] = useState<User | null>(null);
   const [banReason, setBanReason] = useState("");
+
+  // Balance adjustment states
+  const [balanceDialogOpen, setBalanceDialogOpen] = useState(false);
+  const [selectedUserForBalance, setSelectedUserForBalance] = useState<User | null>(null);
+  const [balanceAction, setBalanceAction] = useState<'add' | 'subtract' | 'set'>('add');
+  const [balanceAmount, setBalanceAmount] = useState('');
+  const [balanceReason, setBalanceReason] = useState('');
+  const [isAdjustingBalance, setIsAdjustingBalance] = useState(false);
 
   const fetchUsers = async (page = 1, search = "", role = "all", status = "all") => {
     try {
@@ -228,6 +262,61 @@ export default function AdminUsersPage() {
       await deleteUser(selectedUserForDelete.id);
       setDeleteDialogOpen(false);
       setSelectedUserForDelete(null);
+    }
+  };
+
+  const adjustUserBalance = async (userId: string, action: 'add' | 'subtract' | 'set', amount: number, reason: string) => {
+    try {
+      setIsAdjustingBalance(true);
+      const response = await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: 'adjust_balance',
+          userId,
+          adjustmentType: action,
+          amount,
+          reason
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await fetchUsers(currentPage, searchTerm, selectedRole, selectedStatus);
+        setBalanceDialogOpen(false);
+        setSelectedUserForBalance(null);
+        setBalanceAmount('');
+        setBalanceReason('');
+        setBalanceAction('add');
+        // Show success message
+        alert('Balance adjusted successfully!');
+      } else {
+        alert(`Error: ${data.error || 'Failed to adjust balance'}`);
+      }
+    } catch (error) {
+      console.error("Error adjusting balance:", error);
+      alert('Network error. Please try again.');
+    } finally {
+      setIsAdjustingBalance(false);
+    }
+  };
+
+  const handleBalanceAdjustment = (user: User) => {
+    setSelectedUserForBalance(user);
+    setBalanceDialogOpen(true);
+  };
+
+  const confirmBalanceAdjustment = async () => {
+    if (selectedUserForBalance && balanceAmount && balanceReason) {
+      const amount = parseFloat(balanceAmount);
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+      await adjustUserBalance(selectedUserForBalance.id, balanceAction, amount, balanceReason);
     }
   };
 
@@ -377,7 +466,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -408,30 +497,60 @@ export default function AdminUsersPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter(u => u.role === "ADMIN" || u.role === "SUPER_ADMIN").length}
+              ₹{users.reduce((sum, u) => sum + (u.wallet?.balance || 0), 0).toLocaleString('en-IN')}
             </div>
             <p className="text-xs text-muted-foreground">
-              With admin privileges
+              Across all users
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verified Users</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Deposits</CardTitle>
+            <ArrowDownRight className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {users.filter(u => u.emailVerified).length}
+            <div className="text-2xl font-bold text-green-600">
+              ₹{users.reduce((sum, u) => sum + u.stats.totalDeposits, 0).toLocaleString('en-IN')}
             </div>
             <p className="text-xs text-muted-foreground">
-              Email verified
+              All time deposits
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Withdrawals</CardTitle>
+            <ArrowUpRight className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              ₹{users.reduce((sum, u) => sum + u.stats.totalWithdrawals, 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              All time withdrawals
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              ₹{users.reduce((sum, u) => sum + u.stats.pendingWithdrawals, 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pending withdrawals
             </p>
           </CardContent>
         </Card>
@@ -577,9 +696,10 @@ export default function AdminUsersPage() {
                   <TableHead className="min-w-[200px] hidden md:table-cell">Email</TableHead>
                   <TableHead className="hidden sm:table-cell">Status</TableHead>
                   <TableHead className="hidden lg:table-cell">Role</TableHead>
+                  <TableHead className="hidden md:table-cell">Balance</TableHead>
+                  <TableHead className="hidden lg:table-cell">Net Flow</TableHead>
                   <TableHead className="hidden sm:table-cell">Joined</TableHead>
-                  <TableHead className="hidden lg:table-cell">Sessions</TableHead>
-                  <TableHead className="hidden xl:table-cell">Last Active</TableHead>
+                  <TableHead className="hidden xl:table-cell">Transactions</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -645,6 +765,27 @@ export default function AdminUsersPage() {
                         {user.role}
                       </Badge>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <IndianRupee className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            {(user.wallet?.balance || 0).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        {user.stats.pendingWithdrawals > 0 && (
+                          <div className="text-xs text-orange-600">
+                            -{user.stats.pendingWithdrawals.toLocaleString('en-IN')} pending
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <div className={`flex items-center gap-1 text-sm ${user.stats.netFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {user.stats.netFlow >= 0 ? <ArrowDownRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+                        <span>₹{Math.abs(user.stats.netFlow).toLocaleString('en-IN')}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -653,18 +794,12 @@ export default function AdminUsersPage() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{user._count.sessions}</span>
-                      </div>
-                    </TableCell>
                     <TableCell className="hidden xl:table-cell">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          {format(new Date(user.updatedAt), "MMM d, yyyy")}
-                        </span>
+                      <div className="text-sm">
+                        <div>{user._count.transactions} transactions</div>
+                        <div className="text-xs text-muted-foreground">
+                          {user._count.withdrawalRequests} withdrawals
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -697,6 +832,11 @@ export default function AdminUsersPage() {
                           <DropdownMenuItem onClick={() => updateUserRole(user.id, user.isAdmin, "USER")}>
                             <Users className="mr-2 h-4 w-4" />
                             Set as User
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleBalanceAdjustment(user)} className="text-blue-600">
+                            <Wallet className="mr-2 h-4 w-4" />
+                            Adjust Balance
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleBanUser(user)} className={user.banned ? "text-green-600" : "text-red-600"}>
@@ -840,6 +980,169 @@ export default function AdminUsersPage() {
               </Button>
               <Button variant="destructive" onClick={confirmDelete}>
                 Delete User
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Balance Adjustment Dialog */}
+      <Dialog open={balanceDialogOpen} onOpenChange={setBalanceDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Adjust User Balance
+            </DialogTitle>
+            <DialogDescription>
+              Adjust the wallet balance for {selectedUserForBalance?.name} ({selectedUserForBalance?.email})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Current Balance Display */}
+            {selectedUserForBalance && (
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Current Balance:</span>
+                    <div className="font-semibold text-lg">
+                      ₹{(selectedUserForBalance.wallet?.balance || 0).toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Available Balance:</span>
+                    <div className="font-semibold text-lg text-green-600">
+                      ₹{selectedUserForBalance.stats.availableBalance.toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Total Deposits:</span>
+                    <div className="font-semibold text-green-600">
+                      +₹{selectedUserForBalance.stats.totalDeposits.toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Total Withdrawals:</span>
+                    <div className="font-semibold text-red-600">
+                      -₹{selectedUserForBalance.stats.totalWithdrawals.toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Balance Adjustment Form */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Adjustment Type</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant={balanceAction === 'add' ? 'default' : 'outline'}
+                    onClick={() => setBalanceAction('add')}
+                    className="flex items-center gap-2"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Add
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={balanceAction === 'subtract' ? 'default' : 'outline'}
+                    onClick={() => setBalanceAction('subtract')}
+                    className="flex items-center gap-2"
+                  >
+                    <MinusCircle className="h-4 w-4" />
+                    Subtract
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={balanceAction === 'set' ? 'default' : 'outline'}
+                    onClick={() => setBalanceAction('set')}
+                    className="flex items-center gap-2"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    Set
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="balanceAmount">
+                  Amount {balanceAction === 'set' ? '(new balance)' : `(to ${balanceAction})`}
+                </Label>
+                <Input
+                  id="balanceAmount"
+                  type="number"
+                  placeholder="Enter amount..."
+                  value={balanceAmount}
+                  onChange={(e) => setBalanceAmount(e.target.value)}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="balanceReason">Reason for Adjustment</Label>
+                <textarea
+                  id="balanceReason"
+                  className="w-full p-2 border rounded-md min-h-[80px] resize-none"
+                  placeholder="Enter the reason for this balance adjustment..."
+                  value={balanceReason}
+                  onChange={(e) => setBalanceReason(e.target.value)}
+                  maxLength={500}
+                />
+                <div className="text-xs text-muted-foreground text-right">
+                  {balanceReason.length}/500 characters
+                </div>
+              </div>
+
+              {/* Preview */}
+              {balanceAmount && !isNaN(parseFloat(balanceAmount)) && (
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                  <div className="text-sm text-blue-800">
+                    <strong>Preview:</strong> {balanceAction === 'add' ? 'Add' : balanceAction === 'subtract' ? 'Subtract' : 'Set'} balance{' '}
+                    {balanceAction === 'set' ? 'to' : 'by'} ₹{parseFloat(balanceAmount).toLocaleString('en-IN')}
+                    {balanceAction !== 'set' && (
+                      <>
+                        <br />
+                        New balance will be: ₹{balanceAction === 'add'
+                          ? ((selectedUserForBalance?.wallet?.balance || 0) + parseFloat(balanceAmount)).toLocaleString('en-IN')
+                          : balanceAction === 'subtract'
+                          ? Math.max(0, (selectedUserForBalance?.wallet?.balance || 0) - parseFloat(balanceAmount)).toLocaleString('en-IN')
+                          : parseFloat(balanceAmount).toLocaleString('en-IN')
+                        }
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => {
+                setBalanceDialogOpen(false);
+                setSelectedUserForBalance(null);
+                setBalanceAmount('');
+                setBalanceReason('');
+                setBalanceAction('add');
+              }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmBalanceAdjustment}
+                disabled={!balanceAmount || !balanceReason || isAdjustingBalance || parseFloat(balanceAmount) <= 0}
+              >
+                {isAdjustingBalance ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Wallet className="mr-2 h-4 w-4" />
+                    {balanceAction === 'add' ? 'Add Balance' : balanceAction === 'subtract' ? 'Subtract Balance' : 'Set Balance'}
+                  </>
+                )}
               </Button>
             </div>
           </div>

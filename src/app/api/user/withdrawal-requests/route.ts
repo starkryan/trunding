@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check user's wallet balance
+    // Check user's available balance (actual balance minus pending withdrawals)
     const wallet = await prisma.wallet.findUnique({
       where: { userId: userId }
     })
@@ -126,9 +126,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (wallet.balance < validatedData.amount) {
+    // Calculate pending withdrawals
+    const pendingWithdrawals = await prisma.transaction.groupBy({
+      by: ['type'],
+      where: {
+        userId: userId,
+        status: 'PENDING',
+        type: 'WITHDRAWAL'
+      },
+      _sum: {
+        amount: true
+      }
+    })
+
+    let pendingWithdrawalAmount = 0
+    pendingWithdrawals.forEach(stat => {
+      if (stat.type === 'WITHDRAWAL') {
+        pendingWithdrawalAmount += stat._sum.amount || 0
+      }
+    })
+
+    const availableBalance = wallet.balance - pendingWithdrawalAmount
+
+    if (availableBalance < validatedData.amount) {
       return NextResponse.json(
-        { success: false, error: "Insufficient wallet balance" },
+        { success: false, error: "Insufficient available balance" },
         { status: 400 }
       )
     }
@@ -176,7 +198,7 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Create transaction record
+      // Create transaction record (PENDING - no balance deduction yet)
       await tx.transaction.create({
         data: {
           userId: userId,

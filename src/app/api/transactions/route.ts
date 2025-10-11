@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     // Also get pending payments that don't have corresponding transactions
     const paymentWhere: any = { userId };
-    
+
     if (search) {
       paymentWhere.OR = [
         { providerOrderId: { contains: search, mode: "insensitive" } },
@@ -118,8 +118,76 @@ export async function GET(request: NextRequest) {
       createdAt: payment.createdAt
     }));
 
-    // Combine transactions and pending payments
-    const allTransactions = [...transactions, ...paymentTransactions].sort((a, b) => 
+    // Also get withdrawal requests that don't have corresponding transactions
+    const withdrawalWhere: any = { userId };
+
+    if (status) {
+      withdrawalWhere.status = status;
+    }
+
+    if (search) {
+      withdrawalWhere.OR = [
+        { id: { contains: search, mode: "insensitive" } },
+        {
+          withdrawalMethod: {
+            OR: [
+              { bankName: { contains: search, mode: "insensitive" } },
+              { upiId: { contains: search, mode: "insensitive" } },
+              { accountName: { contains: search, mode: "insensitive" } }
+            ]
+          }
+        }
+      ];
+    }
+
+    // Get withdrawal requests that don't have corresponding transactions
+    const pendingWithdrawalRequests = await prisma.withdrawalRequest.findMany({
+      where: {
+        ...withdrawalWhere,
+        NOT: {
+          id: {
+            in: await prisma.transaction.findMany({
+              where: { userId, type: "WITHDRAWAL" },
+              select: { referenceId: true }
+            }).then(txs => txs.map(tx => tx.referenceId).filter(Boolean))
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        withdrawalMethod: {
+          select: {
+            type: true,
+            bankName: true,
+            upiId: true,
+            accountName: true
+          }
+        }
+      }
+    });
+
+    // Convert withdrawal requests to transaction format for display
+    const withdrawalRequestTransactions = pendingWithdrawalRequests.map(request => ({
+      id: request.id,
+      type: "WITHDRAWAL" as const,
+      amount: request.amount,
+      currency: request.currency,
+      status: request.status,
+      description: `Withdrawal request - ${request.withdrawalMethod.type === 'BANK_ACCOUNT' ? request.withdrawalMethod.bankName || 'Bank Account' : request.withdrawalMethod.upiId || 'UPI'}`,
+      referenceId: request.id,
+      metadata: {
+        ...request,
+        isWithdrawalRequest: true,
+        withdrawalMethodType: request.withdrawalMethod.type,
+        rejectionReason: request.rejectionReason,
+        adminNotes: request.adminNotes,
+        processedAt: request.processedAt
+      },
+      createdAt: request.createdAt
+    }));
+
+    // Combine transactions, pending payments, and withdrawal requests
+    const allTransactions = [...transactions, ...paymentTransactions, ...withdrawalRequestTransactions].sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
@@ -131,13 +199,25 @@ export async function GET(request: NextRequest) {
       _sum: { amount: true }
     });
 
-    // Calculate totals
+    // Calculate totals including withdrawal requests
+    const withdrawalRequestStats = await prisma.withdrawalRequest.groupBy({
+      by: ["status"],
+      where: { userId },
+      _count: { id: true },
+      _sum: { amount: true }
+    });
+
     const totalDeposits = stats
       .filter(s => s.type === "DEPOSIT" && s.status === "COMPLETED")
       .reduce((sum, s) => sum + (s._sum.amount || 0), 0);
 
     const totalWithdrawals = stats
       .filter(s => s.type === "WITHDRAWAL" && s.status === "COMPLETED")
+      .reduce((sum, s) => sum + (s._sum.amount || 0), 0);
+
+    // Add completed withdrawal requests to total withdrawals
+    const completedWithdrawalRequests = withdrawalRequestStats
+      .filter(s => s.status === "COMPLETED")
       .reduce((sum, s) => sum + (s._sum.amount || 0), 0);
 
     const totalRewards = stats
@@ -156,25 +236,35 @@ export async function GET(request: NextRequest) {
       .filter(s => s.status === "FAILED")
       .reduce((sum, s) => sum + s._count.id, 0);
 
+    const pendingWithdrawalRequestsCount = withdrawalRequestStats
+      .filter(s => s.status === "PENDING")
+      .reduce((sum, s) => sum + s._count.id, 0);
+
+    const failedWithdrawalRequestsCount = withdrawalRequestStats
+      .filter(s => s.status === "REJECTED" || s.status === "FAILED")
+      .reduce((sum, s) => sum + s._count.id, 0);
+
+    const totalItems = total + pendingPayments.length + pendingWithdrawalRequests.length;
+
     return NextResponse.json({
       transactions: allTransactions,
       pagination: {
         page,
         limit,
-        total: total + pendingPayments.length,
-        pages: Math.ceil((total + pendingPayments.length) / limit),
-        hasNext: page * limit < (total + pendingPayments.length),
+        total: totalItems,
+        pages: Math.ceil(totalItems / limit),
+        hasNext: page * limit < totalItems,
         hasPrev: page > 1
       },
       stats: {
-        totalTransactions: total + pendingPayments.length,
+        totalTransactions: totalItems,
         totalDeposits,
-        totalWithdrawals,
+        totalWithdrawals: totalWithdrawals + completedWithdrawalRequests,
         totalRewards,
         completedTransactions,
-        pendingTransactions: pendingPayments.length + pendingTransactions,
-        failedTransactions,
-        netBalance: totalDeposits - totalWithdrawals
+        pendingTransactions: pendingPayments.length + pendingTransactions + pendingWithdrawalRequestsCount,
+        failedTransactions: failedTransactions + failedWithdrawalRequestsCount,
+        netBalance: totalDeposits - (totalWithdrawals + completedWithdrawalRequests)
       }
     });
 

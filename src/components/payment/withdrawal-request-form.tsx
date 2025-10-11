@@ -39,7 +39,6 @@ interface WithdrawalRequestFormProps {
 }
 
 export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: WithdrawalRequestFormProps) {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,6 +49,10 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
     amount: ""
   })
 
+  // Get default and active payment methods
+  const [activePaymentMethods, setActivePaymentMethods] = useState<PaymentMethod[]>([])
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState<PaymentMethod | null>(null)
+
   // Fetch payment methods
   const fetchPaymentMethods = async () => {
     try {
@@ -58,7 +61,10 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
       const data = await response.json()
 
       if (data.success) {
-        setPaymentMethods(data.paymentMethods)
+        const active = data.paymentMethods.filter((method: PaymentMethod) => method.isActive)
+        const defaultMethod = active.find((method: PaymentMethod) => method.isDefault)
+        setActivePaymentMethods(active)
+        setDefaultPaymentMethod(defaultMethod || null)
       } else {
         setError(data.error || "Failed to fetch payment methods")
       }
@@ -73,6 +79,24 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
   useEffect(() => {
     fetchPaymentMethods()
   }, [])
+
+  // Cleanup function to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Reset states when component unmounts
+      setFormData({ withdrawalMethodId: "", amount: "" })
+      setError(null)
+      setSuccess(null)
+      setIsSubmitting(false)
+    }
+  }, [])
+
+  // Set default payment method when available
+  useEffect(() => {
+    if (defaultPaymentMethod && !formData.withdrawalMethodId) {
+      setFormData(prev => ({ ...prev, withdrawalMethodId: defaultPaymentMethod.id }))
+    }
+  }, [defaultPaymentMethod, formData.withdrawalMethodId])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,7 +147,7 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
 
       if (data.success) {
         setSuccess("Withdrawal request submitted successfully! It will be reviewed by our team.")
-        setFormData({ withdrawalMethodId: "", amount: "" })
+        setFormData({ withdrawalMethodId: defaultPaymentMethod?.id || "", amount: "" })
         onSuccess?.()
       } else {
         setError(data.error || "Failed to submit withdrawal request")
@@ -135,10 +159,6 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
       setIsSubmitting(false)
     }
   }
-
-  // Get default payment method
-  const defaultPaymentMethod = paymentMethods.find(method => method.isDefault)
-  const activePaymentMethods = paymentMethods.filter(method => method.isActive)
 
   if (isLoading) {
     return (
@@ -212,22 +232,22 @@ export default function WithdrawalRequestForm({ onSuccess, walletBalance = 0 }: 
             <div className="space-y-2">
               <Label htmlFor="paymentMethod">Select Payment Method</Label>
               <Select
-                value={formData.withdrawalMethodId || (defaultPaymentMethod?.id || "")}
+                value={formData.withdrawalMethodId || ""}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, withdrawalMethodId: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select payment method">
-                    {defaultPaymentMethod && !formData.withdrawalMethodId ? (
+                    {(formData.withdrawalMethodId || defaultPaymentMethod?.id) ? (
                       <div className="flex items-center gap-2">
-                        {defaultPaymentMethod.type === "BANK_ACCOUNT" ? (
+                        {(formData.withdrawalMethodId ? activePaymentMethods.find(m => m.id === formData.withdrawalMethodId) : defaultPaymentMethod)?.type === "BANK_ACCOUNT" ? (
                           <Building2 className="h-4 w-4" />
                         ) : (
                           <Smartphone className="h-4 w-4" />
                         )}
                         <span>
-                          {defaultPaymentMethod.type === "BANK_ACCOUNT"
-                            ? `${defaultPaymentMethod.bankName} - ${defaultPaymentMethod.accountNumber}`
-                            : `${defaultPaymentMethod.upiId}`
+                          {(formData.withdrawalMethodId ? activePaymentMethods.find(m => m.id === formData.withdrawalMethodId) : defaultPaymentMethod)?.type === "BANK_ACCOUNT"
+                            ? `${(formData.withdrawalMethodId ? activePaymentMethods.find(m => m.id === formData.withdrawalMethodId) : defaultPaymentMethod)?.bankName} - ${(formData.withdrawalMethodId ? activePaymentMethods.find(m => m.id === formData.withdrawalMethodId) : defaultPaymentMethod)?.accountNumber}`
+                            : `${(formData.withdrawalMethodId ? activePaymentMethods.find(m => m.id === formData.withdrawalMethodId) : defaultPaymentMethod)?.upiId}`
                           }
                         </span>
                       </div>

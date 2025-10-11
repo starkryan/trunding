@@ -164,11 +164,32 @@ export default function TransactionsPage() {
             Pending
           </div>
         );
+      case "PROCESSING":
+        return (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-full text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+            Processing
+          </div>
+        );
+      case "APPROVED":
+        return (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded-full text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+            Approved
+          </div>
+        );
       case "FAILED":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium">
             <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
             Failed
+          </div>
+        );
+      case "REJECTED":
+        return (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+            Rejected
           </div>
         );
       case "CANCELLED":
@@ -477,11 +498,16 @@ export default function TransactionsPage() {
                                   {transaction.description || getTypeLabel(transaction.type)}
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(transaction.createdAt).toLocaleTimeString([], { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit' 
+                                  {new Date(transaction.createdAt).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
                                   })}
                                 </p>
+                                {transaction.metadata?.isWithdrawalRequest && transaction.metadata.rejectionReason && (
+                                  <p className="text-xs text-red-600 mt-1 truncate">
+                                    {transaction.metadata.rejectionReason}
+                                  </p>
+                                )}
                                 {transaction.referenceId && (
                                   <p className="text-xs text-muted-foreground mt-1 truncate">
                                     Ref: {transaction.referenceId}
@@ -570,6 +596,45 @@ export default function TransactionsPage() {
                                         <div className="p-4 bg-muted/50 rounded-lg">
                                           <p className="text-xs font-medium text-muted-foreground mb-2">Description</p>
                                           <p className="text-sm leading-relaxed">{transaction.description}</p>
+                                        </div>
+                                      )}
+
+                                      {/* Withdrawal Request Details */}
+                                      {transaction.metadata?.isWithdrawalRequest && (
+                                        <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                                          <p className="text-xs font-medium text-muted-foreground">Withdrawal Details</p>
+                                          {transaction.metadata.withdrawalMethodType && (
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">Method Type</p>
+                                              <p className="text-sm font-medium capitalize">
+                                                {transaction.metadata.withdrawalMethodType.replace('_', ' ').toLowerCase()}
+                                              </p>
+                                            </div>
+                                          )}
+                                          {transaction.metadata.processedAt && (
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">Processed On</p>
+                                              <p className="text-sm">
+                                                {new Date(transaction.metadata.processedAt).toLocaleDateString()} at {new Date(transaction.metadata.processedAt).toLocaleTimeString()}
+                                              </p>
+                                            </div>
+                                          )}
+                                          {transaction.metadata.rejectionReason && (
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">Rejection Reason</p>
+                                              <p className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                                                {transaction.metadata.rejectionReason}
+                                              </p>
+                                            </div>
+                                          )}
+                                          {transaction.metadata.adminNotes && (
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">Admin Notes</p>
+                                              <p className="text-sm bg-blue-50 p-2 rounded border border-blue-200">
+                                                {transaction.metadata.adminNotes}
+                                              </p>
+                                            </div>
+                                          )}
                                         </div>
                                       )}
 
