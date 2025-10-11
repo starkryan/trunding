@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       if (stat.type === 'DEPOSIT' || stat.type === 'REWARD') {
         totalDeposits += stat._sum.amount || 0
         depositCount += stat._count.id
-      } else if (stat.type === 'WITHDRAWAL' || stat.type === 'TRADE_BUY') {
+      } else if (stat.type === 'WITHDRAWAL') {
         totalWithdrawals += stat._sum.amount || 0
         withdrawalCount += stat._count.id
       }

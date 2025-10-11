@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  FiArrowLeft,
   FiSearch,
   FiRefreshCw,
   FiDownload,
@@ -13,20 +12,12 @@ import {
   FiTrendingDown,
   FiGift,
   FiCreditCard,
-  FiActivity,
-  FiArrowUp,
-  FiArrowDown,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -183,57 +174,57 @@ export default function TransactionsPage() {
     switch (status) {
       case "COMPLETED":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-green-500"></div>
             Success
           </div>
         );
       case "PENDING":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-amber-500 animate-pulse"></div>
             Pending
           </div>
         );
       case "PROCESSING":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-blue-500 animate-pulse"></div>
             Processing
           </div>
         );
       case "APPROVED":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-purple-500"></div>
             Approved
           </div>
         );
       case "FAILED":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-red-500"></div>
             Failed
           </div>
         );
       case "REJECTED":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-red-500"></div>
             Rejected
           </div>
         );
       case "CANCELLED":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-gray-500 rounded-full"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-gray-500"></div>
             Cancelled
           </div>
         );
       default:
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400 rounded-full text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-gray-500 rounded-full"></div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-gray-500"></div>
             {status}
           </div>
         );
@@ -246,10 +237,7 @@ export default function TransactionsPage() {
         return <FiTrendingUp className="h-4 w-4 text-green-600" />;
       case "WITHDRAWAL":
         return <FiTrendingDown className="h-4 w-4 text-red-600" />;
-      case "TRADE_BUY":
-        return <FiTrendingUp className="h-4 w-4 text-blue-600" />;
-      case "TRADE_SELL":
-        return <FiTrendingDown className="h-4 w-4 text-blue-600" />;
+  
       case "REWARD":
         return <FiGift className="h-4 w-4 text-purple-600" />;
       case "REFUND":
@@ -265,10 +253,7 @@ export default function TransactionsPage() {
         return "Deposit";
       case "WITHDRAWAL":
         return "Withdrawal";
-      case "TRADE_BUY":
-        return "Buy";
-      case "TRADE_SELL":
-        return "Sell";
+   
       case "REWARD":
         return "Reward";
       case "REFUND":
@@ -451,8 +436,7 @@ export default function TransactionsPage() {
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="DEPOSIT">Deposit</SelectItem>
                   <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-                  <SelectItem value="TRADE_BUY">Buy</SelectItem>
-                  <SelectItem value="TRADE_SELL">Sell</SelectItem>
+             
                   <SelectItem value="REWARD">Reward</SelectItem>
                   <SelectItem value="REFUND">Refund</SelectItem>
                 </SelectContent>
@@ -540,11 +524,12 @@ export default function TransactionsPage() {
                         >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between gap-4">
+                              {/* Status Badge in top-left */}
+                              {getStatusBadge(transaction.status)}
+
                               {/* Left side - Icon and Info */}
                               <div className="flex items-start gap-3 flex-1 min-w-0">
-                                <div className="p-2 rounded-full bg-background shadow-sm flex-shrink-0">
-                                  {getTypeIcon(transaction.type)}
-                                </div>
+                                {getTypeIcon(transaction.type)}
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium truncate">
                                     {transaction.description ||
@@ -564,11 +549,6 @@ export default function TransactionsPage() {
                                         {transaction.metadata.rejectionReason}
                                       </p>
                                     )}
-                                  {transaction.referenceId && (
-                                    <p className="text-xs text-muted-foreground mt-1 truncate">
-                                      Ref: {transaction.referenceId}
-                                    </p>
-                                  )}
                                 </div>
                               </div>
 
@@ -587,315 +567,312 @@ export default function TransactionsPage() {
                                     transaction.type
                                   )}
                                 </p>
-                                <div className="flex items-center gap-2">
-                                  {getStatusBadge(transaction.status)}
-                                  <Sheet>
-                                    <SheetTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 hover:bg-muted-foreground/10 sm:hidden"
-                                      >
-                                        <FiEye className="h-3 w-3" />
-                                      </Button>
-                                    </SheetTrigger>
-                                    <SheetContent
-                                      side="bottom"
-                                      className="h-[85vh] sm:h-[80vh] max-h-[600px]"
+                                <Sheet>
+                                  <SheetTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-muted-foreground/10 sm:hidden"
                                     >
-                                      <SheetHeader className="pb-4">
-                                        <SheetTitle className="text-lg">
-                                          Transaction Details
-                                        </SheetTitle>
-                                        <SheetDescription className="text-sm">
-                                          Complete information about this
-                                          transaction
-                                        </SheetDescription>
-                                      </SheetHeader>
-                                      <div className="flex-1 overflow-y-auto space-y-4 pb-6">
-                                        {/* Amount and Status - Top Priority */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                          <div className="p-4 bg-muted/50 rounded-lg">
-                                            <p className="text-xs font-medium text-muted-foreground mb-1">
-                                              Amount
-                                            </p>
-                                            <p
-                                              className={`text-lg font-bold ${
-                                                transaction.type ===
-                                                  "DEPOSIT" ||
-                                                transaction.type === "REWARD"
-                                                  ? "text-green-600"
-                                                  : "text-red-600"
-                                              }`}
-                                            >
-                                              {formatAmount(
-                                                transaction.amount,
-                                                transaction.type
-                                              )}
-                                            </p>
-                                          </div>
-                                          <div className="p-4 bg-muted/50 rounded-lg">
-                                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                                              Status
-                                            </p>
-                                            <div className="flex justify-center sm:justify-start mx-2">
-                                              {getStatusBadge(
-                                                transaction.status
-                                              )}
-                                            </div>
-                                          </div>
+                                      <FiEye className="h-3 w-3" />
+                                    </Button>
+                                  </SheetTrigger>
+                                  <SheetContent
+                                    side="bottom"
+                                    className="h-[85vh] sm:h-[80vh] max-h-[600px]"
+                                  >
+                                    <SheetHeader className="pb-4">
+                                      <SheetTitle className="text-lg">
+                                        Transaction Details
+                                      </SheetTitle>
+                                      <SheetDescription className="text-sm">
+                                        Complete information about this
+                                        transaction
+                                      </SheetDescription>
+                                    </SheetHeader>
+                                    <div className="flex-1 overflow-y-auto space-y-4 pb-6">
+                                      {/* Amount and Status - Top Priority */}
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                                            Amount
+                                          </p>
+                                          <p
+                                            className={`text-lg font-bold ${
+                                              transaction.type ===
+                                                "DEPOSIT" ||
+                                              transaction.type === "REWARD"
+                                                ? "text-green-600"
+                                                : "text-red-600"
+                                            }`}
+                                          >
+                                            {formatAmount(
+                                              transaction.amount,
+                                              transaction.type
+                                            )}
+                                          </p>
                                         </div>
-
-                                        {/* Transaction Type and Date */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                          <div className="p-4 bg-muted/50 rounded-lg">
-                                            <p className="text-xs font-medium text-muted-foreground mb-1">
-                                              Type
-                                            </p>
-                                            <div className="flex items-center gap-2">
-                                              {getTypeIcon(transaction.type)}
-                                              <span className="text-sm font-medium">
-                                                {getTypeLabel(transaction.type)}
-                                              </span>
-                                            </div>
-                                          </div>
-                                          <div className="p-4 bg-muted/50 rounded-lg">
-                                            <p className="text-xs font-medium text-muted-foreground mb-1">
-                                              Date & Time
-                                            </p>
-                                            <p className="text-sm">
-                                              {new Date(
-                                                transaction.createdAt
-                                              ).toLocaleDateString()}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                              {new Date(
-                                                transaction.createdAt
-                                              ).toLocaleTimeString()}
-                                            </p>
-                                          </div>
-                                        </div>
-
-                                        {/* Reference ID */}
-                                        {transaction.referenceId && (
-                                          <div className="p-4 bg-muted/50 rounded-lg">
-                                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                                              Reference ID
-                                            </p>
-                                            <div className="bg-background p-3 rounded border border-border">
-                                              <p className="text-xs font-mono break-all">
-                                                {transaction.referenceId}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Description */}
-                                        {transaction.description && (
-                                          <div className="p-4 bg-muted/50 rounded-lg">
-                                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                                              Description
-                                            </p>
-                                            <p className="text-sm leading-relaxed">
-                                              {transaction.description}
-                                            </p>
-                                          </div>
-                                        )}
-
-                                        {/* Withdrawal Request Details */}
-                                        {transaction.metadata
-                                          ?.isWithdrawalRequest && (
-                                          <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                                            <p className="text-xs font-medium text-muted-foreground">
-                                              Withdrawal Details
-                                            </p>
-                                            {transaction.metadata
-                                              .withdrawalMethodType && (
-                                              <div>
-                                                <p className="text-xs text-muted-foreground">
-                                                  Method Type
-                                                </p>
-                                                <p className="text-sm font-medium capitalize">
-                                                  {transaction.metadata.withdrawalMethodType
-                                                    .replace("_", " ")
-                                                    .toLowerCase()}
-                                                </p>
-                                              </div>
-                                            )}
-                                            {transaction.metadata
-                                              .processedAt && (
-                                              <div>
-                                                <p className="text-xs text-muted-foreground">
-                                                  Processed On
-                                                </p>
-                                                <p className="text-sm">
-                                                  {new Date(
-                                                    transaction.metadata.processedAt
-                                                  ).toLocaleDateString()}{" "}
-                                                  at{" "}
-                                                  {new Date(
-                                                    transaction.metadata.processedAt
-                                                  ).toLocaleTimeString()}
-                                                </p>
-                                              </div>
-                                            )}
-                                            {transaction.metadata
-                                              .rejectionReason && (
-                                              <div>
-                                                <p className="text-xs text-muted-foreground">
-                                                  Rejection Reason
-                                                </p>
-                                                <p className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">
-                                                  {
-                                                    transaction.metadata
-                                                      .rejectionReason
-                                                  }
-                                                </p>
-                                              </div>
-                                            )}
-                                            {transaction.metadata
-                                              .adminNotes && (
-                                              <div>
-                                                <p className="text-xs text-muted-foreground">
-                                                  Admin Notes
-                                                </p>
-                                                <p className="text-sm bg-blue-50 p-2 rounded border border-blue-200">
-                                                  {
-                                                    transaction.metadata
-                                                      .adminNotes
-                                                  }
-                                                </p>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-
-                                        {/* Transaction ID */}
                                         <div className="p-4 bg-muted/50 rounded-lg">
                                           <p className="text-xs font-medium text-muted-foreground mb-2">
-                                            Transaction ID
+                                            Status
+                                          </p>
+                                          <div className="flex justify-center sm:justify-start mx-2">
+                                            {getStatusBadge(
+                                              transaction.status
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Transaction Type and Date */}
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                                            Type
+                                          </p>
+                                          <div className="flex items-center gap-2">
+                                            {getTypeIcon(transaction.type)}
+                                            <span className="text-sm font-medium">
+                                              {getTypeLabel(transaction.type)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                                            Date & Time
+                                          </p>
+                                          <p className="text-sm">
+                                            {new Date(
+                                              transaction.createdAt
+                                            ).toLocaleDateString()}
+                                          </p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {new Date(
+                                              transaction.createdAt
+                                            ).toLocaleTimeString()}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      {/* Reference ID */}
+                                      {transaction.referenceId && (
+                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                          <p className="text-xs font-medium text-muted-foreground mb-2">
+                                            Reference ID
                                           </p>
                                           <div className="bg-background p-3 rounded border border-border">
                                             <p className="text-xs font-mono break-all">
-                                              {transaction.id}
+                                              {transaction.referenceId}
                                             </p>
                                           </div>
                                         </div>
+                                      )}
 
-                                        {/* Additional Actions */}
-                                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                                          <Button
-                                            variant="outline"
-                                            className="flex-1 text-sm"
-                                          >
-                                            <FiDownload className="h-4 w-4 mr-2" />
-                                            Download Receipt
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            className="flex-1 text-sm"
-                                          >
-                                            <FiRefreshCw className="h-4 w-4 mr-2" />
-                                            Refresh Status
-                                          </Button>
+                                      {/* Description */}
+                                      {transaction.description && (
+                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                          <p className="text-xs font-medium text-muted-foreground mb-2">
+                                            Description
+                                          </p>
+                                          <p className="text-sm leading-relaxed">
+                                            {transaction.description}
+                                          </p>
                                         </div>
-                                      </div>
-                                    </SheetContent>
-                                  </Sheet>
-                                  <Dialog>
-                                    <DialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 hover:bg-muted-foreground/10 hidden sm:flex"
-                                      >
-                                        <FiEye className="h-3 w-3" />
-                                      </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                      <DialogHeader>
-                                        <DialogTitle>
-                                          Transaction Details
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                          Complete information about this
-                                          transaction
-                                        </DialogDescription>
-                                      </DialogHeader>
-                                      <div className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                          <div>
-                                            <p className="text-sm font-medium">
-                                              Transaction ID
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                              {transaction.id}
-                                            </p>
-                                          </div>
-                                          <div>
-                                            <p className="text-sm font-medium">
-                                              Type
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                              {getTypeLabel(transaction.type)}
-                                            </p>
-                                          </div>
-                                          <div>
-                                            <p className="text-sm font-medium">
-                                              Amount
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                              {formatAmount(
-                                                transaction.amount,
-                                                transaction.type
-                                              )}
-                                            </p>
-                                          </div>
-                                          <div>
-                                            <p className="text-sm font-medium">
-                                              Status
-                                            </p>
-                                            <div className="mt-1">
-                                              {getStatusBadge(
-                                                transaction.status
-                                              )}
-                                            </div>
-                                          </div>
-                                          <div>
-                                            <p className="text-sm font-medium">
-                                              Date
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                              {new Date(
-                                                transaction.createdAt
-                                              ).toLocaleString()}
-                                            </p>
-                                          </div>
-                                          {transaction.referenceId && (
+                                      )}
+
+                                      {/* Withdrawal Request Details */}
+                                      {transaction.metadata
+                                        ?.isWithdrawalRequest && (
+                                        <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                                          <p className="text-xs font-medium text-muted-foreground">
+                                            Withdrawal Details
+                                          </p>
+                                          {transaction.metadata
+                                            .withdrawalMethodType && (
                                             <div>
-                                              <p className="text-sm font-medium">
-                                                Reference
+                                              <p className="text-xs text-muted-foreground">
+                                                Method Type
                                               </p>
-                                              <p className="text-sm text-muted-foreground">
-                                                {transaction.referenceId}
+                                              <p className="text-sm font-medium capitalize">
+                                                {transaction.metadata.withdrawalMethodType
+                                                  .replace("_", " ")
+                                                  .toLowerCase()}
+                                              </p>
+                                            </div>
+                                          )}
+                                          {transaction.metadata
+                                            .processedAt && (
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">
+                                                Processed On
+                                              </p>
+                                              <p className="text-sm">
+                                                {new Date(
+                                                  transaction.metadata.processedAt
+                                                ).toLocaleDateString()}{" "}
+                                                at{" "}
+                                                {new Date(
+                                                  transaction.metadata.processedAt
+                                                ).toLocaleTimeString()}
+                                              </p>
+                                            </div>
+                                          )}
+                                          {transaction.metadata
+                                            .rejectionReason && (
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">
+                                                Rejection Reason
+                                              </p>
+                                              <p className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                                                {
+                                                  transaction.metadata
+                                                    .rejectionReason
+                                                }
+                                              </p>
+                                            </div>
+                                          )}
+                                          {transaction.metadata
+                                            .adminNotes && (
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">
+                                                Admin Notes
+                                              </p>
+                                              <p className="text-sm bg-blue-50 p-2 rounded border border-blue-200">
+                                                {
+                                                  transaction.metadata
+                                                    .adminNotes
+                                                }
                                               </p>
                                             </div>
                                           )}
                                         </div>
-                                        {transaction.description && (
+                                      )}
+
+                                      {/* Transaction ID */}
+                                      <div className="p-4 bg-muted/50 rounded-lg">
+                                        <p className="text-xs font-medium text-muted-foreground mb-2">
+                                          Transaction ID
+                                        </p>
+                                        <div className="bg-background p-3 rounded border border-border">
+                                          <p className="text-xs font-mono break-all">
+                                            {transaction.id}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      {/* Additional Actions */}
+                                      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                                        <Button
+                                          variant="outline"
+                                          className="flex-1 text-sm"
+                                        >
+                                          <FiDownload className="h-4 w-4 mr-2" />
+                                          Download Receipt
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          className="flex-1 text-sm"
+                                        >
+                                          <FiRefreshCw className="h-4 w-4 mr-2" />
+                                          Refresh Status
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </SheetContent>
+                                </Sheet>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-muted-foreground/10 hidden sm:flex"
+                                    >
+                                      <FiEye className="h-3 w-3" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>
+                                        Transaction Details
+                                      </DialogTitle>
+                                      <DialogDescription>
+                                        Complete information about this
+                                        transaction
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                          <p className="text-sm font-medium">
+                                            Transaction ID
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {transaction.id}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-medium">
+                                            Type
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {getTypeLabel(transaction.type)}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-medium">
+                                            Amount
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {formatAmount(
+                                              transaction.amount,
+                                              transaction.type
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-medium">
+                                            Status
+                                          </p>
+                                          <div className="mt-1">
+                                            {getStatusBadge(
+                                              transaction.status
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-medium">
+                                            Date
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {new Date(
+                                              transaction.createdAt
+                                            ).toLocaleString()}
+                                          </p>
+                                        </div>
+                                        {transaction.referenceId && (
                                           <div>
                                             <p className="text-sm font-medium">
-                                              Description
+                                              Reference
                                             </p>
                                             <p className="text-sm text-muted-foreground">
-                                              {transaction.description}
+                                              {transaction.referenceId}
                                             </p>
                                           </div>
                                         )}
                                       </div>
-                                    </DialogContent>
-                                  </Dialog>
-                                </div>
+                                      {transaction.description && (
+                                        <div>
+                                          <p className="text-sm font-medium">
+                                            Description
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {transaction.description}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
                               </div>
                             </div>
                           </CardContent>
