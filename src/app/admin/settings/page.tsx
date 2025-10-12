@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import PaymentProviderManager from "@/components/admin/payment-providers/payment-provider-manager";
 import {
   Settings,
   Bell,
@@ -42,6 +43,17 @@ import {
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
+  const [activeTab, setActiveTab] = useState("general");
+
+  useEffect(() => {
+    // Check if tab is specified in URL query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, []);
+
   const [settings, setSettings] = useState({
     general: {
       siteName: "Montra Admin",
@@ -105,8 +117,8 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Settings Tabs */}
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             General
@@ -118,6 +130,10 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             Security
+          </TabsTrigger>
+          <TabsTrigger value="payment-providers" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Payment Providers
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
@@ -491,6 +507,11 @@ export default function AdminSettingsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Payment Providers Settings */}
+        <TabsContent value="payment-providers">
+          <PaymentProviderManager />
         </TabsContent>
 
         {/* Notifications Settings */}

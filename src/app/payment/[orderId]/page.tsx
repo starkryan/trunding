@@ -1,31 +1,26 @@
 "use client"
 
-import { useEffect, useState, use, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState, useRef } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import toast from "react-hot-toast"
 import { FaSyncAlt, FaArrowLeft } from "react-icons/fa"
 
-
-interface PaymentPageProps {
-  params: Promise<{
-    orderId: string
-  }>
-}
-
-export default function PaymentPage({ params }: PaymentPageProps) {
-  const { orderId } = use(params)
+export default function PaymentPage() {
+  const params = useParams()
+  const orderId = params.orderId as string
   const router = useRouter()
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<string>("PENDING")
   const [isChecking, setIsChecking] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [isRealTimeConnected, setIsRealTimeConnected] = useState(false)
+  const eventSourceRef = useRef<EventSource | null>(null)
 
   const checkPaymentStatus = async (showLoading = false) => {
     if (showLoading) setIsChecking(true)
-    
+
     try {
       const response = await fetch(`/api/payment/details/${orderId}`)
       if (!response.ok) {
@@ -33,39 +28,32 @@ export default function PaymentPage({ params }: PaymentPageProps) {
       }
 
       const data = await response.json()
-      
+
       if (data.success && data.payment) {
         const status = data.payment.status
         setPaymentStatus(status)
-        
+
         console.log("Payment status:", status)
-        
+
         if (status === "COMPLETED") {
-          // Payment completed - clear interval and redirect to home
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current)
-            intervalRef.current = null
-          }
-          window.location.href = `/home?payment_success=true&order_id=${orderId}`
+          // Payment completed - redirect immediately
+          toast.success("Payment Successful! Your account has been credited successfully")
+          setTimeout(() => {
+            window.location.href = `/home?payment_success=true&order_id=${orderId}`
+          }, 1000)
           return
         } else if (status === "FAILED" || status === "CANCELLED") {
-          // Payment failed - clear interval and redirect
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current)
-            intervalRef.current = null
-          }
-          window.location.href = `/transactions?payment_error=true&order_id=${orderId}&status=${status}`
+          // Payment failed - redirect to transactions
+          toast.error(`Payment ${status.toLowerCase()}`)
+          setTimeout(() => {
+            window.location.href = `/transactions?payment_error=true&order_id=${orderId}&status=${status}`
+          }, 1000)
           return
         } else if (status === "PENDING" && data.payment.paymentUrl) {
           // Set up iframe URL only once
           if (!paymentUrl) {
             const redirectUrl = `/api/payment/redirect/${orderId}`
             setPaymentUrl(redirectUrl)
-          }
-          
-          // Start polling if not already started
-          if (!intervalRef.current) {
-            intervalRef.current = setInterval(() => checkPaymentStatus(false), 5000)
           }
         }
       }
@@ -77,7 +65,70 @@ export default function PaymentPage({ params }: PaymentPageProps) {
     }
   }
 
+  const setupRealTimeUpdates = () => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close()
+    }
+
+    const eventSource = new EventSource(`/api/payment/${orderId}/status`)
+    eventSourceRef.current = eventSource
+
+    eventSource.onopen = () => {
+      console.log("Real-time updates connected")
+      setIsRealTimeConnected(true)
+    }
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+
+        switch (data.type) {
+          case 'status':
+            setPaymentStatus(data.data.status)
+            console.log("Real-time status update:", data.data)
+
+            if (data.data.status === "COMPLETED") {
+              toast.success("Payment Successful! Your account has been credited successfully")
+              setTimeout(() => {
+                window.location.href = `/home?payment_success=true&order_id=${orderId}`
+              }, 1000)
+            } else if (data.data.status === "FAILED" || data.data.status === "CANCELLED") {
+              toast.error(`Payment ${data.data.status.toLowerCase()}`)
+              setTimeout(() => {
+                window.location.href = `/transactions?payment_error=true&order_id=${orderId}&status=${data.data.status}`
+              }, 1000)
+            }
+            break
+
+          case 'complete':
+            console.log("Payment process complete:", data.data)
+            break
+
+          case 'error':
+            console.error("Real-time update error:", data.data.message)
+            setIsRealTimeConnected(false)
+            break
+
+          case 'timeout':
+            console.log("Real-time updates timeout")
+            setIsRealTimeConnected(false)
+            toast.error("Status check timeout. Please refresh manually.")
+            break
+        }
+      } catch (error) {
+        console.error("Error parsing real-time update:", error)
+      }
+    }
+
+    eventSource.onerror = (error) => {
+      console.error("Real-time updates error:", error)
+      setIsRealTimeConnected(false)
+    }
+  }
+
   useEffect(() => {
+    if (!orderId) return // Don't run if orderId is not available
+
     // Apply payment page scrollbar hiding following best practices
     document.documentElement.classList.add('payment-page-active')
     document.body.classList.add('payment-page-active')
@@ -85,16 +136,20 @@ export default function PaymentPage({ params }: PaymentPageProps) {
     // Initial check
     checkPaymentStatus(true)
 
+    // Set up real-time updates
+    setupRealTimeUpdates()
+
     // Cleanup on unmount
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+      // Close real-time connection
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
       }
       // Remove payment page classes when leaving
       document.documentElement.classList.remove('payment-page-active')
       document.body.classList.remove('payment-page-active')
     }
-  }, [orderId])
+  }, [orderId]) // Add orderId dependency
 
 
   const handleManualRefresh = () => {
@@ -122,20 +177,31 @@ export default function PaymentPage({ params }: PaymentPageProps) {
             </Button>
             <div className="min-w-0 flex-1">
               <h1 className="text-base sm:text-lg font-semibold truncate">Payment Processing</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                Order: <span className="font-mono text-xs">{orderId.slice(0, 8)}...{orderId.slice(-8)}</span> • Status: <span className={`font-medium ${
-                paymentStatus === 'COMPLETED' ? 'text-green-600' :
-                paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED' ? 'text-red-600' :
-                'text-yellow-600'
-              }`}>{paymentStatus}</span>
-              </p>
-              <p className="text-xs text-muted-foreground sm:hidden">
-                Status: <span className={`font-medium ${
-                  paymentStatus === 'COMPLETED' ? 'text-green-600' :
-                  paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED' ? 'text-red-600' :
-                  'text-yellow-600'
-                }`}>{paymentStatus}</span>
-              </p>
+              <div className="flex items-center gap-2">
+                {isRealTimeConnected && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-green-600 hidden sm:inline">Live</span>
+                  </div>
+                )}
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                  Order: <span className="font-mono text-xs">{orderId.slice(0, 8)}...{orderId.slice(-8)}</span> • Status: <span className={`font-medium ${
+                    paymentStatus === 'COMPLETED' ? 'text-green-600' :
+                    paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED' ? 'text-red-600' :
+                    'text-yellow-600'
+                  }`}>{paymentStatus}</span>
+                </p>
+                <div className="text-xs text-muted-foreground sm:hidden">
+                  <div className="flex items-center gap-1">
+                    {isRealTimeConnected && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>}
+                    <span className={`font-medium ${
+                      paymentStatus === 'COMPLETED' ? 'text-green-600' :
+                      paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED' ? 'text-red-600' :
+                      'text-yellow-600'
+                    }`}>{paymentStatus}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -173,18 +239,37 @@ export default function PaymentPage({ params }: PaymentPageProps) {
               </div>
               <Spinner variant="bars" size={32} className="text-primary" aria-hidden="true" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3 max-w-md mx-auto">
               <h2 className="text-xl font-semibold">Loading Payment Gateway</h2>
               <p className="text-muted-foreground">Please wait while we prepare your secure payment...</p>
+              <div className={`rounded-lg p-3 text-sm ${
+                isRealTimeConnected
+                  ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800'
+                  : 'bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800'
+              }`}>
+                <p className={isRealTimeConnected ? 'text-green-800 dark:text-green-200' : 'text-blue-800 dark:text-blue-200'}>
+                  {isRealTimeConnected ? (
+                    <>
+                      ✅ <strong>Live Updates Active</strong><br />
+                      Your payment status will update instantly when completed.
+                    </>
+                  ) : (
+                    <>
+                      ⚡ <strong>Connecting to Live Updates...</strong><br />
+                      Setting up real-time payment monitoring.
+                    </>
+                  )}
+                </p>
+              </div>
             </div>
             <Button
               variant="outline"
               onClick={handleManualRefresh}
               disabled={isChecking}
-              className="mt-4"
+              className="mt-2"
             >
               <FaSyncAlt className={`h-4 w-4 mr-2 ${isChecking ? 'animate-spin' : ''}`} />
-              {isChecking ? 'Checking...' : 'Check Status'}
+              {isChecking ? 'Checking...' : 'Check Status Manually'}
             </Button>
           </div>
         </div>

@@ -78,8 +78,8 @@ export async function GET(request: NextRequest) {
             select: {
               sessions: true,
               accounts: true,
-              transactions: true,
-              withdrawalRequests: true
+              transaction: true,
+              withdrawalRequest: true
             },
           },
         },

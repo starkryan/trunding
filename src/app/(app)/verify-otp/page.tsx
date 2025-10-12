@@ -24,7 +24,7 @@ function VerifyOTPForm() {
   const [resendLoading, setResendLoading] = useState(false);
 
   const router = useRouter();
-  const { session, loading } = useAuth();
+  const { session, loading, refreshSession } = useAuth();
 
   // Redirect authenticated users to home
   useEffect(() => {
@@ -101,6 +101,8 @@ function VerifyOTPForm() {
         });
         if (result.data?.status) {
           setOtpStatus("correct");
+          // Force refresh the session to ensure auth state is up-to-date
+          await refreshSession();
           setTimeout(() => {
             toast.success("Email verified successfully! Welcome to your dashboard.");
             // Clear verification data

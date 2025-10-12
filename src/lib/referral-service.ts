@@ -217,7 +217,7 @@ export class ReferralService {
       const referralRelationship = await prisma.referralRelationship.findUnique({
         where: { referredUserId: userId },
         include: {
-          referrer: true,
+          userAsReferrer: true,
           referralCode: true
         }
       });
@@ -395,7 +395,7 @@ export class ReferralService {
         prisma.referralRelationship.findMany({
           where: { referrerId: userId },
           include: {
-            referredUser: {
+            userAsReferredUser: {
               select: {
                 id: true,
                 name: true,
@@ -403,7 +403,7 @@ export class ReferralService {
                 createdAt: true
               }
             },
-            payouts: {
+            referralPayout: {
               select: {
                 amount: true,
                 type: true,

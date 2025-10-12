@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const calculations = await prisma.rewardCalculation.findMany({
       where: { userId: session.user.id },
       include: {
-        service: {
+        rewardService: {
           select: {
             id: true,
             name: true,

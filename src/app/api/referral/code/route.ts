@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
           status: true,
           createdAt: true,
           completedAt: true,
-          referredUser: {
+          userAsReferredUser: {
             select: {
               id: true,
               name: true,
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
               createdAt: true
             }
           },
-          payouts: {
+          referralPayout: {
             select: {
               amount: true,
               type: true,

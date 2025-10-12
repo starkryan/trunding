@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            transactions: true
+            transaction: true
           }
         }
       }
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
         updatedAt: wallet.updatedAt,
       },
       stats: {
-        totalTransactions: wallet._count.transactions,
+        totalTransactions: wallet._count.transaction,
         totalDeposits,
         totalWithdrawals,
         depositCount,

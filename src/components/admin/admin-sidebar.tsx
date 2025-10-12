@@ -89,7 +89,13 @@ const adminNavItems = [
     icon: UserPlus,
     description: "Configure referral program and settings"
   },
-    {
+  {
+    title: "Payment Providers",
+    href: "/admin/settings?tab=payment-providers",
+    icon: CreditCard,
+    description: "Configure payment gateways"
+  },
+  {
     title: "Analytics",
     href: "/admin/analytics",
     icon: BarChart3,

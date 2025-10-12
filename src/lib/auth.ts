@@ -40,7 +40,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true, // Require email verification before allowing access
+    requireEmailVerification: false, // Disabled - emailOTP plugin handles verification
   },
   emailVerification: {
     sendOnSignIn: false, // Disabled to prevent double emails - OTP plugin handles verification

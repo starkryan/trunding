@@ -196,7 +196,17 @@ export default function SignUpPage() {
       }
 
       if (signUpResult.data?.user && !signUpResult.data.user.emailVerified) {
-        await handleVerification(values.email);
+        // The emailOTP plugin will automatically send verification email due to sendVerificationOnSignUp: true
+        // Store verification data and redirect to verification page
+        sessionStorage.setItem(
+          "verificationData",
+          JSON.stringify({
+            email: values.email,
+            type: "email-verification",
+          })
+        );
+        toast.success("Account created! Check your email for verification code.");
+        router.push("/verify-otp");
       } else {
         toast.success("Account created! Welcome aboard.");
         router.push("/home");

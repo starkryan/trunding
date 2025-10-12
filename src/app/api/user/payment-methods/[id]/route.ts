@@ -215,7 +215,7 @@ export async function DELETE(
       include: {
         _count: {
           select: {
-            withdrawalRequests: true
+            withdrawalRequest: true
           }
         }
       }
@@ -229,7 +229,7 @@ export async function DELETE(
     }
 
     // Check if payment method has any withdrawal requests
-    if (existingPaymentMethod._count.withdrawalRequests > 0) {
+    if (existingPaymentMethod._count.withdrawalRequest > 0) {
       return NextResponse.json(
         {
           success: false,

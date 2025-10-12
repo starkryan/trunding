@@ -100,14 +100,14 @@ export async function GET(request: NextRequest) {
           status: true,
           createdAt: true,
           completedAt: true,
-          referrer: {
+          userAsReferrer: {
             select: {
               id: true,
               name: true,
               email: true
             }
           },
-          referredUser: {
+          userAsReferredUser: {
             select: {
               id: true,
               name: true,
