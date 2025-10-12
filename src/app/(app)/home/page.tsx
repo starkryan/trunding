@@ -7,7 +7,7 @@ import Image from "next/image";
 import { FaBitcoin } from "react-icons/fa";
 import { Spinner } from "@/components/ui/spinner";
 import RewardServicesHome from "@/components/reward-services-home";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function HomePage() {
   const { session, loading } = useAuth();
@@ -49,10 +49,6 @@ export default function HomePage() {
             minWidth: '320px',
             fontSize: '14px',
             lineHeight: '1.5',
-          },
-          iconTheme: {
-            primary: '#ffffff',
-            secondary: '#10b981',
           },
           id: `payment-success-${orderId}`, // Unique ID to prevent duplicates
         }

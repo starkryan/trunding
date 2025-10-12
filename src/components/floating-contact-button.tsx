@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { FaHeadset, FaTelegram } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function FloatingContactButton() {
   const [isClicked, setIsClicked] = useState(false);

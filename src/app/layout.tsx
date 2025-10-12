@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import HydrationGuard from "@/components/hydration-guard";
 
 const geistSans = Geist({
@@ -113,7 +113,25 @@ export default function RootLayout({
           <AuthProvider>
             <HydrationGuard>
               {children}
-              <Toaster />
+              <Toaster
+                position="top-center"
+                duration={4000}
+                visibleToasts={5}
+                richColors={false}
+                closeButton={true}
+                expand={true}
+                icons={{
+                  success: <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</div>,
+                  error: <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">✕</div>,
+                  warning: <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs">!</div>,
+                  info: <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">i</div>,
+                  loading: <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center"><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div></div>,
+                }}
+                toastOptions={{
+                  className: "border-border bg-background text-foreground",
+                  descriptionClassName: "text-muted-foreground",
+                }}
+              />
             </HydrationGuard>
           </AuthProvider>
         </ThemeProvider>

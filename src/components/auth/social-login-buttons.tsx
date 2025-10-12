@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 
 interface SocialLoginButtonsProps {

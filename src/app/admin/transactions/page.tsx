@@ -33,7 +33,7 @@ import {
   Plus
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 interface Transaction {
   id: string;

@@ -12,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Gift,
   Users,
-  TrendingUp,
   Share2,
   Copy,
   CheckCircle,
@@ -20,8 +19,6 @@ import {
   DollarSign,
   Target,
   Calendar,
-  IndianRupee,
-  Percent,
   Star,
   Award,
   UserPlus,
@@ -29,15 +26,11 @@ import {
   Eye,
   MessageCircle,
   Mail,
-  Smartphone,
   Facebook,
   Twitter,
-  Linkedin,
   MessageSquare,
-  ExternalLink,
   ArrowRight
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface ReferralData {
   referralCode: {

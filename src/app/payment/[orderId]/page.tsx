@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
-import toast from "react-hot-toast"
+import { toast } from "sonner"
 import { FaSyncAlt, FaArrowLeft } from "react-icons/fa"
 
 export default function PaymentPage() {

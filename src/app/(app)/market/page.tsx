@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   AreaChart, Area, ResponsiveContainer
 } from "recharts";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 interface CryptoData {
   symbol: string;
