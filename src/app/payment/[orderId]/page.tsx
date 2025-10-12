@@ -33,8 +33,7 @@ export default function PaymentPage() {
         const status = data.payment.status
         setPaymentStatus(status)
 
-        console.log("Payment status:", status)
-
+  
         if (status === "COMPLETED") {
           // Payment completed - redirect immediately
           toast.success("Payment Successful! Your account has been credited successfully")
@@ -58,8 +57,7 @@ export default function PaymentPage() {
         }
       }
     } catch (error) {
-      console.error("Error checking payment status:", error)
-      toast.error("Failed to check payment status. Please try again.")
+        toast.error("Failed to check payment status. Please try again.")
     } finally {
       if (showLoading) setIsChecking(false)
     }
@@ -74,7 +72,6 @@ export default function PaymentPage() {
     eventSourceRef.current = eventSource
 
     eventSource.onopen = () => {
-      console.log("Real-time updates connected")
       setIsRealTimeConnected(true)
     }
 
@@ -85,7 +82,6 @@ export default function PaymentPage() {
         switch (data.type) {
           case 'status':
             setPaymentStatus(data.data.status)
-            console.log("Real-time status update:", data.data)
 
             if (data.data.status === "COMPLETED") {
               toast.success("Payment Successful! Your account has been credited successfully")
@@ -101,27 +97,23 @@ export default function PaymentPage() {
             break
 
           case 'complete':
-            console.log("Payment process complete:", data.data)
             break
 
           case 'error':
-            console.error("Real-time update error:", data.data.message)
             setIsRealTimeConnected(false)
             break
 
           case 'timeout':
-            console.log("Real-time updates timeout")
             setIsRealTimeConnected(false)
             toast.error("Status check timeout. Please refresh manually.")
             break
         }
       } catch (error) {
-        console.error("Error parsing real-time update:", error)
+        // Error parsing real-time update
       }
     }
 
     eventSource.onerror = (error) => {
-      console.error("Real-time updates error:", error)
       setIsRealTimeConnected(false)
     }
   }
