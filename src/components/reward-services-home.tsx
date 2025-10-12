@@ -193,12 +193,11 @@ export default function RewardServicesHome() {
 
         <CardContent className="px-3 sm:px-4 md:px-6">
           {/* Price Tabs */}
-          <div className="-mt-5">
+          <div>
             <div className="flex items-center gap-2 mb-4">
               <FaFilter className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-sm font-semibold text-muted-foreground">Filter by Investment Amount</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground">Filter</h3>
             </div>
-
             <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 no-scrollbar">
               {priceTabs.map((tab) => {
                 const count = getTabCount(tab)
@@ -327,7 +326,7 @@ export default function RewardServicesHome() {
                           </>
                         ) : (
                           <>
-                            Get Rewards
+                            Invest
                             <FaArrowRight className="h-4 w-4 ml-2" />
                           </>
                         )}

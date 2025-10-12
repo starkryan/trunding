@@ -9,15 +9,9 @@ import {
   FaChartLine,
   FaExchangeAlt,
   FaUser,
-  FaBell,
-  FaSearch,
-  FaCreditCard,
   FaWallet,
-  FaRupeeSign,
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useWallet } from "@/hooks/use-wallet";
 
 type Route = `/home` | `/market` | `/transactions` | `/profile`;
@@ -33,25 +27,25 @@ const navigationItems: NavigationItem[] = [
   {
     href: "/home",
     label: "Home",
-    icon: <FaHome className="h-5 w-5" />,
+    icon: <FaHome className="!size-5" style={{ width: '20px', height: '20px' }} />,
     "aria-label": "Navigate to home",
   },
   {
     href: "/market",
     label: "Market",
-    icon: <FaChartLine className="h-5 w-5" />,
+    icon: <FaChartLine className="!size-5" style={{ width: '20px', height: '20px' }} />,
     "aria-label": "Navigate to market overview",
   },
   {
     href: "/transactions",
     label: "Transactions",
-    icon: <FaExchangeAlt className="h-5 w-5" />,
+    icon: <FaExchangeAlt className="!size-5" style={{ width: '20px', height: '20px' }} />,
     "aria-label": "Navigate to transaction history",
   },
   {
     href: "/profile",
     label: "Profile",
-    icon: <FaUser className="h-5 w-5" />,
+    icon: <FaUser className="!size-5" style={{ width: '20px', height: '20px' }} />,
     "aria-label": "Navigate to user profile",
   },
 ];
@@ -61,7 +55,7 @@ export function MobileTopBar() {
   const { balance, formatBalance, loading: walletLoading } = useWallet();
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/50 md:hidden">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border md:hidden">
       <div className="flex items-center justify-between px-4 py-2 h-[64px]">
         {/* Logo/Title */}
         <div className="flex items-center space-x-3">
@@ -99,7 +93,7 @@ export function MobileBottomNavigation() {
   const router = useRouter();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t md:hidden">
       <div className="flex items-center justify-around py-3">
         {navigationItems.map((item) => {
           const isActive = pathname === item.href;
@@ -108,7 +102,7 @@ export function MobileBottomNavigation() {
               key={item.href}
               variant="ghost"
               className={cn(
-                "flex flex-col items-center space-y-1 h-auto py-2 px-2 min-w-[48px]",
+                "flex flex-col items-center space-y-1 h-auto py-3 px-3 min-w-[44px]",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-primary"

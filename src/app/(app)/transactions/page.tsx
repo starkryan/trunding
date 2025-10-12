@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  FiSearch,
+  FiFilter,
   FiRefreshCw,
   FiDownload,
   FiEye,
@@ -34,14 +34,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet } from "react-modal-sheet";
 import { useAuth } from "@/context/auth-context";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -107,10 +100,11 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -126,7 +120,7 @@ export default function TransactionsPage() {
     if (session) {
       fetchTransactions();
     }
-  }, [session, currentPage, typeFilter, statusFilter, searchTerm]);
+  }, [session, currentPage, typeFilter, statusFilter]);
 
   const fetchTransactions = async () => {
     try {
@@ -140,7 +134,6 @@ export default function TransactionsPage() {
 
       if (typeFilter !== "all") params.append("type", typeFilter);
       if (statusFilter !== "all") params.append("status", statusFilter);
-      if (searchTerm) params.append("search", searchTerm);
 
       const [transactionsResponse, walletResponse] = await Promise.all([
         fetch(`/api/transactions?${params}`),
@@ -182,7 +175,6 @@ export default function TransactionsPage() {
       case "PENDING":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-amber-500 animate-pulse"></div>
             Pending
           </div>
         );
@@ -268,6 +260,56 @@ export default function TransactionsPage() {
       type === "DEPOSIT" || type === "REWARD" || type === "TRADE_SELL";
     const sign = isPositive ? "+" : "-";
     return `${sign}₹${amount.toLocaleString()}`;
+  };
+
+  // Utility functions for sheet display
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "bg-green-100 text-green-700 ring-green-600/20 dark:bg-green-900/20 dark:text-green-400";
+      case "PENDING":
+        return "bg-amber-100 text-amber-700 ring-amber-600/20 dark:bg-amber-900/20 dark:text-amber-400";
+      case "PROCESSING":
+        return "bg-blue-100 text-blue-700 ring-blue-600/20 dark:bg-blue-900/20 dark:text-blue-400";
+      case "APPROVED":
+        return "bg-purple-100 text-purple-700 ring-purple-600/20 dark:bg-purple-900/20 dark:text-purple-400";
+      case "FAILED":
+      case "REJECTED":
+        return "bg-red-100 text-red-700 ring-red-600/20 dark:bg-red-900/20 dark:text-red-400";
+      case "CANCELLED":
+        return "bg-gray-100 text-gray-700 ring-gray-600/20 dark:bg-gray-900/20 dark:text-gray-400";
+      default:
+        return "bg-gray-100 text-gray-700 ring-gray-600/20 dark:bg-gray-900/20 dark:text-gray-400";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "Success";
+      case "PENDING":
+        return "Pending";
+      case "PROCESSING":
+        return "Processing";
+      case "APPROVED":
+        return "Approved";
+      case "FAILED":
+        return "Failed";
+      case "REJECTED":
+        return "Rejected";
+      case "CANCELLED":
+        return "Cancelled";
+      default:
+        return status;
+    }
+  };
+
+  const getAmountPrefix = (type: string) => {
+    return type === "DEPOSIT" || type === "REWARD" ? "+" : "-";
+  };
+
+  const getAmountColor = (type: string) => {
+    return type === "DEPOSIT" || type === "REWARD" ? "text-green-600" : "text-red-600";
   };
 
   // Group transactions by date
@@ -357,9 +399,7 @@ export default function TransactionsPage() {
         <CardContent className="px-6 flex-1 flex flex-col space-y-6">
           {/* This Month Summary with Chart */}
           <Card
-            className={cn(
-              "relative overflow-hidden rounded-lg border border-[color:oklch(0.22_0_0_/0.7)] bg-[oklch(0.16_0_0)] p-5",
-            )}
+            className="relative overflow-hidden rounded-lg border bg-card text-card-foreground p-5"
           >
             {/* Title and metrics */}
             <div className="space-y-1">
@@ -401,27 +441,11 @@ export default function TransactionsPage() {
           </Card>
 
           {/* Filters */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium">Filters</h4>
-            <div className="flex flex-wrap gap-3">
-              <div className="flex-1 min-w-[200px]">
-                <InputGroup className="h-10">
-                  <InputGroupAddon align="inline-start">
-                    <InputGroupText>
-                      <FiSearch className="h-4 w-4" />
-                    </InputGroupText>
-                  </InputGroupAddon>
-                  <Input
-                    placeholder="Search transactions..."
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="border-0 bg-background"
-                  />
-                </InputGroup>
-              </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+            <span className="text-xs text-muted-foreground sm:order-1">
+              {stats?.totalTransactions || 0} transactions
+            </span>
+            <div className="flex gap-2 sm:order-2">
               <Select
                 value={typeFilter}
                 onValueChange={(value) => {
@@ -429,14 +453,13 @@ export default function TransactionsPage() {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="w-[140px] h-10">
+                <SelectTrigger className="w-full sm:w-[120px] h-9">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="DEPOSIT">Deposit</SelectItem>
                   <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
-             
                   <SelectItem value="REWARD">Reward</SelectItem>
                   <SelectItem value="REFUND">Refund</SelectItem>
                 </SelectContent>
@@ -448,7 +471,7 @@ export default function TransactionsPage() {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="w-[140px] h-10">
+                <SelectTrigger className="w-full sm:w-[120px] h-9">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -464,19 +487,10 @@ export default function TransactionsPage() {
 
           {/* Divider */}
           <div
-            className="relative w-full my-4"
+            className="w-full border-t border-muted-foreground/20 my-4"
             role="separator"
             aria-label="Transaction list"
-          >
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-muted-foreground/20"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-background px-3 text-muted-foreground">
-                {stats?.totalTransactions || 0} transactions
-              </span>
-            </div>
-          </div>
+          ></div>
 
           {/* Transaction List */}
           <div className="flex-1 space-y-4">
@@ -520,42 +534,21 @@ export default function TransactionsPage() {
                       {dateTransactions.map((transaction) => (
                         <Card
                           key={transaction.id}
-                          className="hover:shadow-md transition-all duration-200"
+                          className="bg-card text-card-foreground hover:shadow-md transition-all duration-200 border-border py-3 px-4"
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-4">
-                              {/* Status Badge in top-left */}
-                              {getStatusBadge(transaction.status)}
-
-                              {/* Left side - Icon and Info */}
-                              <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-4">
+                              {/* Left side - Icon and Type */}
+                              <div className="flex items-center gap-1">
                                 {getTypeIcon(transaction.type)}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">
-                                    {transaction.description ||
-                                      getTypeLabel(transaction.type)}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {new Date(
-                                      transaction.createdAt
-                                    ).toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </p>
-                                  {transaction.metadata?.isWithdrawalRequest &&
-                                    transaction.metadata.rejectionReason && (
-                                      <p className="text-xs text-red-600 mt-1 truncate">
-                                        {transaction.metadata.rejectionReason}
-                                      </p>
-                                    )}
-                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {getTypeLabel(transaction.type)}
+                                </span>
                               </div>
 
-                              {/* Right side - Amount and Actions */}
-                              <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                              {/* Center - Amount */}
+                              <div className="flex-1 text-center">
                                 <p
-                                  className={`text-sm font-semibold ${
+                                  className={`text-lg font-bold ${
                                     transaction.type === "DEPOSIT" ||
                                     transaction.type === "REWARD"
                                       ? "text-green-600"
@@ -567,315 +560,55 @@ export default function TransactionsPage() {
                                     transaction.type
                                   )}
                                 </p>
-                                <Sheet>
-                                  <SheetTrigger asChild>
+                                {transaction.metadata?.isWithdrawalRequest &&
+                                  transaction.metadata.rejectionReason && (
+                                    <p className="text-xs text-red-600 mt-1 truncate">
+                                      {transaction.metadata.rejectionReason}
+                                    </p>
+                                  )}
+                              </div>
+
+                              {/* Right side - Status, Time, and Details button */}
+                              <div className="flex items-center justify-end gap-2">
+                                <div className="flex flex-col items-end gap-1">
+                                  {getStatusBadge(transaction.status)}
+                                </div>
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(
+                                      transaction.createdAt
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </span>
+                                  <div className="flex gap-1">
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       className="h-8 w-8 p-0 hover:bg-muted-foreground/10 sm:hidden"
+                                      onClick={() => {
+                                        setSelectedTransaction(transaction);
+                                        setIsSheetOpen(true);
+                                      }}
                                     >
                                       <FiEye className="h-3 w-3" />
                                     </Button>
-                                  </SheetTrigger>
-                                  <SheetContent
-                                    side="bottom"
-                                    className="h-[85vh] sm:h-[80vh] max-h-[600px]"
-                                  >
-                                    <SheetHeader className="pb-4">
-                                      <SheetTitle className="text-lg">
-                                        Transaction Details
-                                      </SheetTitle>
-                                      <SheetDescription className="text-sm">
-                                        Complete information about this
-                                        transaction
-                                      </SheetDescription>
-                                    </SheetHeader>
-                                    <div className="flex-1 overflow-y-auto space-y-4 pb-6">
-                                      {/* Amount and Status - Top Priority */}
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                                            Amount
-                                          </p>
-                                          <p
-                                            className={`text-lg font-bold ${
-                                              transaction.type ===
-                                                "DEPOSIT" ||
-                                              transaction.type === "REWARD"
-                                                ? "text-green-600"
-                                                : "text-red-600"
-                                            }`}
-                                          >
-                                            {formatAmount(
-                                              transaction.amount,
-                                              transaction.type
-                                            )}
-                                          </p>
-                                        </div>
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                          <p className="text-xs font-medium text-muted-foreground mb-2">
-                                            Status
-                                          </p>
-                                          <div className="flex justify-center sm:justify-start mx-2">
-                                            {getStatusBadge(
-                                              transaction.status
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Transaction Type and Date */}
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                                            Type
-                                          </p>
-                                          <div className="flex items-center gap-2">
-                                            {getTypeIcon(transaction.type)}
-                                            <span className="text-sm font-medium">
-                                              {getTypeLabel(transaction.type)}
-                                            </span>
-                                          </div>
-                                        </div>
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                                            Date & Time
-                                          </p>
-                                          <p className="text-sm">
-                                            {new Date(
-                                              transaction.createdAt
-                                            ).toLocaleDateString()}
-                                          </p>
-                                          <p className="text-xs text-muted-foreground">
-                                            {new Date(
-                                              transaction.createdAt
-                                            ).toLocaleTimeString()}
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      {/* Reference ID */}
-                                      {transaction.referenceId && (
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                          <p className="text-xs font-medium text-muted-foreground mb-2">
-                                            Reference ID
-                                          </p>
-                                          <div className="bg-background p-3 rounded border border-border">
-                                            <p className="text-xs font-mono break-all">
-                                              {transaction.referenceId}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {/* Description */}
-                                      {transaction.description && (
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                          <p className="text-xs font-medium text-muted-foreground mb-2">
-                                            Description
-                                          </p>
-                                          <p className="text-sm leading-relaxed">
-                                            {transaction.description}
-                                          </p>
-                                        </div>
-                                      )}
-
-                                      {/* Withdrawal Request Details */}
-                                      {transaction.metadata
-                                        ?.isWithdrawalRequest && (
-                                        <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                                          <p className="text-xs font-medium text-muted-foreground">
-                                            Withdrawal Details
-                                          </p>
-                                          {transaction.metadata
-                                            .withdrawalMethodType && (
-                                            <div>
-                                              <p className="text-xs text-muted-foreground">
-                                                Method Type
-                                              </p>
-                                              <p className="text-sm font-medium capitalize">
-                                                {transaction.metadata.withdrawalMethodType
-                                                  .replace("_", " ")
-                                                  .toLowerCase()}
-                                              </p>
-                                            </div>
-                                          )}
-                                          {transaction.metadata
-                                            .processedAt && (
-                                            <div>
-                                              <p className="text-xs text-muted-foreground">
-                                                Processed On
-                                              </p>
-                                              <p className="text-sm">
-                                                {new Date(
-                                                  transaction.metadata.processedAt
-                                                ).toLocaleDateString()}{" "}
-                                                at{" "}
-                                                {new Date(
-                                                  transaction.metadata.processedAt
-                                                ).toLocaleTimeString()}
-                                              </p>
-                                            </div>
-                                          )}
-                                          {transaction.metadata
-                                            .rejectionReason && (
-                                            <div>
-                                              <p className="text-xs text-muted-foreground">
-                                                Rejection Reason
-                                              </p>
-                                              <p className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">
-                                                {
-                                                  transaction.metadata
-                                                    .rejectionReason
-                                                }
-                                              </p>
-                                            </div>
-                                          )}
-                                          {transaction.metadata
-                                            .adminNotes && (
-                                            <div>
-                                              <p className="text-xs text-muted-foreground">
-                                                Admin Notes
-                                              </p>
-                                              <p className="text-sm bg-blue-50 p-2 rounded border border-blue-200">
-                                                {
-                                                  transaction.metadata
-                                                    .adminNotes
-                                                }
-                                              </p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      )}
-
-                                      {/* Transaction ID */}
-                                      <div className="p-4 bg-muted/50 rounded-lg">
-                                        <p className="text-xs font-medium text-muted-foreground mb-2">
-                                          Transaction ID
-                                        </p>
-                                        <div className="bg-background p-3 rounded border border-border">
-                                          <p className="text-xs font-mono break-all">
-                                            {transaction.id}
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      {/* Additional Actions */}
-                                      <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                                        <Button
-                                          variant="outline"
-                                          className="flex-1 text-sm"
-                                        >
-                                          <FiDownload className="h-4 w-4 mr-2" />
-                                          Download Receipt
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          className="flex-1 text-sm"
-                                        >
-                                          <FiRefreshCw className="h-4 w-4 mr-2" />
-                                          Refresh Status
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </SheetContent>
-                                </Sheet>
-                                <Dialog>
-                                  <DialogTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       className="h-8 w-8 p-0 hover:bg-muted-foreground/10 hidden sm:flex"
+                                      onClick={() => {
+                                        setSelectedTransaction(transaction);
+                                        setIsSheetOpen(true);
+                                      }}
                                     >
                                       <FiEye className="h-3 w-3" />
                                     </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>
-                                        Transaction Details
-                                      </DialogTitle>
-                                      <DialogDescription>
-                                        Complete information about this
-                                        transaction
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="space-y-4">
-                                      <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                          <p className="text-sm font-medium">
-                                            Transaction ID
-                                          </p>
-                                          <p className="text-sm text-muted-foreground">
-                                            {transaction.id}
-                                          </p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium">
-                                            Type
-                                          </p>
-                                          <p className="text-sm text-muted-foreground">
-                                            {getTypeLabel(transaction.type)}
-                                          </p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium">
-                                            Amount
-                                          </p>
-                                          <p className="text-sm text-muted-foreground">
-                                            {formatAmount(
-                                              transaction.amount,
-                                              transaction.type
-                                            )}
-                                          </p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium">
-                                            Status
-                                          </p>
-                                          <div className="mt-1">
-                                            {getStatusBadge(
-                                              transaction.status
-                                            )}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium">
-                                            Date
-                                          </p>
-                                          <p className="text-sm text-muted-foreground">
-                                            {new Date(
-                                              transaction.createdAt
-                                            ).toLocaleString()}
-                                          </p>
-                                        </div>
-                                        {transaction.referenceId && (
-                                          <div>
-                                            <p className="text-sm font-medium">
-                                              Reference
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                              {transaction.referenceId}
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
-                                      {transaction.description && (
-                                        <div>
-                                          <p className="text-sm font-medium">
-                                            Description
-                                          </p>
-                                          <p className="text-sm text-muted-foreground">
-                                            {transaction.description}
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
-                              </div>
+                                  </div>
+                                </div>
                             </div>
-                          </CardContent>
+                          </div>
                         </Card>
                       ))}
                     </div>
@@ -926,6 +659,181 @@ export default function TransactionsPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* React Modal Sheet */}
+          {selectedTransaction && (
+            <>
+              <style jsx global>{`
+                .react-modal-sheet-container {
+                  background-color: var(--background) !important;
+                  border-top: 1px solid var(--border) !important;
+                }
+                .dark .react-modal-sheet-container {
+                  background-color: var(--background) !important;
+                }
+              `}</style>
+              <Sheet
+                isOpen={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+                snapPoints={[0, 0.85, 1]}
+                initialSnap={1}
+                disableDrag={false}
+              >
+                <Sheet.Container className="bg-background border-t border-border shadow-2xl rounded-t-2xl">
+                  <Sheet.Header>
+                    <div className="mx-auto w-12 h-1.5 bg-muted-foreground/30 rounded-full mb-4" />
+                  </Sheet.Header>
+                  <Sheet.Content className="h-full overflow-y-auto pb-6">
+                    <div className="p-6 h-full overflow-y-auto">
+                    {/* Sheet Header */}
+                    <div className="mb-6">
+                      <h2 className="text-lg font-semibold">Transaction Details</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Full transaction information and details.
+                      </p>
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* Status and Date Section */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Status & Date</h3>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusColor(
+                                selectedTransaction.status
+                              )}`}
+                            >
+                              {getStatusLabel(selectedTransaction.status)}
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(selectedTransaction.createdAt).toLocaleDateString()}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(selectedTransaction.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Amount Section */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Amount</h3>
+                        <div className="rounded-lg border p-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Amount</span>
+                            <span
+                              className={`text-lg font-semibold ${getAmountColor(
+                                selectedTransaction.type
+                              )}`}
+                            >
+                              {getAmountPrefix(selectedTransaction.type)}
+                              {selectedTransaction.amount.toLocaleString("en-IN", {
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Transaction ID Section */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Transaction Details</h3>
+                        <div className="rounded-lg border p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">Type</span>
+                            <div className="flex items-center gap-1">
+                              {getTypeIcon(selectedTransaction.type)}
+                              <span className="text-xs font-medium">
+                                {getTypeLabel(selectedTransaction.type)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">Transaction ID</span>
+                            <span className="text-xs font-mono">
+                              #{selectedTransaction.id}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Description Section */}
+                      {selectedTransaction.description && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium">Description</h3>
+                          <div className="rounded-lg border p-4">
+                            <p className="text-sm text-muted-foreground">
+                              {selectedTransaction.description}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+    
+                      {/* Withdrawal Request Details */}
+                      {selectedTransaction.metadata?.isWithdrawalRequest && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium">Withdrawal Details</h3>
+                          <div className="rounded-lg border p-4 space-y-3">
+                            {selectedTransaction.metadata.withdrawalMethodType && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Method Type</span>
+                                <span className="text-sm font-medium capitalize">
+                                  {selectedTransaction.metadata.withdrawalMethodType
+                                    .replace("_", " ")
+                                    .toLowerCase()}
+                                </span>
+                              </div>
+                            )}
+                            {selectedTransaction.metadata.processedAt && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Processed On</span>
+                                <span className="text-sm font-medium">
+                                  {new Date(selectedTransaction.metadata.processedAt).toLocaleDateString()} at{" "}
+                                  {new Date(selectedTransaction.metadata.processedAt).toLocaleTimeString()}
+                                </span>
+                              </div>
+                            )}
+                            {selectedTransaction.metadata.rejectionReason && (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-muted-foreground">Rejection Reason</span>
+                                </div>
+                                <div className="bg-red-50 p-2 rounded border border-red-200">
+                                  <p className="text-sm text-red-600">
+                                    {selectedTransaction.metadata.rejectionReason}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                            {selectedTransaction.metadata.adminNotes && (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-muted-foreground">Admin Notes</span>
+                                </div>
+                                <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                                  <p className="text-sm">
+                                    {selectedTransaction.metadata.adminNotes}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      </div>
+                  </div>
+                </Sheet.Content>
+              </Sheet.Container>
+              <Sheet.Backdrop onTap={() => setIsSheetOpen(false)} />
+            </Sheet>
+            </>
           )}
         </CardContent>
       </Card>
