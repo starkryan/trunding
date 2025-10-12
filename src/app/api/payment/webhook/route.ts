@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { ReferralService } from "@/lib/referral-service"
 import { RewardService } from "@/lib/reward-service"
-import { handlePay0Webhook } from "@/lib/pay0-sdk"
 import {
   WebhookLogger,
   WebhookSignatureValidator,

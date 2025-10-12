@@ -11,6 +11,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET || "SpCTp0hd8qU6DOKXSXjUlciSyDtke5hv",
+
+  // Enhanced session configuration for payment flows
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days default
+    updateAge: 60 * 60 * 24, // Update session every 24 hours
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes cache
+    },
+  },
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),

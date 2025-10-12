@@ -123,6 +123,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check for recent duplicate payment attempts from same user
+    const recentPayment = await prisma.payment.findFirst({
+      where: {
+        userId: userId,
+        amount: parseFloat(amount),
+        rewardServiceId: serviceId,
+        status: 'PENDING',
+        createdAt: {
+          gte: new Date(Date.now() - 2000) // Last 2 seconds
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    if (recentPayment) {
+      // If there's a recent pending payment with same details, return it instead of creating a new one
+      console.log('Found recent duplicate payment attempt, returning existing payment:', recentPayment.id)
+
+      return NextResponse.json({
+        success: true,
+        paymentUrl: `${baseUrl}/payment/${recentPayment.providerOrderId}`,
+        orderId: recentPayment.providerOrderId,
+        paymentId: recentPayment.id,
+        transactionId: recentPayment.metadata && typeof recentPayment.metadata === 'object' ?
+          (recentPayment.metadata as any).transactionId : undefined,
+        provider: recentPayment.provider,
+        duplicatePrevented: true,
+        availableProviders: activeProviders.map(p => ({
+          name: p.name,
+          enabled: p.isActive
+        }))
+      })
+    }
+
     // Use database transaction to ensure atomic operation
     const result = await prisma.$transaction(async (tx) => {
       // Ensure wallet exists for the user using upsert operation
@@ -154,6 +188,7 @@ export async function POST(request: NextRequest) {
             providerResponse: paymentResponse.details,
             customerName: user.name,
             customerEmail: user.email,
+            clientTimestamp: Date.now(), // Track when request was made
           },
         },
       })

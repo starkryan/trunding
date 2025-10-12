@@ -36,7 +36,7 @@ export default function PaymentPage() {
   
         if (status === "COMPLETED") {
           // Payment completed - redirect immediately
-          toast.success("Payment Successful! Your account has been credited successfully")
+          toast.success("🎉 Payment completed! Redirecting...")
           setTimeout(() => {
             window.location.href = `/home?payment_success=true&order_id=${orderId}`
           }, 1000)
@@ -84,7 +84,7 @@ export default function PaymentPage() {
             setPaymentStatus(data.data.status)
 
             if (data.data.status === "COMPLETED") {
-              toast.success("Payment Successful! Your account has been credited successfully")
+              toast.success("🎉 Payment completed! Redirecting...")
               setTimeout(() => {
                 window.location.href = `/home?payment_success=true&order_id=${orderId}`
               }, 1000)
@@ -125,11 +125,83 @@ export default function PaymentPage() {
     document.documentElement.classList.add('payment-page-active')
     document.body.classList.add('payment-page-active')
 
+    // Detect mobile payment flow
+    const urlParams = new URLSearchParams(window.location.search)
+    const isMobileFlow = urlParams.get('flow') === 'mobile'
+    const timestamp = urlParams.get('timestamp')
+    const sessionId = urlParams.get('session_id')
+
+    // Store payment context in localStorage for session recovery
+    if (isMobileFlow) {
+      const paymentContext = {
+        orderId,
+        timestamp: timestamp || Date.now().toString(),
+        sessionId: sessionId || '',
+        flow: 'mobile',
+        // Store when user left for payment
+        paymentStartTime: Date.now()
+      }
+      localStorage.setItem('payment_context', JSON.stringify(paymentContext))
+
+      // Add mobile flow specific styling
+      document.body.classList.add('mobile-payment-flow')
+    }
+
+    // Check for session recovery parameters
+    const sessionRecovery = urlParams.get('session_recovery')
+    if (sessionRecovery) {
+      try {
+        const recoveryData = JSON.parse(atob(sessionRecovery))
+        console.log('Session recovery detected:', recoveryData)
+        // Store recovery data for potential session restoration
+        sessionStorage.setItem('session_recovery', JSON.stringify(recoveryData))
+      } catch (error) {
+        console.warn('Failed to parse session recovery data:', error)
+      }
+    }
+
     // Initial check
     checkPaymentStatus(true)
 
     // Set up real-time updates
     setupRealTimeUpdates()
+
+    // Set up mobile payment flow monitoring
+    let visibilityChangeHandler: (() => void) | null = null
+    let pageFocusHandler: (() => void) | null = null
+
+    if (isMobileFlow) {
+      // Handle page visibility changes (user returns from PhonePe)
+      visibilityChangeHandler = () => {
+        if (!document.hidden) {
+          console.log('User returned to payment page - checking status')
+          // User returned from payment app, check status immediately
+          checkPaymentStatus(true)
+
+          // Re-establish real-time connection
+          setupRealTimeUpdates()
+        }
+      }
+
+      // Handle page focus events
+      pageFocusHandler = () => {
+        console.log('Payment page regained focus')
+        checkPaymentStatus(true)
+      }
+
+      document.addEventListener('visibilitychange', visibilityChangeHandler)
+      window.addEventListener('focus', pageFocusHandler)
+    }
+
+    // Set up periodic status checks for mobile flows
+    let statusCheckInterval: NodeJS.Timeout | null = null
+    if (isMobileFlow) {
+      statusCheckInterval = setInterval(() => {
+        if (!document.hidden && paymentStatus === 'PENDING') {
+          checkPaymentStatus(false) // Silent check
+        }
+      }, 5000) // Check every 5 seconds when page is visible
+    }
 
     // Cleanup on unmount
     return () => {
@@ -137,9 +209,29 @@ export default function PaymentPage() {
       if (eventSourceRef.current) {
         eventSourceRef.current.close()
       }
+
+      // Remove event listeners
+      if (visibilityChangeHandler) {
+        document.removeEventListener('visibilitychange', visibilityChangeHandler)
+      }
+      if (pageFocusHandler) {
+        window.removeEventListener('focus', pageFocusHandler)
+      }
+
+      // Clear interval
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval)
+      }
+
       // Remove payment page classes when leaving
       document.documentElement.classList.remove('payment-page-active')
       document.body.classList.remove('payment-page-active')
+      document.body.classList.remove('mobile-payment-flow')
+
+      // Clear payment context from localStorage when payment is complete
+      if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(paymentStatus)) {
+        localStorage.removeItem('payment_context')
+      }
     }
   }, [orderId]) // Add orderId dependency
 

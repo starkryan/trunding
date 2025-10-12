@@ -108,12 +108,33 @@ export class Pay0Provider implements PaymentProvider {
   private readonly apiKey: string = process.env.PAY0_API_KEY || ''
 
   constructor() {
+    if (!this.apiKey) {
+      console.warn('PAY0_API_KEY environment variable is not set. Pay0 provider will not work.')
+    }
     this.createOrderSDK = new CreateOrderSDK('https://pay0.shop')
     this.checkOrderSDK = new CheckOrderStatusSDK('https://pay0.shop')
   }
 
   async createPayment(data: PaymentRequest): Promise<PaymentResponse> {
     try {
+      // Validate API key
+      if (!this.apiKey) {
+        return {
+          success: false,
+          error: 'Pay0 API key is not configured',
+          details: { code: 'MISSING_API_KEY' }
+        }
+      }
+
+      // Validate required fields
+      if (!data.amount || (typeof data.amount === 'number' ? data.amount <= 0 : parseFloat(data.amount) <= 0)) {
+        return {
+          success: false,
+          error: 'Invalid amount provided',
+          details: { amount: data.amount }
+        }
+      }
+
       const payload = {
         customer_mobile: data.customerMobile || '9876543210',
         customer_name: data.customerName || 'User',
@@ -125,15 +146,32 @@ export class Pay0Provider implements PaymentProvider {
         remark2: `Service: ${data.serviceId || 'N/A'}`,
       }
 
+      console.log('Pay0: Creating payment order', {
+        orderId: data.orderId,
+        amount: data.amount,
+        serviceName: data.serviceName,
+      })
+
       const response = await this.createOrderSDK.createOrder(payload)
 
       if (response.status && response.result?.payment_url) {
+        console.log('Pay0: Payment order created successfully', {
+          orderId: response.result.orderId,
+          paymentUrl: response.result.payment_url ? 'URL_RECEIVED' : 'NO_URL'
+        })
+
         return {
           success: true,
           paymentUrl: response.result.payment_url,
           orderId: response.result.orderId,
+          transactionId: response.result.orderId, // Use orderId as transactionId for Pay0
         }
       }
+
+      console.error('Pay0: Payment order creation failed', {
+        orderId: data.orderId,
+        response: response
+      })
 
       return {
         success: false,
@@ -141,10 +179,16 @@ export class Pay0Provider implements PaymentProvider {
         details: response,
       }
     } catch (error) {
+      console.error('Pay0: Unexpected error during payment creation', {
+        orderId: data.orderId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      })
+
       return {
         success: false,
         error: 'Pay0 service error',
-        details: error,
+        details: error instanceof Error ? error.message : 'Unknown error occurred',
       }
     }
   }
@@ -257,29 +301,40 @@ export class PaymentService {
       const timestamp = Date.now().toString()
       const randomPart1 = Math.random().toString(36).substr(2, 6).toUpperCase()
       const randomPart2 = Math.random().toString(36).substr(2, 6).toUpperCase()
-      return `TXN${timestamp}${randomPart1}${randomPart2}`
+      const microTime = process.hrtime.bigint().toString().slice(-6) // Add microsecond precision
+      return `TXN${timestamp}${microTime}${randomPart1}${randomPart2}`
     }
 
-    const ensureUniqueOrderId = async (maxRetries = 3) => {
+    const ensureUniqueOrderId = async (maxRetries = 10) => {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         const orderId = generateOrderId()
 
+        // Check both providerOrderId and any existing order_id in metadata
         const existingPayment = await prisma.payment.findFirst({
-          where: { providerOrderId: orderId }
+          where: {
+            OR: [
+              { providerOrderId: orderId },
+              { metadata: { path: ['orderId'], equals: orderId } }
+            ]
+          }
         })
 
         if (!existingPayment) {
           return orderId
         }
 
+        // Exponential backoff with jitter for concurrent requests
         if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 100 * attempt))
+          const backoffTime = Math.min(1000, 50 * Math.pow(2, attempt - 1)) + Math.random() * 100
+          await new Promise(resolve => setTimeout(resolve, backoffTime))
         }
       }
 
+      // Fallback with crypto random if all retries fail
       const timestamp = Date.now().toString()
+      const cryptoRandom = require('crypto').randomBytes(8).toString('hex').toUpperCase()
       const extraRandom = Math.random().toString(36).substr(2, 8).toUpperCase()
-      return `TXN${timestamp}${extraRandom}${Date.now().toString(36)}`
+      return `TXN${timestamp}${cryptoRandom}${extraRandom}`
     }
 
     return ensureUniqueOrderId()
