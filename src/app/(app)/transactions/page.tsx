@@ -12,6 +12,7 @@ import {
   FiTrendingDown,
   FiGift,
   FiCreditCard,
+  FiX,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
@@ -680,9 +681,22 @@ export default function TransactionsPage() {
                 initialSnap={1}
                 disableDrag={false}
               >
-                <Sheet.Container className="bg-background border-t border-border shadow-2xl rounded-t-2xl">
+                <Sheet.Container className="bg-background border-t border-border shadow-2xl rounded-t-2xl mx-2 mt-2 mr-4">
                   <Sheet.Header>
-                    <div className="mx-auto w-12 h-1.5 bg-muted-foreground/30 rounded-full mb-4" />
+                    <div className="flex items-center justify-between mb-4 px-4">
+                      <div className="flex-1" />
+                      <div className="mx-auto w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
+                      <div className="flex-1 flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsSheetOpen(false)}
+                          className="h-8 w-8 p-0 rounded-full bg-background border border-border hover:bg-muted-foreground/10 transition-colors shadow-sm mt-3"
+                        >
+                          <FiX className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </Sheet.Header>
                   <Sheet.Content className="h-full overflow-y-auto pb-6">
                     <div className="p-6 h-full overflow-y-auto">

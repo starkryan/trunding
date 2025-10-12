@@ -275,6 +275,7 @@ async function processWebhookData(
         console.log(`Processing reward service payment: ${payment.rewardService?.name}`)
         try {
           // Use RewardService to handle reward service payouts
+          // RewardService will handle all wallet updates and transaction creation
           await RewardService.processRewardServicePayout(
             payment.userId,
             payment.amount,
