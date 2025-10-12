@@ -43,7 +43,7 @@ model User {
   withdrawalRequest                  WithdrawalRequest[]
   accounts                           Account[]
   sessions                           Session[]
-  verification                       Verification?
+  verifications                     Verification[]
 
   @@map("user")
 }
@@ -90,8 +90,8 @@ model Verification {
   expiresAt  DateTime @db.Timestamptz(6)
   createdAt  DateTime @default(now()) @db.Timestamptz(6)
   updatedAt  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  userId     String   @unique
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("verification")
 }

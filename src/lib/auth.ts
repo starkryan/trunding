@@ -51,7 +51,7 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       redirectURI: `${process.env.BETTER_AUTH_URL}/api/auth/callback/google`,
-      scopes: ["openid", "email", "profile"],
+      scope: ["openid", "email", "profile"],
       disableAccountLinking: false,
       // Security: PKCE (Proof Key for Code Exchange) for enhanced security
       pkce: true,

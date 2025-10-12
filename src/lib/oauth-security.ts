@@ -16,9 +16,9 @@ export interface OAuthSecurityConfig {
 
 export const defaultOAuthSecurityConfig: OAuthSecurityConfig = {
   enabledProviders: ['google'],
-  allowedDomains: ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'],
+  allowedDomains: [], // Allow all domains for development
   blockedEmails: [],
-  requireEmailVerification: true,
+  requireEmailVerification: false, // Don't require email verification for Google OAuth
   maxSignInAttempts: 5,
   sessionDuration: 60 * 60 * 24 * 7, // 7 days
 };
