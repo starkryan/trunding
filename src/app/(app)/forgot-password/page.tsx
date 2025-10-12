@@ -119,11 +119,14 @@ export default function ForgotPasswordPage() {
     <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:border sm:max-w-md mx-auto my-8">
         <CardHeader className="space-y-4 px-6 pt-8 text-center flex-shrink-0">
-          <div className="relative mx-auto">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center">
-              <FiLock className="text-white size-7" />
-            </div>
-            <div className="absolute -inset-1 bg-primary/20 rounded-2xl blur-sm -z-10"></div>
+          <div className="relative mx-auto w-16 h-16">
+            <Image
+              src="/logo.png"
+              alt="Montra Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
 
           <div className="space-y-2">
