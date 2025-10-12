@@ -26,18 +26,25 @@ export default function HomePage() {
     const orderId = searchParams.get("order_id");
 
     if (paymentSuccess === "true" && orderId) {
-      // Clear any existing toasts first to prevent duplicates
-      toast.dismiss();
+      // Add delay to ensure client-side rendering and toast system is ready
+      const timer = setTimeout(() => {
+        // Clear any existing toasts first to prevent duplicates
+        toast.dismiss();
 
-      // Show user-friendly success notification
-      toast.success("🎉 Successfully invested", {
-        duration: 6000,
-        id: `payment-success-${orderId}`, // Unique ID to prevent duplicates
-      });
+        // Show user-friendly success notification
+        toast.success("🎉 Successfully invested", {
+          duration: 6000,
+          id: `payment-success-${orderId}`, // Unique ID to prevent duplicates
+        });
 
-      // Clean URL parameters after showing notification
-      const cleanUrl = window.location.pathname;
-      window.history.replaceState({}, "", cleanUrl);
+        // Clean URL parameters after showing notification (only on client side)
+        if (typeof window !== 'undefined') {
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, "", cleanUrl);
+        }
+      }, 100); // Small delay to ensure client-side rendering
+
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 

@@ -51,12 +51,10 @@ const nextConfig = pwaConfig({
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['bc.imgix.net'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'bc.imgix.net',
-        port: '',
         pathname: '/**',
       }
     ],
