@@ -10,6 +10,7 @@ import {
   FaExchangeAlt,
   FaUser,
   FaWallet,
+  FaPlus,
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/use-wallet";
@@ -52,6 +53,7 @@ const navigationItems: NavigationItem[] = [
 
 export function MobileTopBar() {
   const { session } = useAuth();
+  const router = useRouter();
   const { balance, formatBalance, loading: walletLoading } = useWallet();
 
   return (
@@ -81,6 +83,9 @@ export function MobileTopBar() {
             )}>
               {walletLoading ? "₹..." : formatBalance(balance)}
             </span>
+            <div className="h-5 w-5 rounded-full border border-emerald-600 dark:border-emerald-400 flex items-center justify-center cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors" onClick={() => router.push('/withdrawal')}>
+              <FaPlus className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+            </div>
           </div>
         )}
       </div>
@@ -94,7 +99,7 @@ export function MobileBottomNavigation() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t md:hidden">
-      <div className="flex items-center justify-around py-3">
+      <div className="flex items-center justify-around py-2">
         {navigationItems.map((item) => {
           const isActive = pathname === item.href;
           return (
