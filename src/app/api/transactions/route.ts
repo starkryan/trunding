@@ -25,32 +25,11 @@ export async function GET(request: NextRequest) {
     const userId = session.user.id;
     const skip = (page - 1) * limit;
 
-    // Build where clause
-    const where: any = { userId };
-
-    if (type) {
-      where.type = type;
-    }
-
-    if (status) {
-      where.status = status;
-    }
-
-    if (search) {
-      where.OR = [
-        { description: { contains: search, mode: "insensitive" } },
-        { referenceId: { contains: search, mode: "insensitive" } },
-        { id: { contains: search, mode: "insensitive" } }
-      ];
-    }
-
-    // Get transactions with pagination
-    const [transactions, total] = await Promise.all([
+    // Get transactions without filtering first (we'll filter after combining)
+    const [transactions, totalTransactions] = await Promise.all([
       prisma.transaction.findMany({
-        where,
+        where: { userId },
         orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
         select: {
           id: true,
           type: true,
@@ -63,7 +42,7 @@ export async function GET(request: NextRequest) {
           createdAt: true
         }
       }),
-      prisma.transaction.count({ where })
+      prisma.transaction.count({ where: { userId } })
     ]);
 
     // Also get pending payments that don't have corresponding transactions
@@ -77,17 +56,45 @@ export async function GET(request: NextRequest) {
     }
 
     // Get payments that don't have corresponding transactions
+    // Exclude payments that already have transactions created (especially for reward services)
+    const existingTransactionReferences = await prisma.transaction.findMany({
+      where: { userId },
+      select: { referenceId: true }
+    }).then(txs => txs.map(tx => tx.referenceId).filter(Boolean));
+
+    // Also get payments that have reward service transactions with metadata linking to the payment
+    const transactionsWithMetadata = await prisma.transaction.findMany({
+      where: { userId },
+      select: {
+        metadata: true
+      }
+    });
+
+    // Extract payment IDs from transaction metadata
+    const rewardServicePaymentIds = [...new Set(
+      transactionsWithMetadata
+        .map(tx => {
+          // Type guard to ensure metadata is an object with paymentId property
+          const metadata = tx.metadata;
+          if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+            return (metadata as any).paymentId;
+          }
+          return null;
+        })
+        .filter(Boolean)
+    )];
+
+    // Combine both sets of payment IDs that should be excluded
+    const excludePaymentIds = [...new Set([...existingTransactionReferences, ...rewardServicePaymentIds])];
+
     const pendingPayments = await prisma.payment.findMany({
       where: {
         ...paymentWhere,
-        NOT: {
+        ...(excludePaymentIds.length > 0 && {
           id: {
-            in: await prisma.transaction.findMany({
-              where: { userId },
-              select: { referenceId: true }
-            }).then(txs => txs.map(tx => tx.referenceId).filter(Boolean))
+            notIn: excludePaymentIds
           }
-        }
+        })
       },
       orderBy: { createdAt: "desc" },
       select: {
@@ -107,7 +114,7 @@ export async function GET(request: NextRequest) {
       type: "DEPOSIT" as const,
       amount: payment.amount,
       currency: payment.currency,
-      status: payment.status,
+      status: payment.status === "COMPLETED" ? "COMPLETED" : payment.status,
       description: `Payment ${payment.status.toLowerCase()} - Order: ${payment.providerOrderId}`,
       referenceId: payment.id,
       metadata: {
@@ -120,10 +127,6 @@ export async function GET(request: NextRequest) {
 
     // Also get withdrawal requests that don't have corresponding transactions
     const withdrawalWhere: any = { userId };
-
-    if (status) {
-      withdrawalWhere.status = status;
-    }
 
     if (search) {
       withdrawalWhere.OR = [
@@ -187,9 +190,43 @@ export async function GET(request: NextRequest) {
     }));
 
     // Combine transactions, pending payments, and withdrawal requests
-    const allTransactions = [...transactions, ...paymentTransactions, ...withdrawalRequestTransactions].sort((a, b) =>
+    let allTransactions = [...transactions, ...paymentTransactions, ...withdrawalRequestTransactions].sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+
+    // Apply filters to the combined dataset
+    if (type && type !== "all") {
+      allTransactions = allTransactions.filter(tx => tx.type === type);
+    }
+
+    if (status && status !== "all") {
+      allTransactions = allTransactions.filter(tx => tx.status === status);
+    }
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      allTransactions = allTransactions.filter(tx => {
+        // Type guard for metadata
+        const metadata = tx.metadata;
+        const metadataObj = metadata && typeof metadata === 'object' && !Array.isArray(metadata) ? metadata as any : null;
+
+        return (
+          tx.description?.toLowerCase().includes(searchLower) ||
+          tx.referenceId?.toLowerCase().includes(searchLower) ||
+          tx.id.toLowerCase().includes(searchLower) ||
+          (metadataObj?.isWithdrawalRequest && (
+            metadataObj.withdrawalMethod?.bankName?.toLowerCase().includes(searchLower) ||
+            metadataObj.withdrawalMethod?.upiId?.toLowerCase().includes(searchLower) ||
+            metadataObj.withdrawalMethod?.accountName?.toLowerCase().includes(searchLower)
+          )) ||
+          (metadataObj?.isPayment && metadataObj.providerOrderId?.toLowerCase().includes(searchLower))
+        );
+      });
+    }
+
+    // Apply pagination to the filtered results
+    const total = allTransactions.length;
+    const paginatedTransactions = allTransactions.slice(skip, skip + limit);
 
     // Get transaction statistics
     const stats = await prisma.transaction.groupBy({
@@ -244,10 +281,10 @@ export async function GET(request: NextRequest) {
       .filter(s => s.status === "REJECTED" || s.status === "FAILED")
       .reduce((sum, s) => sum + s._count.id, 0);
 
-    const totalItems = total + pendingPayments.length + pendingWithdrawalRequests.length;
+    const totalItems = total;
 
     return NextResponse.json({
-      transactions: allTransactions,
+      transactions: paginatedTransactions,
       pagination: {
         page,
         limit,

@@ -169,7 +169,7 @@ export default function TransactionsPage() {
       case "COMPLETED":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-green-500"></div>
+            
             Success
           </div>
         );
@@ -182,35 +182,35 @@ export default function TransactionsPage() {
       case "PROCESSING":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-blue-500 animate-pulse"></div>
+           
             Processing
           </div>
         );
       case "APPROVED":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-purple-500"></div>
+            
             Approved
           </div>
         );
       case "FAILED":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-red-500"></div>
+            
             Failed
           </div>
         );
       case "REJECTED":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-red-500"></div>
+        
             Rejected
           </div>
         );
       case "CANCELLED":
         return (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400 text-xs font-medium">
-            <div className="w-1.5 h-1.5 bg-gray-500"></div>
+          
             Cancelled
           </div>
         );
@@ -232,7 +232,7 @@ export default function TransactionsPage() {
         return <FiTrendingDown className="h-4 w-4 text-red-600" />;
   
       case "REWARD":
-        return <FiGift className="h-4 w-4 text-purple-600" />;
+        return <FiGift className="h-4 w-4 text-yellow-400" />;
       case "REFUND":
         return <FiCreditCard className="h-4 w-4 text-orange-600" />;
       default:

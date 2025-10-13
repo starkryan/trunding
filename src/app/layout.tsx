@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_APP_URL || "https://localhost:3000",
+    url: process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000",
     title: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Next.js app with better-auth integration",
     siteName: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
