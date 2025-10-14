@@ -26,8 +26,9 @@ import { InputGroup, InputGroupAddon, InputGroupText } from "@/components/ui/inp
 export default function ProfilePage() {
   const router = useRouter();
   const { session, loading, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const id = useId();
   const [walletData, setWalletData] = useState<{
     balance: number;
@@ -54,6 +55,14 @@ export default function ProfilePage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Sync isDarkMode with actual theme
+  useEffect(() => {
+    if (mounted) {
+      const actualTheme = theme === 'system' ? systemTheme : theme;
+      setIsDarkMode(actualTheme === 'dark');
+    }
+  }, [theme, systemTheme, mounted]);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -128,6 +137,13 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await signOut();
     router.push("/signin");
+  };
+
+  // Handle theme switching
+  const handleThemeChange = (checked: boolean) => {
+    const newTheme = checked ? 'dark' : 'light';
+    setTheme(newTheme);
+    setIsDarkMode(checked);
   };
 
   // Copy referral code to clipboard
@@ -368,8 +384,8 @@ export default function ProfilePage() {
                 <div className="relative inline-grid h-9 grid-cols-[1fr_1fr] items-center text-sm font-medium">
                   <Switch
                     id={id}
-                    checked={theme === 'dark'}
-                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                    checked={isDarkMode}
+                    onCheckedChange={handleThemeChange}
                     className="peer data-[state=unchecked]:bg-input/50 absolute inset-0 h-[inherit] w-auto rounded-md [&_span]:z-10 [&_span]:h-full [&_span]:w-1/2 [&_span]:rounded-sm [&_span]:transition-transform [&_span]:duration-300 [&_span]:ease-[cubic-bezier(0.16,1,0.3,1)] [&_span]:data-[state=checked]:translate-x-full [&_span]:data-[state=checked]:rtl:-translate-x-full"
                   />
                   <span className="pointer-events-none relative ms-0.5 flex items-center justify-center px-2 text-center transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] peer-data-[state=checked]:invisible peer-data-[state=unchecked]:translate-x-full peer-data-[state=unchecked]:rtl:-translate-x-full">

@@ -1,42 +1,48 @@
 "use client"
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Image from 'next/image'
+import { useTheme } from 'next-themes'
 
-const banners = [
+const bannerConfig = [
   {
     id: 1,
-    src: '/banner1.png',
+    lightSrc: '/carousel-white1.png',
+    darkSrc: '/carousel-black1.png',
     alt: 'Investment Opportunities',
     title: 'Smart Investment Solutions',
     subtitle: 'Grow your wealth with our premium reward services'
   },
   {
     id: 2,
-    src: '/banner2.png',
+    lightSrc: '/carousel-white2.png',
+    darkSrc: '/carousel-black2.png',
     alt: 'Reward Services',
     title: 'Guaranteed Returns',
     subtitle: 'Secure investments with daily rewards'
   },
   {
     id: 3,
-    src: '/banner3.png',
+    lightSrc: '/carousel-white3.png',
+    darkSrc: '/carousel-black3.png',
     alt: 'Financial Growth',
     title: 'Start Your Journey',
     subtitle: 'Join thousands of successful investors'
   },
   {
     id: 4,
-    src: '/banner4.png',
+    lightSrc: '/carousel-white4.png',
+    darkSrc: '/carousel-black4.png',
     alt: 'Mintward Platform',
     title: 'Trusted by Thousands',
     subtitle: 'Experience the future of investment platforms'
   },
   {
     id: 5,
-    src: '/banner5.png',
+    lightSrc: '/carousel-white5.png',
+    darkSrc: '/carousel-black5.png',
     alt: 'Premium Features',
     title: 'Advanced Analytics',
     subtitle: 'Track your investments with powerful tools'
@@ -44,6 +50,15 @@ const banners = [
 ]
 
 export default function BannerCarousel() {
+  const { theme } = useTheme()
+
+  const banners = useMemo(() => {
+    return bannerConfig.map(banner => ({
+      ...banner,
+      src: theme === 'dark' ? banner.darkSrc : banner.lightSrc
+    }))
+  }, [theme])
+
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
       loop: true,
@@ -72,7 +87,7 @@ export default function BannerCarousel() {
     }
   }, [emblaApi, onSelect])
 
-  
+
   const scrollTo = useCallback((index: number) => {
     emblaApi?.scrollTo(index)
   }, [emblaApi])
