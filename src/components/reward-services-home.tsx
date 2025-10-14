@@ -183,7 +183,7 @@ export default function RewardServicesHome() {
   return (
     <div className="w-full bg-gradient-to-br from-background via-background to-muted/20">
       {/* Banner Carousel Section */}
-      <div className="w-full pt-[32px] md:pt-0">
+      <div className="w-full">
         <BannerCarousel />
       </div>
 
