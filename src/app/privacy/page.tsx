@@ -30,10 +30,10 @@ export default function PrivacyPage() {
     introduction: {
       title: "Introduction to Privacy Policy",
       content: [
-        "At Montra, we are committed to protecting your privacy and ensuring the security of your personal information.",
+        "At Mintward, we are committed to protecting your privacy and ensuring the security of your personal information.",
         "This Privacy Policy explains how we collect, use, share, and protect your data when you use our investment platform and related services.",
         "We are dedicated to maintaining the trust you place in us and adhere to applicable data protection laws, including India's Information Technology Act and relevant regulations.",
-        "By using Montra, you acknowledge that you have read, understood, and agree to the collection and use of your information as described in this Privacy Policy."
+        "By using Mintward, you acknowledge that you have read, understood, and agree to the collection and use of your information as described in this Privacy Policy."
       ]
     },
     collection: {
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
             <div className="relative w-16 h-16">
               <Image
                 src="/logo.png"
-                alt="Montra Logo"
+                alt="Mintward Logo"
                 fill
                 className="object-contain animate-pulse"
                 priority
@@ -155,7 +155,7 @@ export default function PrivacyPage() {
               <div className="relative w-16 h-16">
                 <Image
                   src="/logo.png"
-                  alt="Montra Logo"
+                  alt="Mintward Logo"
                   fill
                   className="object-contain"
                   priority

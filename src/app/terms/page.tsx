@@ -29,8 +29,8 @@ export default function TermsPage() {
     introduction: {
       title: "Introduction",
       content: [
-        "Welcome to Montra, an investment platform that facilitates reward-based investment services.",
-        "These Terms of Service ('Terms') govern your use of Montra's platform, website, and related services (collectively, the 'Service').",
+        "Welcome to Mintward, an investment platform that facilitates reward-based investment services.",
+        "These Terms of Service ('Terms') govern your use of Mintward's platform, website, and related services (collectively, the 'Service').",
         "By accessing or using our Service, you agree to be bound by these Terms, our Privacy Policy, and any additional terms and conditions referenced herein.",
         "If you do not agree to these Terms, you may not access or use our Service."
       ]
@@ -41,16 +41,16 @@ export default function TermsPage() {
         "By creating an account, accessing our platform, or using our services, you acknowledge that you have read, understood, and agree to be bound by these Terms.",
         "You must be at least 18 years of age or the legal age of majority in your jurisdiction to use our Service.",
         "You represent and warrant that you have the legal capacity to enter into these Terms.",
-        "Montra reserves the right to modify these Terms at any time. Continued use of the Service after such modifications constitutes acceptance of the updated Terms."
+        "Mintward reserves the right to modify these Terms at any time. Continued use of the Service after such modifications constitutes acceptance of the updated Terms."
       ]
     },
     services: {
       title: "Services Description",
       content: [
-        "Montra provides an investment platform that connects users with reward-based investment opportunities.",
+        "Mintward provides an investment platform that connects users with reward-based investment opportunities.",
         "Our services include but are not limited to: investment processing, reward distribution, account management, and transaction monitoring.",
         "Investment returns and rewards are not guaranteed and may vary based on market conditions and service performance.",
-        "Montra acts as an intermediary platform and is not responsible for the performance of individual investment services."
+        "Mintward acts as an intermediary platform and is not responsible for the performance of individual investment services."
       ]
     },
     responsibilities: {
@@ -66,10 +66,10 @@ export default function TermsPage() {
     payments: {
       title: "Payments & Refunds",
       content: [
-        "All investments are processed through secure payment gateways approved by Montra.",
+        "All investments are processed through secure payment gateways approved by Mintward.",
         "Investment amounts, rewards, and processing fees are clearly displayed before transaction confirmation.",
         "Refunds, if applicable, are subject to the specific terms of each investment service and our refund policy.",
-        "Montra is not responsible for delays caused by payment processors or financial institutions.",
+        "Mintward is not responsible for delays caused by payment processors or financial institutions.",
         "Transaction fees, if any, will be disclosed prior to payment processing."
       ]
     },
@@ -78,7 +78,7 @@ export default function TermsPage() {
       content: [
         "Investment returns are not guaranteed. Past performance does not indicate future results.",
         "Our Service is provided 'as is' without warranties of any kind, either express or implied.",
-        "Montra does not provide financial advice. All investment decisions should be made based on your own research and risk assessment.",
+        "Mintward does not provide financial advice. All investment decisions should be made based on your own research and risk assessment.",
         "We are not liable for any losses arising from investment decisions made through our platform.",
         "Technical issues, maintenance, or service interruptions may occur without notice."
       ]
@@ -87,9 +87,9 @@ export default function TermsPage() {
       title: "Termination",
       content: [
         "You may terminate your account at any time by following the account closure procedure in your account settings.",
-        "Montra reserves the right to suspend or terminate accounts that violate these Terms or engage in fraudulent activities.",
+        "Mintward reserves the right to suspend or terminate accounts that violate these Terms or engage in fraudulent activities.",
         "Upon termination, your right to use the Service will cease immediately.",
-        "Montra may retain certain information as required by law or for legitimate business purposes.",
+        "Mintward may retain certain information as required by law or for legitimate business purposes.",
         "Outstanding investments and rewards will be processed according to the respective service terms."
       ]
     },
@@ -112,7 +112,7 @@ export default function TermsPage() {
             <div className="relative w-16 h-16">
               <Image
                 src="/logo.png"
-                alt="Montra Logo"
+                alt="Mintward Logo"
                 fill
                 className="object-contain animate-pulse"
                 priority
@@ -144,7 +144,7 @@ export default function TermsPage() {
               <div className="relative w-16 h-16">
                 <Image
                   src="/logo.png"
-                  alt="Montra Logo"
+                  alt="Mintward Logo"
                   fill
                   className="object-contain"
                   priority
@@ -153,7 +153,7 @@ export default function TermsPage() {
             </div>
             <h1 className="text-3xl font-bold text-foreground">Terms of Service</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Please read these Terms of Service carefully before using Montra's investment platform.
+              Please read these Terms of Service carefully before using Mintward's investment platform.
             </p>
             <p className="text-sm text-muted-foreground">
               Last updated: {new Date().toLocaleDateString('en-US', {
@@ -199,7 +199,7 @@ export default function TermsPage() {
               {termsContent[activeSection as keyof typeof termsContent].title}
             </CardTitle>
             <CardDescription>
-              {activeSection === "introduction" && "Welcome to Montra's investment platform"}
+              {activeSection === "introduction" && "Welcome to Mintward's investment platform"}
               {activeSection === "acceptance" && "Your agreement to our terms and conditions"}
               {activeSection === "services" && "What we offer and how it works"}
               {activeSection === "responsibilities" && "What you need to know about using our platform"}
@@ -237,7 +237,7 @@ export default function TermsPage() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>By using Montra, you acknowledge that you have read and understood these Terms of Service.</p>
+          <p>By using Mintward, you acknowledge that you have read and understood these Terms of Service.</p>
         </div>
       </div>
     </div>

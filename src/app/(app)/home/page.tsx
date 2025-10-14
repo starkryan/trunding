@@ -56,7 +56,7 @@ export default function HomePage() {
             <div className="relative w-16 h-16">
               <Image
                 src="/logo.png"
-                alt="Montra Logo"
+                alt="Mintward Logo"
                 fill
                 className="object-contain animate-pulse"
                 priority

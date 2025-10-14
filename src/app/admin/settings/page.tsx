@@ -56,7 +56,7 @@ export default function AdminSettingsPage() {
 
   const [settings, setSettings] = useState({
     general: {
-      siteName: "Montra Admin",
+      siteName: "Mintward Admin",
       siteUrl: "https://admin.montra.com",
       timeZone: "UTC",
       language: "en",

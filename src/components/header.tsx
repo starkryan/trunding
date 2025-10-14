@@ -47,7 +47,7 @@ export const Header = memo(function Header({
     const pathSegments = pathname.split('/').filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1];
 
-    if (!lastSegment || lastSegment === 'home') return 'Montra';
+    if (!lastSegment || lastSegment === 'home') return 'Mintward';
 
     // Capitalize first letter and replace hyphens with spaces
     return lastSegment

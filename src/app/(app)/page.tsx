@@ -28,7 +28,7 @@ export default async function HomePage() {
           </div>
           
           <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Montra
+            Mintward
           </h1>
           
           <p className="text-lg text-muted-foreground leading-relaxed">

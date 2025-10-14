@@ -117,8 +117,8 @@ export default function ReferralPage() {
 
       if (navigator.share) {
         navigator.share({
-          title: "Join Montra Investment Platform",
-          text: `Join me on Montra and start investing! Use my referral code: ${referralData.referralCode.code}`,
+          title: "Join Mintward Investment Platform",
+          text: `Join me on Mintward and start investing! Use my referral code: ${referralData.referralCode.code}`,
           url: referralUrl,
         });
       } else {
@@ -207,7 +207,7 @@ export default function ReferralPage() {
           Referral Program
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Invite your friends to join Montra and earn rewards when they make their first investment.
+          Invite your friends to join Mintward and earn rewards when they make their first investment.
         </p>
       </div>
 
@@ -388,7 +388,7 @@ export default function ReferralPage() {
                         variant="outline"
                         className="flex items-center gap-2"
                         onClick={() => {
-                          const url = `https://wa.me/?text=${encodeURIComponent(`Join me on Montra Investment Platform! Use my referral code: ${referralData.referralCode.code}. Sign up: ${window.location.origin}/signup?ref=${referralData.referralCode.code}`)}`;
+                          const url = `https://wa.me/?text=${encodeURIComponent(`Join me on Mintward Investment Platform! Use my referral code: ${referralData.referralCode.code}. Sign up: ${window.location.origin}/signup?ref=${referralData.referralCode.code}`)}`;
                           window.open(url, '_blank');
                         }}
                       >
@@ -399,7 +399,7 @@ export default function ReferralPage() {
                         variant="outline"
                         className="flex items-center gap-2"
                         onClick={() => {
-                          const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join me on Montra Investment Platform! Use my referral code: ${referralData.referralCode.code}`)}&url=${encodeURIComponent(`${window.location.origin}/signup?ref=${referralData.referralCode.code}`)}`;
+                          const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join me on Mintward Investment Platform! Use my referral code: ${referralData.referralCode.code}`)}&url=${encodeURIComponent(`${window.location.origin}/signup?ref=${referralData.referralCode.code}`)}`;
                           window.open(url, '_blank');
                         }}
                       >
@@ -421,7 +421,7 @@ export default function ReferralPage() {
                         variant="outline"
                         className="flex items-center gap-2"
                         onClick={() => {
-                          window.open(`mailto:?subject=${encodeURIComponent('Join me on Montra Investment Platform!')}&body=${encodeURIComponent(`Hi there!\n\nI've been using Montra Investment Platform and thought you might be interested. It's a great platform for growing your investments.\n\nUse my referral code: ${referralData.referralCode.code}\n\nSign up here: ${window.location.origin}/signup?ref=${referralData.referralCode.code}\n\nBest regards`)}`, '_blank');
+                          window.open(`mailto:?subject=${encodeURIComponent('Join me on Mintward Investment Platform!')}&body=${encodeURIComponent(`Hi there!\n\nI've been using Mintward Investment Platform and thought you might be interested. It's a great platform for growing your investments.\n\nUse my referral code: ${referralData.referralCode.code}\n\nSign up here: ${window.location.origin}/signup?ref=${referralData.referralCode.code}\n\nBest regards`)}`, '_blank');
                         }}
                       >
                         <Mail className="h-4 w-4" />
@@ -437,9 +437,9 @@ export default function ReferralPage() {
                         Share Message
                       </h4>
                       <div className="p-3 bg-muted rounded-lg text-sm">
-                        <p className="font-medium mb-1">Join me on Montra Investment Platform!</p>
+                        <p className="font-medium mb-1">Join me on Mintward Investment Platform!</p>
                         <p className="text-muted-foreground">
-                          I've been using Montra and it's been great for growing my investments.
+                          I've been using Mintward and it's been great for growing my investments.
                           Use my referral code <strong>{referralData.referralCode.code}</strong> when you sign up.
                         </p>
                         <p className="text-muted-foreground mt-2">

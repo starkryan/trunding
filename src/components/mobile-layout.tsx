@@ -35,7 +35,7 @@ export default function MobileLayout({
   fullHeight = false
 }: MobileLayoutProps) {
   // Determine which header to show with responsive logic
-  const shouldShowTopBar = showNavigation && (!showHeader || (headerProps?.title === "Montra" || !headerProps?.title));
+  const shouldShowTopBar = showNavigation && (!showHeader || (headerProps?.title === "Mintward" || !headerProps?.title));
   const shouldShowPageHeader = showHeader && !shouldShowTopBar;
 
   return (

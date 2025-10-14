@@ -18,14 +18,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
-    template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "Montra"}`,
+    default: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
+    template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "Mintward"}`,
   },
-  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Montra - Investment Platform",
+  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Mintward - Investment Platform",
   keywords: ["Next.js", "React", "TypeScript", "Investment", "Platform"],
-  authors: [{ name: process.env.NEXT_PUBLIC_APP_AUTHOR || "Montra Team" }],
-  creator: process.env.NEXT_PUBLIC_APP_AUTHOR || "Montra Team",
-  publisher: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
+  authors: [{ name: process.env.NEXT_PUBLIC_APP_AUTHOR || "Mintward Team" }],
+  creator: process.env.NEXT_PUBLIC_APP_AUTHOR || "Mintward Team",
+  publisher: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
   formatDetection: {
     email: false,
     address: false,
@@ -62,21 +62,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000",
-    title: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
+    title: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Next.js app with better-auth integration",
-    siteName: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
+    siteName: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: `${process.env.NEXT_PUBLIC_APP_NAME || "Montra"} Logo`,
+        alt: `${process.env.NEXT_PUBLIC_APP_NAME || "Mintward"} Logo`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: process.env.NEXT_PUBLIC_APP_NAME || "Montra",
+    title: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Next.js app with better-auth integration",
     images: ["/og-image.png"],
   },

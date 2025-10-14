@@ -1,6 +1,6 @@
 {
-  "name": "Montra",
-  "short_name": "Montra",
+  "name": "Mintward",
+  "short_name": "Mintward",
   "description": "Investment platform with reward services",
   "start_url": "/",
   "display": "standalone",
@@ -25,5 +25,5 @@
   "lang": "en-US",
   "dir": "ltr",
   "scope": "/",
-  "id": "montra-app"
+  "id": "mintward-app"
 }

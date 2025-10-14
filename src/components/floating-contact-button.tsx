@@ -12,10 +12,10 @@ export default function FloatingContactButton() {
     setIsClicked(true);
 
     // Open Telegram contact
-    const telegramUrl = "https://t.me/montra_support";
+    const telegramUrl = "https://t.me/mintward_support";
 
     // Try to open in app first, then fallback to web
-    const appUrl = `tg://resolve?domain=montra_support`;
+    const appUrl = `tg://resolve?domain=mintward_support`;
 
     // First try to open in Telegram app
     const link = document.createElement('a');

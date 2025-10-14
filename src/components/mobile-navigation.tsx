@@ -64,13 +64,13 @@ export function MobileTopBar() {
           <div className="relative w-8 h-8">
             <Image
               src="/logo.png"
-              alt="Montra Logo"
+              alt="Mintward Logo"
               fill
               className="object-contain"
               priority
             />
           </div>
-          <h1 className="text-lg font-bold">Montra</h1>
+          <h1 className="text-lg font-bold">Mintward</h1>
         </div>
 
         {/* Balance Display - Only show for authenticated users */}

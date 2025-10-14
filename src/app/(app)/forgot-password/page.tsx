@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
             <div className="relative w-16 h-16">
               <Image
                 src="/logo.png"
-                alt="Montra Logo"
+                alt="Mintward Logo"
                 fill
                 className="object-contain animate-pulse"
                 priority
@@ -122,7 +122,7 @@ export default function ForgotPasswordPage() {
           <div className="relative mx-auto w-16 h-16">
             <Image
               src="/logo.png"
-              alt="Montra Logo"
+              alt="Mintward Logo"
               fill
               className="object-contain"
               priority

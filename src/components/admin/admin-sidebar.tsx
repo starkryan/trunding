@@ -176,7 +176,7 @@ export default function AdminSidebar({ isOpen, onToggle, isCollapsed }: { isOpen
           </div>
           {(!isCollapsed || isMobile) && (
             <div>
-              <h1 className="text-lg font-bold text-foreground">Montra Admin</h1>
+              <h1 className="text-lg font-bold text-foreground">Mintward Admin</h1>
               <p className="text-xs text-muted-foreground">Investment Platform</p>
             </div>
           )}

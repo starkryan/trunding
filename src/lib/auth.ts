@@ -213,7 +213,7 @@ export const auth = betterAuth({
             </div>
             <p>This code will expire in 5 minutes.</p>
             <p>If you did not request this, please ignore this email.</p>
-            <p>Thank you,<br/>The Montra Team</p>
+            <p>Thank you,<br/>The Mintward Team</p>
           </div>
         `;
 

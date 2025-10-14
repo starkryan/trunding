@@ -1,4 +1,4 @@
-# Montra Investment Platform - Robots.txt
+# Mintward Investment Platform - Robots.txt
 # https://www.robotstxt.org/robotstxt.html
 
 User-agent: *

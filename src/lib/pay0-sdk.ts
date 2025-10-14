@@ -71,7 +71,7 @@ export class CreateOrderSDK {
           const response = await fetch(`${this.baseUrl}/api/create-order`, {
             method: 'POST',
             headers: {
-              'User-Agent': 'Montra-Payment-SDK/1.0',
+              'User-Agent': 'Mintward-Payment-SDK/1.0',
             },
             body: formData,
             signal: AbortSignal.timeout(10000), // 10 second timeout
@@ -137,7 +137,7 @@ export class CheckOrderStatusSDK {
       const response = await fetch(`${this.baseUrl}/api/check-order-status`, {
         method: 'POST',
         headers: {
-          'User-Agent': 'Montra-Payment-SDK/1.0',
+          'User-Agent': 'Mintward-Payment-SDK/1.0',
         },
         body: formData,
       })

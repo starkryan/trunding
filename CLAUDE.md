@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Montra is a Next.js 15 investment platform with TypeScript, featuring comprehensive authentication, payment processing, reward services, and referral systems. The app uses Better Auth for authentication with email OTP and Google OAuth, Prisma with PostgreSQL, and a modern component system built with shadcn/ui.
+Mintward is a Next.js 15 investment platform with TypeScript, featuring comprehensive authentication, payment processing, reward services, and referral systems. The app uses Better Auth for authentication with email OTP and Google OAuth, Prisma with PostgreSQL, and a modern component system built with shadcn/ui.
 
 ## Development Commands
 

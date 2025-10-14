@@ -8,24 +8,38 @@ import Image from 'next/image'
 const banners = [
   {
     id: 1,
-    src: '/banner2.jpeg',
+    src: '/banner1.png',
     alt: 'Investment Opportunities',
     title: 'Smart Investment Solutions',
     subtitle: 'Grow your wealth with our premium reward services'
   },
   {
     id: 2,
-    src: '/banner3.jpeg',
+    src: '/banner2.png',
     alt: 'Reward Services',
     title: 'Guaranteed Returns',
     subtitle: 'Secure investments with daily rewards'
   },
   {
     id: 3,
-    src: '/banner2.jpeg',
+    src: '/banner3.png',
     alt: 'Financial Growth',
     title: 'Start Your Journey',
     subtitle: 'Join thousands of successful investors'
+  },
+  {
+    id: 4,
+    src: '/banner4.png',
+    alt: 'Mintward Platform',
+    title: 'Trusted by Thousands',
+    subtitle: 'Experience the future of investment platforms'
+  },
+  {
+    id: 5,
+    src: '/banner5.png',
+    alt: 'Premium Features',
+    title: 'Advanced Analytics',
+    subtitle: 'Track your investments with powerful tools'
   }
 ]
 
