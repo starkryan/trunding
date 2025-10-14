@@ -4,11 +4,16 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -32,8 +37,7 @@ import {
   Calculator,
   Settings,
   TrendingUp,
-  DollarSign,
-  Copy,
+    Copy,
   Eye,
   MoreHorizontal,
   IndianRupee,
@@ -77,10 +81,7 @@ interface RewardService {
 
 // Zod schema for form validation
 const rewardServiceSchema = z.object({
-  name: z.string()
-    .min(2, "Service name must be at least 2 characters")
-    .max(50, "Service name must be less than 50 characters")
-    .regex(/^[a-zA-Z0-9\s\-_]+$/, "Service name can only contain letters, numbers, spaces, hyphens, and underscores"),
+  name: z.enum(["Bronze", "Silver", "Gold", "Platinum", "Diamond"]),
   description: z.string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description must be less than 500 characters"),
@@ -119,7 +120,7 @@ export default function RewardServicesPage() {
   const form = useForm<RewardServiceFormData>({
     resolver: zodResolver(rewardServiceSchema),
     defaultValues: {
-      name: "",
+      name: "Bronze",
       description: "",
       formula: "(amount * 0.03) + 6",
       formulaDisplay: "(Amount × 3%) + 6",
@@ -128,6 +129,46 @@ export default function RewardServicesPage() {
     },
   });
 
+  // Predefined service tiers with their properties
+  const serviceTiers = [
+    {
+      name: "Bronze",
+      exampleAmount: 300,
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-200"
+    },
+    {
+      name: "Silver",
+      exampleAmount: 1000,
+      color: "text-gray-600",
+      bgColor: "bg-gray-50",
+      borderColor: "border-gray-200"
+    },
+    {
+      name: "Gold",
+      exampleAmount: 5000,
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
+      borderColor: "border-yellow-200"
+    },
+    {
+      name: "Platinum",
+      exampleAmount: 10000,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200"
+    },
+    {
+      name: "Diamond",
+      exampleAmount: 25000,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200"
+    }
+  ];
+
+  
   useEffect(() => {
     loadServices();
   }, []);
@@ -245,7 +286,7 @@ export default function RewardServicesPage() {
   const startEdit = (service: RewardService) => {
     setEditingService(service);
     form.reset({
-      name: service.name,
+      name: service.name as "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond",
       description: service.description,
       formula: service.formula,
       formulaDisplay: service.formulaDisplay,
@@ -259,7 +300,7 @@ export default function RewardServicesPage() {
     setIsCalculating(true);
     setTimeout(() => {
       const formData = form.getValues();
-      const { reward, quota } = calculateReward(formData.exampleAmount, formData.formula);
+      calculateReward(formData.exampleAmount, formData.formula);
       setIsCalculating(false);
     }, 500);
   };
@@ -290,7 +331,14 @@ export default function RewardServicesPage() {
           <DialogTrigger asChild>
             <Button onClick={() => {
               setEditingService(null);
-              form.reset();
+              form.reset({
+                name: "Bronze",
+                description: "",
+                formula: "(amount * 0.03) + 6",
+                formulaDisplay: "(Amount × 3%) + 6",
+                exampleAmount: 1000,
+                isActive: true,
+              });
               setFormError(null);
             }}>
               <Plus className="mr-2 h-4 w-4" />
@@ -303,7 +351,7 @@ export default function RewardServicesPage() {
                 {editingService ? "Edit Reward Service" : "Create Reward Service"}
               </DialogTitle>
               <DialogDescription>
-                Configure a reward calculation service with custom formula
+                Configure a reward calculation service with custom formula or use predefined templates
               </DialogDescription>
             </DialogHeader>
 
@@ -328,14 +376,25 @@ export default function RewardServicesPage() {
                       <FormItem className="space-y-2">
                         <FormLabel className="flex items-center gap-2">
                           <Target className="h-4 w-4" />
-                          Service Name
+                          Service Tier
                         </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter service name"
-                            {...field}
-                          />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a service tier" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {serviceTiers.map((tier) => (
+                              <SelectItem key={tier.name} value={tier.name}>
+                                <div className="flex items-center gap-2">
+                                  <Gift className={cn("h-4 w-4", tier.color)} />
+                                  {tier.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage className="text-xs" />
                       </FormItem>
                     )}
@@ -534,26 +593,50 @@ export default function RewardServicesPage() {
       </div>
 
       {/* Services Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {services.map((service) => {
-          const isActive = service.isActive;
-          return (
-            <Card key={service.id} className={cn(
-              "transition-all",
-              !isActive && "opacity-60"
-            )}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="flex items-center gap-2">
-                      <Gift className="h-5 w-5 text-primary" />
-                      {service.name}
-                    </CardTitle>
-                    <CardDescription className="flex items-start gap-2">
-                      <BarChart3 className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                      <span>{service.description}</span>
-                    </CardDescription>
-                  </div>
+      <div className="space-y-4">
+        {/* Active Services */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            Active Services ({services.filter(s => s.isActive).length})
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {services.filter(s => s.isActive).map((service) => {
+              const tier = serviceTiers.find(t => t.name === service.name);
+              return (
+                <Card key={service.id} className="transition-all hover:shadow-md">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="flex items-center gap-2">
+                          <Gift className={cn("h-5 w-5",
+                            service.name === "Bronze" ? "text-amber-600" :
+                            service.name === "Silver" ? "text-gray-600" :
+                            service.name === "Gold" ? "text-yellow-600" :
+                            service.name === "Platinum" ? "text-purple-600" :
+                            service.name === "Diamond" ? "text-blue-600" :
+                            "text-primary"
+                          )} />
+                          <div>
+                            <div className="font-semibold">{service.name}</div>
+                            <Badge variant="outline" className={cn(
+                              "text-xs mt-1",
+                              service.name === "Bronze" ? "border-amber-200 text-amber-700" :
+                              service.name === "Silver" ? "border-gray-200 text-gray-700" :
+                              service.name === "Gold" ? "border-yellow-200 text-yellow-700" :
+                              service.name === "Platinum" ? "border-purple-200 text-purple-700" :
+                              service.name === "Diamond" ? "border-blue-200 text-blue-700" :
+                              "border-primary/20 text-primary"
+                            )}>
+                              {tier?.exampleAmount ? `Min: ${formatCurrency(tier.exampleAmount)}` : "Custom"}
+                            </Badge>
+                          </div>
+                        </CardTitle>
+                        <CardDescription className="flex items-start gap-2">
+                          <BarChart3 className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                          <span>{service.description}</span>
+                        </CardDescription>
+                      </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
@@ -567,7 +650,7 @@ export default function RewardServicesPage() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleToggleService(service.id)}>
                         <Eye className="mr-2 h-4 w-4" />
-                        {isActive ? "Disable" : "Enable"}
+                        {service.isActive ? "Disable" : "Enable"}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
                         navigator.clipboard.writeText(service.formula);
@@ -588,13 +671,13 @@ export default function RewardServicesPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Badge variant={isActive ? "default" : "secondary"} className="flex items-center gap-1">
-                    {isActive ? (
+                  <Badge variant={service.isActive ? "default" : "secondary"} className="flex items-center gap-1">
+                    {service.isActive ? (
                       <CheckCircle className="h-3 w-3" />
                     ) : (
                       <XCircle className="h-3 w-3" />
                     )}
-                    {isActive ? "Active" : "Inactive"}
+                    {service.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </div>
 
@@ -643,6 +726,145 @@ export default function RewardServicesPage() {
             </Card>
           );
         })}
+        </div>
+      </div>
+
+        {/* Inactive Services */}
+        {services.filter(s => !s.isActive).length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-500" />
+              Inactive Services ({services.filter(s => !s.isActive).length})
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {services.filter(s => !s.isActive).map((service) => {
+                const tier = serviceTiers.find(t => t.name === service.name);
+                return (
+                  <Card key={service.id} className="opacity-75">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="flex items-center gap-2">
+                            <Gift className={cn("h-5 w-5",
+                              service.name === "Bronze" ? "text-amber-600" :
+                              service.name === "Silver" ? "text-gray-600" :
+                              service.name === "Gold" ? "text-yellow-600" :
+                              service.name === "Platinum" ? "text-purple-600" :
+                              service.name === "Diamond" ? "text-blue-600" :
+                              "text-primary"
+                            )} />
+                            <div>
+                              <div className="font-semibold">{service.name}</div>
+                              <Badge variant="outline" className={cn(
+                                "text-xs mt-1",
+                                service.name === "Bronze" ? "border-amber-200 text-amber-700" :
+                                service.name === "Silver" ? "border-gray-200 text-gray-700" :
+                                service.name === "Gold" ? "border-yellow-200 text-yellow-700" :
+                                service.name === "Platinum" ? "border-purple-200 text-purple-700" :
+                                service.name === "Diamond" ? "border-blue-200 text-blue-700" :
+                                "border-primary/20 text-primary"
+                              )}>
+                                {tier?.exampleAmount ? `Min: ${formatCurrency(tier.exampleAmount)}` : "Custom"}
+                              </Badge>
+                            </div>
+                          </CardTitle>
+                          <CardDescription className="flex items-start gap-2">
+                            <BarChart3 className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                            <span>{service.description}</span>
+                          </CardDescription>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => startEdit(service)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleToggleService(service.id)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              {service.isActive ? "Disable" : "Enable"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              navigator.clipboard.writeText(service.formula);
+                            }}>
+                              <Copy className="mr-2 h-4 w-4" />
+                              Copy Formula
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteService(service.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={service.isActive ? "default" : "secondary"} className="flex items-center gap-1">
+                          {service.isActive ? (
+                            <CheckCircle className="h-3 w-3" />
+                          ) : (
+                            <XCircle className="h-3 w-3" />
+                          )}
+                          {service.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-sm">
+                          <span className="font-medium flex items-center gap-2 mb-1">
+                            <FunctionSquare className="h-4 w-4" />
+                            Formula:
+                          </span>
+                          <div className="font-mono bg-muted px-2 py-1 rounded text-xs mt-1">
+                            {service.formulaDisplay}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t pt-3">
+                        <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                          <Calculator className="h-4 w-4" />
+                          Example Calculation:
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2">
+                              <IndianRupee className="h-3 w-3" />
+                              Amount:
+                            </span>
+                            <span className="font-medium">{formatCurrency(service.exampleAmount)}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2">
+                              <Coins className="h-3 w-3 text-green-600" />
+                              Reward:
+                            </span>
+                            <span className="font-medium text-green-600">{formatCurrency(service.exampleReward)}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2">
+                              <TrendingUp className="h-3 w-3 text-blue-600" />
+                              Quota:
+                            </span>
+                            <span className="font-medium text-blue-600">{formatCurrency(service.exampleQuota)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {services.length === 0 && (

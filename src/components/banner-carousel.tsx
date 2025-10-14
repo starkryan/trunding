@@ -102,7 +102,7 @@ export default function BannerCarousel() {
         </div>
 
         {/* Progress Indicators */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-2">
           <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5">
             {scrollSnaps.map((_, index) => (
               <button
