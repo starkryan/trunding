@@ -17,7 +17,7 @@ import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaExchangeAlt, FaWallet, FaSpinner, FaFileContract, FaLock, FaGift, FaShare, FaCopy, FaUsers, FaLink, FaTrophy, FaChartLine } from "react-icons/fa";
+import { FaCreditCard, FaShieldAlt, FaSignOutAlt, FaExchangeAlt, FaWallet, FaSpinner, FaFileContract, FaLock, FaGift, FaShare, FaCopy, FaUsers, FaLink, FaTrophy, FaChartLine, FaCheckCircle } from "react-icons/fa";
 import { useTheme } from "next-themes";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -208,179 +208,256 @@ export default function ProfilePage() {
 
         <CardContent className="px-4 sm:px-6 space-y-4 sm:space-y-6">
           {/* Profile Header */}
-          <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-            <div className="relative">
-              <Avatar className="w-16 h-16 sm:w-20 sm:h-20">
-                <AvatarImage src={session.user.image || ""} alt={session.user.name} />
-                <AvatarFallback className="text-lg sm:text-xl">
-                  {session.user.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="text-center">
-              <h3 className="text-lg sm:text-xl font-semibold">{session.user.name}</h3>
-              <div className="flex items-center gap-2 mt-1 justify-center">
-                <Badge variant="secondary" className="text-xs">Active since {new Date(session.user.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}</Badge>
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-6 border border-primary/20">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+              <div className="relative">
+                <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-background shadow-lg">
+                  <AvatarImage src={session.user.image || ""} alt={session.user.name} />
+                  <AvatarFallback className="text-xl sm:text-2xl font-bold bg-primary text-primary-foreground">
+                    {session.user.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1.5 border-2 border-background">
+                  <FaCheckCircle className="h-4 w-4 text-white" />
+                </div>
+              </div>
+
+              <div className="flex-1 text-center sm:text-left">
+                <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
+                  <h2 className="text-xl sm:text-2xl font-bold">{session.user.name}</h2>
+                  <FaCheckCircle className="h-5 w-5 text-green-500" />
+                </div>
+                <p className="text-muted-foreground text-sm mb-3 flex items-center justify-center sm:justify-start gap-1">
+                  <FiMail className="h-4 w-4" />
+                  {session.user.email}
+                </p>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    Active since {new Date(session.user.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs border-green-500 text-green-600">
+                    Verified User
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Wallet Balance Card */}
-          <div className="bg-muted/30 rounded-lg p-4 sm:p-6 border border-muted-foreground/20">
-            <div className="space-y-4">
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <FaWallet className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-lg font-semibold">Wallet Balance</h3>
-              </div>
-              
-              {isLoadingWallet ? (
-                <div className="flex items-center justify-center py-4">
-                  <FaSpinner className="h-4 w-4 animate-spin mr-2" />
-                  <span className="text-sm text-muted-foreground">Loading balance...</span>
+                <div className="p-2 bg-emerald-500 rounded-lg">
+                  <FaWallet className="h-5 w-5 text-white" />
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <InputGroup className="h-12">
+                <div>
+                  <h3 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">Wallet Balance</h3>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Available for withdrawal</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/withdrawal")}
+                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+              >
+                <FaCreditCard className="h-4 w-4 mr-2" />
+                Withdraw
+              </Button>
+            </div>
+
+            {isLoadingWallet ? (
+              <div className="flex items-center justify-center py-8">
+                <FaSpinner className="h-5 w-5 animate-spin mr-2 text-emerald-600" />
+                <span className="text-sm text-emerald-600">Loading balance...</span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-white dark:bg-emerald-900/30 rounded-lg p-4 border border-emerald-200 dark:border-emerald-700">
+                  <InputGroup className="h-14">
                     <InputGroupAddon align="inline-start">
-                      <InputGroupText>
+                      <InputGroupText className="bg-emerald-50 dark:bg-emerald-800 border-emerald-200 dark:border-emerald-700">
                         {walletData?.currency || 'INR'}
                       </InputGroupText>
                     </InputGroupAddon>
-                    <div className="flex-1 flex items-center px-3 text-xl font-bold">
-                      {walletData ? walletData.balance.toLocaleString('en-IN', { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
+                    <div className="flex-1 flex items-center px-4 text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                      {walletData ? walletData.balance.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                       }) : '0.00'}
                     </div>
                   </InputGroup>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="bg-background/50 rounded p-2">
-                      <div className="text-muted-foreground">Total Deposits</div>
-                      <div className="font-semibold text-green-600">
-                        +₹{walletData?.totalDeposits.toLocaleString('en-IN', { 
-                          minimumFractionDigits: 2, 
-                          maximumFractionDigits: 2 
-                        }) || '0.00'}
-                      </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-200 dark:border-emerald-700">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1">
+                      <FaTrophy className="h-4 w-4" />
+                      <span className="text-xs font-medium">Total Deposits</span>
                     </div>
-                    <div className="bg-background/50 rounded p-2">
-                      <div className="text-muted-foreground">Transactions</div>
-                      <div className="font-semibold">
-                        {walletData?.totalTransactions || 0}
-                      </div>
+                    <div className="font-bold text-lg text-emerald-700 dark:text-emerald-300">
+                      +₹{walletData?.totalDeposits.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      }) || '0.00'}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-200 dark:border-emerald-700">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1">
+                      <FaExchangeAlt className="h-4 w-4" />
+                      <span className="text-xs font-medium">Transactions</span>
+                    </div>
+                    <div className="font-bold text-lg text-emerald-700 dark:text-emerald-300">
+                      {walletData?.totalTransactions || 0}
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Referral Program */}
-          {isLoadingReferral ? (
-            <div className="flex items-center justify-center py-4">
-              <FaSpinner className="h-4 w-4 animate-spin mr-2" />
-              <span className="text-sm text-muted-foreground">Loading referral info...</span>
-            </div>
-          ) : referralData ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Referral Code</h3>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={copyReferralCode}
-                  className="h-6 px-2 text-xs text-primary"
-                >
-                  {copiedItem === 'code' ? (
-                    <>
-                      <span className="mr-1">✓</span>
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <FaCopy className="h-3 w-3 mr-1" />
-                      Copy
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <div className="bg-muted/30 rounded p-3 flex items-center justify-between">
-                <code className="text-sm font-mono font-bold">{referralData.referralCode}</code>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={copyReferralLink}
-                  className="h-6 px-2 text-xs"
-                >
-                  {copiedItem === 'link' ? (
-                    <>
-                      <span className="mr-1">✓</span>
-                      Copied!
-                    </>
-                  ) : (
-                    <FaShare className="h-3 w-3" />
-                  )}
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="text-center">
-                  <div className="font-bold">{referralData.stats.totalReferrals}</div>
-                  <div className="text-xs text-muted-foreground">Referrals</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-bold text-green-600">
-                    {formatCurrency(referralData.stats.totalEarnings)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Earnings</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-muted-foreground">Referral program not available</p>
-            </div>
-          )}
-
-          {/* Profile Information */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Full Name</label>
-              <div className="relative group">
-                <FiUser
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none"
-                  aria-hidden="true"
-                />
-                <div className="pl-12 h-12 flex items-center text-base bg-muted/30 rounded-lg border border-muted-foreground/20">
-                  {session.user.name}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Email Address</label>
-              <div className="relative group">
-                <FiMail
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 size-5 pointer-events-none"
-                  aria-hidden="true"
-                />
-                <div className="pl-12 h-12 flex items-center text-base bg-muted/30 rounded-lg border border-muted-foreground/20">
-                  {session.user.email}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor={id} className="text-sm font-medium text-muted-foreground">Theme</Label>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-800/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-500 rounded-lg">
+                  <FaUsers className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">Referral Program</h3>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">Earn rewards by inviting friends</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={copyReferralLink}
+                className="border-blue-500 text-blue-600 hover:bg-blue-50"
+              >
+                {copiedItem === 'link' ? (
+                  <>
+                    <FaCheckCircle className="h-4 w-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <FaShare className="h-4 w-4 mr-2" />
+                    Share
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {isLoadingReferral ? (
+              <div className="flex items-center justify-center py-8">
+                <FaSpinner className="h-5 w-5 animate-spin mr-2 text-blue-600" />
+                <span className="text-sm text-blue-600">Loading referral info...</span>
+              </div>
+            ) : referralData ? (
+              <div className="space-y-4">
+                <div className="bg-white dark:bg-blue-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Your Referral Code</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyReferralCode}
+                      className="h-8 px-3 text-xs border-blue-500 text-blue-600 hover:bg-blue-50"
+                    >
+                      {copiedItem === 'code' ? (
+                        <>
+                          <FaCheckCircle className="h-3 w-3 mr-1" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <FaCopy className="h-3 w-3 mr-1" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 flex items-center justify-between">
+                    <code className="text-base font-mono font-bold text-gray-800 dark:text-gray-200">{referralData.referralCode}</code>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyReferralLink}
+                      className="h-8 px-3 text-blue-600 hover:bg-blue-50"
+                    >
+                      {copiedItem === 'link' ? (
+                        <>
+                          <FaCheckCircle className="h-3 w-3" />
+                        </>
+                      ) : (
+                        <FaShare className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700 text-center">
+                    <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
+                      <FaUsers className="h-4 w-4" />
+                      <span className="text-xs font-medium">Total Referrals</span>
+                    </div>
+                    <div className="font-bold text-2xl text-blue-800 dark:text-blue-200">
+                      {referralData.stats.totalReferrals}
+                    </div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">
+                      {referralData.stats.completedReferrals} completed
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700 text-center">
+                    <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                      <FaGift className="h-4 w-4" />
+                      <span className="text-xs font-medium">Total Earnings</span>
+                    </div>
+                    <div className="font-bold text-2xl text-green-700 dark:text-green-300">
+                      {formatCurrency(referralData.stats.totalEarnings)}
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-400">
+                      Available for withdrawal
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FaUsers className="h-8 w-8 mx-auto mb-2 text-blue-400" />
+                <p className="text-sm text-blue-600 dark:text-blue-400">Referral program not available</p>
+              </div>
+            )}
+          </div>
+
+          {/* Theme Settings */}
+          <div className="bg-muted/30 rounded-lg p-4 sm:p-6 border border-muted-foreground/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-primary rounded-lg">
+                  <FaShieldAlt className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Appearance</h3>
+                  <p className="text-xs text-muted-foreground">Customize your theme</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor={id} className="text-sm font-medium">Dark Mode</Label>
+                  <p className="text-xs text-muted-foreground">Switch between light and dark themes</p>
+                </div>
                 <div className="relative inline-grid h-9 grid-cols-[1fr_1fr] items-center text-sm font-medium">
                   <Switch
                     id={id}
@@ -397,101 +474,93 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
-          <div className="relative w-full my-4" role="separator" aria-label="Quick actions">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-muted-foreground/20"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-background px-3 text-muted-foreground">Quick Actions</span>
-            </div>
-          </div>
+        <CardFooter className="flex flex-col space-y-6 px-4 sm:px-6 pb-6 sm:pb-8">
+          {/* Quick Actions */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground text-center">Quick Actions</h4>
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-14 p-3 flex-col items-center justify-center text-xs gap-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 group"
+                onClick={() => router.push("/transactions")}
+              >
+                <FaExchangeAlt className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Transactions</span>
+              </Button>
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
-              onClick={() => router.push("/transactions")}
-            >
-              <FaExchangeAlt className="h-4 w-4" />
-              Transactions
-            </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-14 p-3 flex-col items-center justify-center text-xs gap-2 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-200 group"
+                onClick={() => router.push("/withdrawal")}
+              >
+                <FaCreditCard className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Withdraw</span>
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
-              onClick={() => router.push("/withdrawal")}
-            >
-              <FaCreditCard className="h-4 w-4" />
-              Withdrawal
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
-              onClick={copyReferralLink}
-            >
-              {copiedItem === 'link' ? (
-                <>
-                  <span className="text-lg">✓</span>
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <FaShare className="h-4 w-4" />
-                  Share
-                </>
-              )}
-            </Button>
-          </div>
-
-          <div className="relative w-full my-4" role="separator" aria-label="Legal & Support">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-muted-foreground/20"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-background px-3 text-muted-foreground">Legal & Support</span>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-14 p-3 flex-col items-center justify-center text-xs gap-2 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-200 group"
+                onClick={copyReferralLink}
+              >
+                {copiedItem === 'link' ? (
+                  <>
+                    <FaCheckCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <span className="font-medium">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <FaShare className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <span className="font-medium">Share</span>
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
-              onClick={() => router.push("/terms")}
-            >
-              <FaFileContract className="h-4 w-4" />
-              Terms of Service
-            </Button>
+          {/* Legal & Support */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground text-center">Legal & Support</h4>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 p-3 flex-col items-center justify-center text-xs gap-2 hover:bg-muted hover:text-muted-foreground transition-all duration-200 group"
+                onClick={() => router.push("/terms")}
+              >
+                <FaFileContract className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Terms</span>
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 p-2 flex-col items-center justify-center text-xs gap-1"
-              onClick={() => router.push("/privacy")}
-            >
-              <FaLock className="h-4 w-4" />
-              Privacy Policy
-            </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 p-3 flex-col items-center justify-center text-xs gap-2 hover:bg-muted hover:text-muted-foreground transition-all duration-200 group"
+                onClick={() => router.push("/privacy")}
+              >
+                <FaLock className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Privacy</span>
+              </Button>
+            </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-12 text-base border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={handleSignOut}
-          >
-            <FaSignOutAlt className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          {/* Sign Out */}
+          <div className="pt-4 border-t border-muted-foreground/20">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-base font-medium border-destructive/30 text-destructive hover:border-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 group"
+              onClick={handleSignOut}
+            >
+              <FaSignOutAlt className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+              Sign Out
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </div>

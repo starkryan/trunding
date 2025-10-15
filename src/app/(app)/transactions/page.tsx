@@ -397,7 +397,7 @@ export default function TransactionsPage() {
   return (
     <div className="h-screen w-full bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       <Card className="flex-1 w-full rounded-none shadow-none border-0 bg-background sm:rounded-lg sm:shadow-lg sm:border sm:max-w-4xl mx-auto my-8 overflow-y-auto">
-        <CardContent className="px-6 flex-1 flex flex-col space-y-6">
+        <CardContent className="px-4 sm:px-6 flex-1 flex flex-col space-y-6">
           {/* This Month Summary with Chart */}
           <Card
             className="relative overflow-hidden rounded-lg border bg-card text-card-foreground p-5"
@@ -681,9 +681,9 @@ export default function TransactionsPage() {
                 initialSnap={1}
                 disableDrag={false}
               >
-                <Sheet.Container className="bg-background border-t border-border shadow-2xl rounded-t-2xl mx-2 mt-2 mr-4">
+                <Sheet.Container className="bg-background border-t border-border shadow-2xl rounded-t-2xl mt-2">
                   <Sheet.Header>
-                    <div className="flex items-center justify-between mb-4 px-4">
+                    <div className="flex items-center justify-between mb-4 px-6">
                       <div className="flex-1" />
                       <div className="mx-auto w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
                       <div className="flex-1 flex justify-end">
@@ -699,7 +699,7 @@ export default function TransactionsPage() {
                     </div>
                   </Sheet.Header>
                   <Sheet.Content className="h-full overflow-y-auto pb-6">
-                    <div className="p-6 h-full overflow-y-auto">
+                    <div className="p-4 sm:p-6 h-full overflow-y-auto">
                     {/* Sheet Header */}
                     <div className="mb-6">
                       <h2 className="text-lg font-semibold">Transaction Details</h2>
