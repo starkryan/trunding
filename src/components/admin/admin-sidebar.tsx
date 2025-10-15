@@ -49,7 +49,8 @@ import {
   Menu,
   X,
   Gift,
-  UserPlus
+  UserPlus,
+  MessageCircle
 } from "lucide-react";
 
 const adminNavItems = [
@@ -88,6 +89,12 @@ const adminNavItems = [
     href: "/admin/referral-settings",
     icon: UserPlus,
     description: "Configure referral program and settings"
+  },
+  {
+    title: "Contact Settings",
+    href: "/admin/contact-settings",
+    icon: MessageCircle,
+    description: "Configure floating contact button"
   },
   {
     title: "Payment Providers",

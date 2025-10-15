@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -43,7 +37,7 @@ model User {
   withdrawalRequest                  WithdrawalRequest[]
   accounts                           Account[]
   sessions                           Session[]
-  verifications                     Verification[]
+  verifications                      Verification[]
 
   @@map("user")
 }
@@ -68,7 +62,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -78,6 +71,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt             DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@map("account")
@@ -105,45 +99,46 @@ model AdminSettings {
 }
 
 model ContactSettings {
-  id              String           @id @default(cuid())
-  contactMethod   ContactMethod    @default(TELEGRAM)
-  url             String?          @default("https://t.me/mintward_support")
-  appUrl          String?          @default("tg://resolve?domain=mintward_support")
-  contactValue    String?          
-  buttonText      String           @default("Help & Support")
-  buttonColor     String           @default("primary")
-  buttonSize      ButtonSize       @default(MEDIUM)
-  positionBottom  String           @default("bottom-24")
-  positionRight   String           @default("right-4")
-  positionBottomMd String           @default("bottom-20")
-  positionRightMd String           @default("right-6")
-  iconName        String           @default("Headset")
-  isEnabled       Boolean          @default(true)
-  openInNewTab    Boolean          @default(true)
-  customStyles    Json?
-  createdAt       DateTime         @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
+  id               String        @id @default(cuid())
+  contactMethod    ContactMethod @default(TELEGRAM)
+  url              String?       @default("https://t.me/mintward_support")
+  appUrl           String?       @default("tg://resolve?domain=mintward_support")
+  contactValue     String?
+  buttonText       String        @default("Help & Support")
+  buttonColor      String        @default("primary")
+  buttonSize       ButtonSize    @default(MEDIUM)
+  positionBottom   String        @default("bottom-24")
+  positionRight    String        @default("right-4")
+  positionBottomMd String        @default("bottom-20")
+  positionRightMd  String        @default("right-6")
+  iconName         String        @default("Headset")
+  isEnabled        Boolean       @default(true)
+  openInNewTab     Boolean       @default(true)
+  customStyles     Json?
+  createdAt        DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
 }
 
 model Payment {
-  id              String         @id @default(cuid())
-  userId          String
-  amount          Float
-  currency        String         @default("INR")
-  status          PaymentStatus  @default(PENDING)
-  provider        String         @default("KUKUPAY")
-  providerOrderId String?        @unique
-  paymentUrl      String?
-  phone           String?
-  webhookReceived Boolean        @default(false)
-  metadata        Json?
-  createdAt       DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
-  completedAt     DateTime?      @db.Timestamptz(6)
-  rewardServiceId String?
-  rewardService   RewardService? @relation(fields: [rewardServiceId], references: [id])
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Payment_userId_fkey")
-  wallet          Wallet         @relation(fields: [userId], references: [userId], map: "Payment_wallet_userId_fkey")
+  id               String         @id @default(cuid())
+  userId           String
+  amount           Float
+  currency         String         @default("INR")
+  status           PaymentStatus  @default(PENDING)
+  provider         String         @default("KUKUPAY")
+  providerOrderId  String?        @unique
+  paymentUrl       String?
+  phone            String?
+  webhookReceived  Boolean        @default(false)
+  metadata         Json?
+  createdAt        DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
+  completedAt      DateTime?      @db.Timestamptz(6)
+  rewardServiceId  String?
+  rewardsProcessed Boolean        @default(false)
+  rewardService    RewardService? @relation(fields: [rewardServiceId], references: [id])
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Payment_userId_fkey")
+  wallet           Wallet         @relation(fields: [userId], references: [userId], map: "Payment_wallet_userId_fkey")
 }
 
 model ReferralCode {

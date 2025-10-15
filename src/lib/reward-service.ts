@@ -43,6 +43,12 @@ export class RewardService {
         return;
       }
 
+      // CRITICAL FIX: Check if rewards were already processed for this payment
+      if (payment.rewardsProcessed) {
+        console.log(`Rewards already processed for payment ${paymentId}, skipping duplicate payout`);
+        return;
+      }
+
       const rewardService = payment.rewardService;
 
       // Calculate reward amount using the formula
@@ -123,12 +129,13 @@ export class RewardService {
           });
         }
 
-        // Update payment status to completed
+        // Update payment status to completed and mark rewards as processed
         await tx.payment.update({
           where: { id: paymentId },
           data: {
             status: "COMPLETED",
-            completedAt: new Date()
+            completedAt: new Date(),
+            rewardsProcessed: true
           }
         });
 

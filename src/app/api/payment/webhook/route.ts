@@ -273,18 +273,31 @@ async function processWebhookData(
       // Check if this is a reward service payment
       if (payment.rewardServiceId) {
         console.log(`Processing reward service payment: ${payment.rewardService?.name}`)
-        try {
-          // Use RewardService to handle reward service payouts
-          // RewardService will handle all wallet updates and transaction creation
-          await RewardService.processRewardServicePayout(
-            payment.userId,
-            payment.amount,
-            payment.id
-          )
-          console.log(`Reward service payout completed for user ${payment.userId}, payment: ${payment.id}`)
-        } catch (rewardError) {
-          console.error("Error processing reward service payout:", rewardError)
-          // Don't fail the payment if reward processing fails
+
+        // CRITICAL FIX: Check if rewards were already processed for this payment
+        if (!payment.rewardsProcessed) {
+          try {
+            // Use RewardService to handle reward service payouts
+            // RewardService will handle all wallet updates and transaction creation
+            await RewardService.processRewardServicePayout(
+              payment.userId,
+              payment.amount,
+              payment.id
+            )
+
+            // Mark rewards as processed
+            await prisma.payment.update({
+              where: { id: payment.id },
+              data: { rewardsProcessed: true }
+            })
+
+            console.log(`Reward service payout completed for user ${payment.userId}, payment: ${payment.id}`)
+          } catch (rewardError) {
+            console.error("Error processing reward service payout:", rewardError)
+            // Don't fail the payment if reward processing fails
+          }
+        } else {
+          console.log(`Rewards already processed for payment ${payment.id}, skipping duplicate payout`)
         }
       } else {
         // Regular payment processing (non-reward service)

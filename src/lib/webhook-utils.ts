@@ -285,7 +285,6 @@ export async function isDuplicateWebhook(orderId: string, provider: string, payl
       where: {
         providerOrderId: orderId,
         provider: provider as any,
-        webhookReceived: true,
       },
     })
 
@@ -293,15 +292,31 @@ export async function isDuplicateWebhook(orderId: string, provider: string, payl
       return false
     }
 
-    // Check if the webhook data is the same as what we already processed
-    const existingWebhookData = existingPayment.metadata as Record<string, any> || {}
-    const currentWebhookData = payload
+    // CRITICAL FIX: Check if payment was already completed AND rewards processed (if applicable)
+    if (existingPayment.status === 'COMPLETED') {
+      // For reward service payments, check if rewards were processed
+      if (existingPayment.rewardServiceId && existingPayment.rewardsProcessed) {
+        console.log(`Duplicate webhook detected: payment ${existingPayment.id} already completed with rewards processed`)
+        return true
+      }
 
-    // Simple comparison - you can make this more sophisticated based on your needs
-    return JSON.stringify(existingWebhookData.webhookData) === JSON.stringify(currentWebhookData)
+      // For regular payments, just check if completed
+      if (!existingPayment.rewardServiceId) {
+        console.log(`Duplicate webhook detected: payment ${existingPayment.id} already completed`)
+        return true
+      }
+    }
+
+    // Additional check: if webhook was already received, consider it duplicate
+    if (existingPayment.webhookReceived) {
+      console.log(`Duplicate webhook detected: webhook already received for payment ${existingPayment.id}`)
+      return true
+    }
+
+    return false
   } catch (error) {
     console.error('Error checking duplicate webhook:', error)
-    return false
+    return false // On error, allow processing to continue (fail-safe)
   }
 }
 
