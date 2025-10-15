@@ -7,9 +7,11 @@ import { z } from "zod"
 // Schema for updating contact settings
 const contactSettingsSchema = z.object({
   contactMethod: z.enum(["TELEGRAM", "WHATSAPP", "EMAIL", "PHONE", "CUSTOM"]),
-  url: z.string().url().optional(),
+  url: z.string().optional().or(z.literal("")).refine((val) => !val || val === "" || /^https?:\/\/.+/.test(val), {
+  message: "Must be a valid URL or empty",
+}),
   appUrl: z.string().optional(),
-  contactValue: z.string().optional(),
+  contactValue: z.string().optional().or(z.literal("")),
   buttonText: z.string().min(1).max(50),
   buttonColor: z.string().min(1).max(50),
   buttonSize: z.enum(["SMALL", "MEDIUM", "LARGE"]),
@@ -49,7 +51,7 @@ const defaultSettings = {
   positionRight: "right-4",
   positionBottomMd: "bottom-20",
   positionRightMd: "right-6",
-  iconName: "HeadsetIcon",
+  iconName: "Headset",
   isEnabled: true,
   openInNewTab: true
 }

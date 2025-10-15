@@ -34,15 +34,9 @@ import {
   Eye,
   ToggleLeft,
   ToggleRight,
-  AlertCircle,
-  CheckCircle,
   Zap,
-  Layout,
   Smartphone,
   Monitor,
-  Link,
-  User,
-  HelpCircle,
   HeadsetIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,6 +53,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 // Import Lucide icons dynamically
 import * as Icons from "lucide-react";
@@ -87,9 +82,11 @@ interface ContactSettings {
 // Form schema for contact settings
 const contactSettingsSchema = z.object({
   contactMethod: z.enum(["TELEGRAM", "WHATSAPP", "EMAIL", "PHONE", "CUSTOM"]),
-  url: z.string().url().optional().or(z.literal("")),
+  url: z.string().optional().or(z.literal("")).refine((val) => !val || val === "" || /^https?:\/\/.+/.test(val), {
+  message: "Must be a valid URL or empty",
+}),
   appUrl: z.string().optional().or(z.literal("")),
-  contactValue: z.string().optional(),
+  contactValue: z.string().optional().or(z.literal("")),
   buttonText: z.string().min(1).max(50),
   buttonColor: z.string().min(1).max(50),
   buttonSize: z.enum(["SMALL", "MEDIUM", "LARGE"]),
@@ -107,7 +104,7 @@ type ContactSettingsFormData = z.infer<typeof contactSettingsSchema>;
 
 // Available Lucide icons for selection
 const availableIcons = [
-  "MessageCircle", "HeadsetIcon", "Phone", "Mail", "HelpCircle", 
+  "MessageCircle", "Headset", "HeadsetIcon", "Phone", "Mail", "HelpCircle",
   "MessageSquare", "Send", "Share", "Link", "User", "Users",
   "Globe", "Smartphone", "Monitor", "Layout", "Settings", "Zap"
 ];
@@ -116,8 +113,6 @@ export default function ContactSettingsPage() {
   const [settings, setSettings] = useState<ContactSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [testConfig, setTestConfig] = useState<ContactSettings | null>(null);
 
@@ -136,7 +131,7 @@ export default function ContactSettingsPage() {
       positionRight: "right-4",
       positionBottomMd: "bottom-20",
       positionRightMd: "right-6",
-      iconName: "HeadsetIcon",
+      iconName: "Headset",
       isEnabled: true,
       openInNewTab: true,
     },
@@ -151,12 +146,20 @@ export default function ContactSettingsPage() {
       const response = await fetch('/api/admin/contact-settings');
       if (response.ok) {
         const data = await response.json();
-        setSettings(data.settings);
-        form.reset(data.settings);
+        if (data.success) {
+          setSettings(data.settings);
+          form.reset(data.settings);
+          toast.success('Contact settings loaded successfully');
+        } else {
+          toast.error(data.error || 'Failed to load settings');
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to load contact settings');
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
-      setError('Failed to load contact settings');
+      toast.error('Failed to load contact settings');
     } finally {
       setLoading(false);
     }
@@ -165,8 +168,6 @@ export default function ContactSettingsPage() {
   const handleSaveSettings = async (data: ContactSettingsFormData) => {
     try {
       setSaving(true);
-      setError(null);
-      setSuccessMessage(null);
 
       const response = await fetch('/api/admin/contact-settings', {
         method: 'PUT',
@@ -175,19 +176,20 @@ export default function ContactSettingsPage() {
       });
 
       if (response.ok) {
-        const updatedSettings = await response.json();
-        setSettings(updatedSettings.settings);
-        setSuccessMessage('Contact settings updated successfully!');
-
-        // Clear success message after 3 seconds
-        setTimeout(() => setSuccessMessage(null), 3000);
+        const updatedData = await response.json();
+        if (updatedData.success) {
+          setSettings(updatedData.settings);
+          toast.success('Contact settings updated successfully!');
+        } else {
+          toast.error(updatedData.error || 'Failed to update settings');
+        }
       } else {
         const error = await response.json();
-        setError(error.error || 'Failed to update settings');
+        toast.error(error.error || 'Failed to update settings');
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
-      setError('Network error occurred');
+      toast.error('Network error occurred');
     } finally {
       setSaving(false);
     }
@@ -195,9 +197,8 @@ export default function ContactSettingsPage() {
 
   const handleTestSettings = async () => {
     try {
-      setError(null);
       const testData = form.getValues();
-      
+
       const response = await fetch('/api/admin/contact-settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -206,15 +207,20 @@ export default function ContactSettingsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setTestConfig(data.testConfig);
-        setShowPreview(true);
+        if (data.success) {
+          setTestConfig(data.testConfig);
+          setShowPreview(true);
+          toast.success('Preview generated successfully!');
+        } else {
+          toast.error(data.error || 'Failed to test settings');
+        }
       } else {
         const error = await response.json();
-        setError(error.error || 'Failed to test settings');
+        toast.error(error.error || 'Failed to test settings');
       }
     } catch (error) {
       console.error('Failed to test settings:', error);
-      setError('Network error occurred');
+      toast.error('Network error occurred');
     }
   };
 
@@ -356,27 +362,7 @@ export default function ContactSettingsPage() {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">Success</span>
-          </div>
-          <p className="text-sm text-green-700 mt-1">{successMessage}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-          <div className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">Error</span>
-          </div>
-          <p className="text-sm text-destructive/90 mt-1">{error}</p>
-        </div>
-      )}
-
+  
       {/* Settings Form */}
       <Card>
         <CardHeader>
@@ -470,7 +456,8 @@ export default function ContactSettingsPage() {
                           <Input
                             type="url"
                             placeholder="https://example.com/contact"
-                            {...field}
+                            value={field.value || ""}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormDescription>
@@ -502,7 +489,8 @@ export default function ContactSettingsPage() {
                       <FormControl>
                         <Input
                           placeholder={getContactPlaceholder(form.watch("contactMethod"))}
-                          {...field}
+                          value={field.value || ""}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormDescription>

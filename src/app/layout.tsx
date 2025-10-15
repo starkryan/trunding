@@ -126,10 +126,10 @@ export default function RootLayout({
               {children}
               <Toaster
                 position="top-center"
-                duration={4000}
+                duration={3000}
                 visibleToasts={5}
                 richColors={false}
-                closeButton={true}
+                closeButton={false}
                 expand={true}
                 icons={{
                   success: <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</div>,

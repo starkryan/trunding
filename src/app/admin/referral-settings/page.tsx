@@ -35,8 +35,6 @@ import {
   Eye,
   ToggleLeft,
   ToggleRight,
-  AlertCircle,
-  CheckCircle,
   Clock,
   Calendar,
   IndianRupee,
@@ -46,7 +44,9 @@ import {
   Award,
   UserPlus,
   LineChart,
-  PieChart
+  PieChart,
+  AlertCircle,
+  CheckCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -61,6 +61,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "sonner";
 
 interface ReferralSettings {
   id: string;
@@ -146,8 +147,6 @@ export default function ReferralSettingsPage() {
   const [analytics, setAnalytics] = useState<ReferralAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState("30");
 
   // Initialize form with react-hook-form and Zod validation
@@ -181,10 +180,11 @@ export default function ReferralSettingsPage() {
         const data = await response.json();
         setSettings(data);
         form.reset(data);
+        toast.success('Referral settings loaded successfully');
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
-      setError('Failed to load referral settings');
+      toast.error('Failed to load referral settings');
     } finally {
       setLoading(false);
     }
@@ -205,8 +205,6 @@ export default function ReferralSettingsPage() {
   const handleSaveSettings = async (data: ReferralSettingsFormData) => {
     try {
       setSaving(true);
-      setError(null);
-      setSuccessMessage(null);
 
       const response = await fetch('/api/admin/referral-settings', {
         method: 'PUT',
@@ -217,17 +215,14 @@ export default function ReferralSettingsPage() {
       if (response.ok) {
         const updatedSettings = await response.json();
         setSettings(updatedSettings);
-        setSuccessMessage('Referral settings updated successfully!');
-
-        // Clear success message after 3 seconds
-        setTimeout(() => setSuccessMessage(null), 3000);
+        toast.success('Referral settings updated successfully!');
       } else {
         const error = await response.json();
-        setError(error.error || 'Failed to update settings');
+        toast.error(error.error || 'Failed to update settings');
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
-      setError('Network error occurred');
+      toast.error('Network error occurred');
     } finally {
       setSaving(false);
     }
@@ -336,27 +331,7 @@ export default function ReferralSettingsPage() {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center gap-2 text-green-800">
-            <CheckCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">Success</span>
-          </div>
-          <p className="text-sm text-green-700 mt-1">{successMessage}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-          <div className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">Error</span>
-          </div>
-          <p className="text-sm text-destructive/90 mt-1">{error}</p>
-        </div>
-      )}
-
+      
       {/* Analytics Overview */}
       {analytics && (
         <div className="space-y-4">

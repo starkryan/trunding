@@ -14,7 +14,7 @@ const defaultSettings = {
   positionRight: "right-4",
   positionBottomMd: "bottom-20",
   positionRightMd: "right-6",
-  iconName: "Headset",
+  iconName: "HeadsetIcon",
   isEnabled: true,
   openInNewTab: true,
   customStyles: null
