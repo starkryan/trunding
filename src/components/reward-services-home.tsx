@@ -8,6 +8,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FaChartLine, FaRupeeSign, FaCoins, FaBolt, FaShieldAlt, FaClock, FaArrowRight, FaFilter } from "react-icons/fa"
 import BannerCarousel from "@/components/banner-carousel"
+import { IoFilter } from "react-icons/io5";
+
 
 interface RewardService {
   id: string
@@ -219,11 +221,14 @@ export default function RewardServicesHome() {
 
         <CardContent className="px-3 sm:px-4 md:px-6">
           {/* Price Tabs */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <FaFilter className="h-4 w-4 text-muted-foreground" />
+          <div className="space-y-4">
+            {/* Filter Header */}
+            <div className="flex items-center gap-2">
+              <IoFilter className="h-4 w-4 text-muted-foreground" />
               <h3 className="text-sm font-semibold text-muted-foreground">Filter</h3>
             </div>
+
+            {/* Filter Tabs */}
             <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 no-scrollbar">
               {priceTabs.map((tab) => {
                 const count = getTabCount(tab)

@@ -93,7 +93,7 @@ export default function BannerCarousel() {
   }, [emblaApi])
 
   return (
-    <div className="w-full">
+    <div className="w-full mt-5">
       <div className="relative w-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
         {/* Main Carousel */}
         <div className="relative" ref={emblaRef}>
@@ -116,23 +116,24 @@ export default function BannerCarousel() {
           </div>
         </div>
 
-        {/* Progress Indicators */}
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5">
-            {scrollSnaps.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => scrollTo(index)}
-                className={`transition-all duration-300 rounded-full ${
-                  index === selectedIndex
-                    ? 'w-6 md:w-8 h-1.5 md:h-2 bg-white'
-                    : 'w-1.5 md:w-2 h-1.5 md:h-2 bg-white/50 hover:bg-white/70'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
+       {/* Progress Indicators (Smaller Version) */}
+<div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1">
+  <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm rounded-full px-2 py-1">
+    {scrollSnaps.map((_, index) => (
+      <button
+        key={index}
+        onClick={() => scrollTo(index)}
+        className={`transition-all duration-300 rounded-full ${
+          index === selectedIndex
+            ? 'w-3 h-1 bg-white'
+            : 'w-1.5 h-1 bg-white/50 hover:bg-white/80'
+        }`}
+        aria-label={`Go to slide ${index + 1}`}
+      />
+    ))}
+  </div>
+</div>
+
       </div>
     </div>
   )
