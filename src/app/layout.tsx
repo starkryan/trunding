@@ -16,12 +16,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Helper function to get production URL
+function getProductionUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://mintward.com';
+  }
+  return 'https://localhost:3000';
+}
+
 export const metadata: Metadata = {
   title: {
     default: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
     template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "Mintward"}`,
   },
-  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Mintward - Investment Platform",
+  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Mintward - Smart Investment Platform for Modern Investors",
   keywords: ["Next.js", "React", "TypeScript", "Investment", "Platform"],
   authors: [{ name: process.env.NEXT_PUBLIC_APP_AUTHOR || "Mintward Team" }],
   creator: process.env.NEXT_PUBLIC_APP_AUTHOR || "Mintward Team",
@@ -31,7 +42,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://localhost:3000"),
+  metadataBase: new URL(getProductionUrl()),
   alternates: {
     canonical: "/",
   },
@@ -61,24 +72,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000",
+    url: getProductionUrl(),
     title: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
-    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Next.js app with better-auth integration",
+    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Smart Investment Platform for Modern Investors - Invest with confidence",
     siteName: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image-new.png",
         width: 1200,
         height: 630,
-        alt: `${process.env.NEXT_PUBLIC_APP_NAME || "Mintward"} Logo`,
+        alt: `${process.env.NEXT_PUBLIC_APP_NAME || "Mintward"} Investment Platform`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: process.env.NEXT_PUBLIC_APP_NAME || "Mintward",
-    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Next.js app with better-auth integration",
-    images: ["/og-image.png"],
+    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Smart Investment Platform for Modern Investors - Invest with confidence",
+    images: ["/og-image-new.png"],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",

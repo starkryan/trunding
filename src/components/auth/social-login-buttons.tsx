@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { storeReferralData } from "@/lib/referral-processor";
 
 interface SocialLoginButtonsProps {
   callbackURL?: string;
@@ -22,6 +24,16 @@ export function SocialLoginButtons({
 }: SocialLoginButtonsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeProvider, setActiveProvider] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+
+  // Store referral data before OAuth redirect
+  useEffect(() => {
+    const referralCode = searchParams.get('ref');
+    if (referralCode) {
+      // Store referral data for post-OAuth processing using the utility function
+      storeReferralData(referralCode);
+    }
+  }, [searchParams]);
 
   const handleGoogleSignIn = async () => {
     if (activeProvider !== null) return;

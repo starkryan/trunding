@@ -15,6 +15,7 @@ interface RewardService {
   exampleAmount: number
   exampleReward: number
   exampleQuota: number
+  description?: string
 }
 
 interface PriceTab {
@@ -31,6 +32,31 @@ const priceTabs: PriceTab[] = [
   { id: "medium", name: "₹1K-₹10K", min: 1000, max: 10000, color: "bg-primary text-primary-foreground border-primary" },
   { id: "high", name: "₹10K+", min: 10000, max: Infinity, color: "bg-primary text-primary-foreground border-primary" },
 ]
+
+// Helper function to get status icon based on service name
+const getStatusIcon = (serviceName: string): string => {
+  const normalizedServiceName = serviceName.toLowerCase().trim()
+
+  // Map service names to their corresponding status icons
+  const serviceIconMap: { [key: string]: string } = {
+    'bronze': '/status/bronze.png',
+    'silver': '/status/silver.png',
+    'gold': '/status/gold.png',
+    'diamond': '/status/diamond.png',
+    'platinum': '/status/platinum.png'
+  }
+
+  // Check if the service name contains any of the known types
+  for (const [type, iconPath] of Object.entries(serviceIconMap)) {
+    if (normalizedServiceName.includes(type)) {
+      return iconPath
+    }
+  }
+
+  // Return a default icon or empty string if no match found
+  return ''
+}
+
 
 export default function RewardServicesHome() {
   const [services, setServices] = useState<RewardService[]>([])
@@ -264,14 +290,33 @@ export default function RewardServicesHome() {
                       {/* Service Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
-                          <h4 className="font-semibold text-base">{service.name}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Premium reward service with guaranteed returns
-                          </p>
+                          <div className="flex items-center gap-3 mb-2">
+                            {/* Status Icon */}
+                            {getStatusIcon(service.name) && (
+                              <div className="relative w-12 h-12 shrink-0">
+                                <Image
+                                  src={getStatusIcon(service.name)}
+                                  alt={`${service.name} status`}
+                                  fill
+                                  className="object-contain"
+                                  sizes="48px"
+                                  priority
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-lg capitalize">{service.name}</h4>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {service.description || "Premium reward service with guaranteed returns"}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <Badge className="bg-primary/10 text-primary border-primary/20 shrink-0">
-                          +{roi}% ROI
-                        </Badge>
+                        <div className="text-right">
+                          <Badge className="bg-primary/10 text-primary border-primary/20 shrink-0">
+                            +{roi}% ROI
+                          </Badge>
+                        </div>
                       </div>
 
                       {/* Investment Details */}
@@ -298,17 +343,38 @@ export default function RewardServicesHome() {
                       {/* Features */}
                       <div className="flex items-center justify-around py-3 bg-muted/20 rounded-lg border border-muted-foreground/10">
                         <div className="flex items-center gap-2">
-                          <FaBolt className="h-4 w-4 text-muted-foreground" />
+                          <FaBolt className={`h-4 w-4 ${
+                            service.name.toLowerCase().includes('bronze') ? 'text-amber-500' :
+                            service.name.toLowerCase().includes('silver') ? 'text-gray-300' :
+                            service.name.toLowerCase().includes('gold') ? 'text-yellow-400' :
+                            service.name.toLowerCase().includes('diamond') ? 'text-blue-300' :
+                            service.name.toLowerCase().includes('platinum') ? 'text-gray-400' :
+                            'text-muted-foreground'
+                          }`} />
                           <span className="text-xs text-muted-foreground">Instant</span>
                         </div>
                         <div className="w-px h-4 bg-muted-foreground/20"></div>
                         <div className="flex items-center gap-2">
-                          <FaShieldAlt className="h-4 w-4 text-muted-foreground" />
+                          <FaShieldAlt className={`h-4 w-4 ${
+                            service.name.toLowerCase().includes('bronze') ? 'text-amber-500' :
+                            service.name.toLowerCase().includes('silver') ? 'text-gray-300' :
+                            service.name.toLowerCase().includes('gold') ? 'text-yellow-400' :
+                            service.name.toLowerCase().includes('diamond') ? 'text-blue-300' :
+                            service.name.toLowerCase().includes('platinum') ? 'text-gray-400' :
+                            'text-muted-foreground'
+                          }`} />
                           <span className="text-xs text-muted-foreground">Secure</span>
                         </div>
                         <div className="w-px h-4 bg-muted-foreground/20"></div>
                         <div className="flex items-center gap-2">
-                          <FaClock className="h-4 w-4 text-muted-foreground" />
+                          <FaClock className={`h-4 w-4 ${
+                            service.name.toLowerCase().includes('bronze') ? 'text-amber-500' :
+                            service.name.toLowerCase().includes('silver') ? 'text-gray-300' :
+                            service.name.toLowerCase().includes('gold') ? 'text-yellow-400' :
+                            service.name.toLowerCase().includes('diamond') ? 'text-blue-300' :
+                            service.name.toLowerCase().includes('platinum') ? 'text-gray-400' :
+                            'text-muted-foreground'
+                          }`} />
                           <span className="text-xs text-muted-foreground">24/7</span>
                         </div>
                       </div>

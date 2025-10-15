@@ -10,7 +10,7 @@ Disallow: /signin
 Disallow: /signup
 
 # Sitemap
-Sitemap: https://localhost:3000/sitemap.xml
+Sitemap: https://mintward.com/sitemap.xml
 
 # Crawl delay (optional, be respectful)
 Crawl-delay: 1

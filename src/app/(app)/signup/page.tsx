@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   FiUser,
@@ -56,6 +56,7 @@ const formSchema = z
         message: "Password must contain at least one special character.",
       }),
     confirmPassword: z.string(),
+    referralCode: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -67,9 +68,12 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [referralValidation, setReferralValidation] = useState<any>(null);
+  const [validatingReferral, setValidatingReferral] = useState(false);
 
   const router = useRouter();
   const { session, loading } = useAuth();
+  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,11 +82,21 @@ export default function SignUpPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      referralCode: "",
     },
   });
 
+  // Set form values from URL parameters after mount
+  useEffect(() => {
+    const referralCode = searchParams.get('ref') || "";
+    if (referralCode) {
+      form.setValue('referralCode', referralCode);
+    }
+  }, [searchParams, form]);
+
   const password = form.watch("password");
   const confirmPassword = form.watch("confirmPassword");
+  const referralCode = form.watch("referralCode");
 
   // Redirect authenticated users to home
   useEffect(() => {
@@ -90,6 +104,40 @@ export default function SignUpPage() {
       router.push("/home");
     }
   }, [session, loading, router]);
+
+  // Auto-validate referral code from URL parameter or user input
+  useEffect(() => {
+    if (referralCode && referralCode.length >= 6) {
+      validateReferralCode(referralCode);
+    }
+  }, [referralCode]);
+
+  // Validate referral code
+  const validateReferralCode = async (code: string) => {
+    if (!code || code.length < 6) {
+      setReferralValidation(null);
+      return;
+    }
+
+    setValidatingReferral(true);
+    try {
+      const response = await fetch('/api/referral/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json();
+      setReferralValidation(data);
+    } catch (error) {
+      console.error("Error validating referral code:", error);
+      setReferralValidation({ valid: false, error: "Failed to validate referral code" });
+    } finally {
+      setValidatingReferral(false);
+    }
+  };
 
   // Password strength calculator
   const getPasswordStrength = (password: string) => {
@@ -193,6 +241,17 @@ export default function SignUpPage() {
 
         setError(signUpResult.error.message || "Sign up failed. Please try again.");
         return;
+      }
+
+      // Store referral code for post-signup processing
+      if (values.referralCode) {
+        sessionStorage.setItem(
+          "referralData",
+          JSON.stringify({
+            referralCode: values.referralCode,
+            email: values.email,
+          })
+        );
       }
 
       if (signUpResult.data?.user && !signUpResult.data.user.emailVerified) {
@@ -399,6 +458,75 @@ export default function SignUpPage() {
                       <FormMessage 
                         className="text-sm animate-in fade-in-50"
                         id="email-error"
+                      />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="referralCode"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel
+                        className="text-base font-medium"
+                        htmlFor="referral-input"
+                      >
+                        Referral Code (Optional)
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative group">
+                          <FiUser
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors size-5 pointer-events-none"
+                            aria-hidden="true"
+                          />
+                          <Input
+                            id="referral-input"
+                            type="text"
+                            placeholder="Enter referral code (if any)"
+                            autoComplete="off"
+                            className="pl-12 h-12 text-base transition-all duration-200 border-muted-foreground/20 focus:border-primary/50 group-hover:border-muted-foreground/30"
+                            aria-describedby="referral-description referral-error referral-validation"
+                            {...field}
+                            onFocus={clearError}
+                          />
+                        </div>
+                      </FormControl>
+                      <span id="referral-description" className="sr-only">
+                        Enter a referral code if you were referred by another user
+                      </span>
+
+                      {/* Referral validation feedback */}
+                      {referralCode && (
+                        <div className="space-y-2 pt-2" role="status" aria-live="polite" id="referral-validation">
+                          {validatingReferral ? (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Spinner variant="bars" size={14} />
+                              <span>Validating referral code...</span>
+                            </div>
+                          ) : referralValidation ? (
+                            <div className={`flex items-center gap-2 text-sm ${
+                              referralValidation.valid ? "text-green-600" : "text-red-600"
+                            }`}>
+                              <FiCheck
+                                size={16}
+                                className={referralValidation.valid ? "opacity-100" : "opacity-0"}
+                                aria-hidden="true"
+                              />
+                              <span>
+                                {referralValidation.valid
+                                  ? `Valid code! Referred by ${referralValidation.referrerName || 'another user'}`
+                                  : referralValidation.error || "Invalid referral code"
+                                }
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+
+                      <FormMessage
+                        className="text-sm animate-in fade-in-50"
+                        id="referral-error"
                       />
                     </FormItem>
                   )}

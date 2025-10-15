@@ -78,9 +78,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Helper function to get production URL
+    function getProductionUrl(): string {
+      if (process.env.NEXT_PUBLIC_APP_URL) {
+        return process.env.NEXT_PUBLIC_APP_URL;
+      }
+      if (process.env.NODE_ENV === 'production') {
+        return 'https://mintward.com';
+      }
+      return 'http://localhost:3000';
+    }
+
     // Prepare URLs
-    const webhookUrl = process.env.WEBHOOK_URL || "http://localhost:3000/api/payment/webhook"
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL || "http://localhost:3000"
+    const webhookUrl = process.env.WEBHOOK_URL || `${getProductionUrl()}/api/payment/webhook`
+    const baseUrl = getProductionUrl()
     const returnUrl = `${baseUrl}/home?payment_success=true`
 
     // Prepare payment request data

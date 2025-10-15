@@ -217,7 +217,7 @@ export async function GET(request: NextRequest) {
         DATE("createdAt") as date,
         SUM("amount") as amount,
         COUNT(*) as count
-      FROM "transaction"
+      FROM "Transaction"
       WHERE "createdAt" >= ${thirtyDaysAgo}
       AND "status" = 'COMPLETED'
       GROUP BY DATE("createdAt")
@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
         SUM(CASE WHEN "type" IN ('DEPOSIT', 'REWARD') THEN "amount" ELSE 0 END) as deposits,
         SUM(CASE WHEN "type" IN ('WITHDRAWAL') THEN "amount" ELSE 0 END) as withdrawals,
         COUNT(*) as count
-      FROM "transaction"
+      FROM "Transaction"
       WHERE "status" = 'COMPLETED'
       AND "createdAt" >= NOW() - INTERVAL '12 months'
       GROUP BY DATE_TRUNC('month', "createdAt")

@@ -103,6 +103,43 @@ function VerifyOTPForm() {
           setOtpStatus("correct");
           // Force refresh the session to ensure auth state is up-to-date
           await refreshSession();
+
+          // Process referral data if exists
+          const referralData = sessionStorage.getItem("referralData");
+          if (referralData) {
+            try {
+              const { referralCode, email: referralEmail } = JSON.parse(referralData);
+
+              // Create referral relationship
+              const referralResponse = await fetch('/api/referral/create-relationship', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  referralCode,
+                  email: referralEmail
+                }),
+              });
+
+              if (referralResponse.ok) {
+                const referralResult = await referralResponse.json();
+                console.log("Referral relationship created:", referralResult);
+                toast.success("Referral bonus applied! Welcome to your dashboard.");
+              } else {
+                const referralError = await referralResponse.json();
+                console.error("Failed to create referral relationship:", referralError);
+                // Don't block user signup if referral fails
+              }
+
+              // Clear referral data
+              sessionStorage.removeItem("referralData");
+            } catch (error) {
+              console.error("Error processing referral data:", error);
+              // Don't block user signup if referral processing fails
+            }
+          }
+
           setTimeout(() => {
             toast.success("Email verified successfully! Welcome to your dashboard.");
             // Clear verification data

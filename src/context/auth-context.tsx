@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { handleSocialOAuthCallback } from "@/lib/referral-processor";
 
 interface User {
   id: string;
@@ -41,13 +42,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkSession = async () => {
       try {
         if (!mounted) return;
-        
+
         const result = await authClient.getSession();
         if (result.data?.user) {
-          setSession({
-            user: result.data.user,
+          const user = result.data.user;
+          const currentSession = {
+            user: user,
             sessionToken: result.data.session.token || "",
-          });
+          };
+
+          // Process referral data for new social OAuth sign-ins
+          if (user.email) {
+            await handleSocialOAuthCallback(user);
+          }
+
+          setSession(currentSession);
         } else {
           setSession(null);
         }

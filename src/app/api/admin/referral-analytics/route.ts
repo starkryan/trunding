@@ -125,11 +125,11 @@ export async function GET(request: NextRequest) {
       // Daily referral counts for the period
       prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
         SELECT
-          DATE_TRUNC('day', created_at) as date,
+          DATE_TRUNC('day', "createdAt") as date,
           COUNT(*) as count
-        FROM referral_relationship
-        WHERE created_at >= ${startDate}
-        GROUP BY DATE_TRUNC('day', created_at)
+        FROM "ReferralRelationship"
+        WHERE "createdAt" >= ${startDate}
+        GROUP BY DATE_TRUNC('day', "createdAt")
         ORDER BY date ASC
       `
     ]);
@@ -137,11 +137,11 @@ export async function GET(request: NextRequest) {
     // Get daily payout amounts
     const dailyPayouts = await prisma.$queryRaw<Array<{ date: string; amount: string }>>`
       SELECT
-        DATE_TRUNC('day', processed_at) as date,
+        DATE_TRUNC('day', "processedAt") as date,
         SUM(amount) as amount
-      FROM referral_payout
-      WHERE status = 'PROCESSED' AND processed_at >= ${startDate}
-      GROUP BY DATE_TRUNC('day', processed_at)
+      FROM "ReferralPayout"
+      WHERE status = 'PROCESSED' AND "processedAt" >= ${startDate}
+      GROUP BY DATE_TRUNC('day', "processedAt")
       ORDER BY date ASC
     `;
 
