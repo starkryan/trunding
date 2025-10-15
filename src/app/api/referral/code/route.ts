@@ -126,6 +126,16 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
+    // Transform data to match frontend expectations
+    const transformedReferrals = referralRelationships.map(relationship => ({
+      id: relationship.id,
+      status: relationship.status,
+      createdAt: relationship.createdAt,
+      completedAt: relationship.completedAt,
+      referredUser: relationship.userAsReferredUser,
+      payouts: relationship.referralPayout
+    }));
+
     return NextResponse.json({
       referralCode: {
         code: referralCode.code,
@@ -138,7 +148,7 @@ export async function GET(request: NextRequest) {
         pendingReferrals,
         totalEarnings: totalEarnings?.totalReferralEarnings || 0
       },
-      recentReferrals: referralRelationships
+      recentReferrals: transformedReferrals
     });
   } catch (error) {
     console.error("Error fetching referral code:", error);

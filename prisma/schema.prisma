@@ -104,6 +104,27 @@ model AdminSettings {
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 }
 
+model ContactSettings {
+  id              String           @id @default(cuid())
+  contactMethod   ContactMethod    @default(TELEGRAM)
+  url             String?          @default("https://t.me/mintward_support")
+  appUrl          String?          @default("tg://resolve?domain=mintward_support")
+  contactValue    String?          
+  buttonText      String           @default("Help & Support")
+  buttonColor     String           @default("primary")
+  buttonSize      ButtonSize       @default(MEDIUM)
+  positionBottom  String           @default("bottom-24")
+  positionRight   String           @default("right-4")
+  positionBottomMd String           @default("bottom-20")
+  positionRightMd String           @default("right-6")
+  iconName        String           @default("Headset")
+  isEnabled       Boolean          @default(true)
+  openInNewTab    Boolean          @default(true)
+  customStyles    Json?
+  createdAt       DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
+}
+
 model Payment {
   id              String         @id @default(cuid())
   userId          String
@@ -185,7 +206,7 @@ model ReferralSettings {
   multiLevelRewards        Json?
   createdAt                DateTime   @default(now()) @db.Timestamptz(6)
   updatedAt                DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
-  referralBaseUrl          String?    @default("https://montra.in")
+  referralBaseUrl          String?    @default("https://mintward.com")
 }
 
 model RewardCalculation {
@@ -366,4 +387,18 @@ enum WithdrawalRequestStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum ContactMethod {
+  TELEGRAM
+  WHATSAPP
+  EMAIL
+  PHONE
+  CUSTOM
+}
+
+enum ButtonSize {
+  SMALL
+  MEDIUM
+  LARGE
 }
