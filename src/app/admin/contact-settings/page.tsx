@@ -148,7 +148,24 @@ export default function ContactSettingsPage() {
         const data = await response.json();
         if (data.success) {
           setSettings(data.settings);
-          form.reset(data.settings);
+          // Reset form with database values, ensuring all fields are properly set
+          form.reset({
+            contactMethod: data.settings.contactMethod || "TELEGRAM",
+            url: data.settings.url || "",
+            appUrl: data.settings.appUrl || "",
+            contactValue: data.settings.contactValue || "",
+            buttonText: data.settings.buttonText || "Help & Support",
+            buttonColor: data.settings.buttonColor || "primary",
+            buttonSize: data.settings.buttonSize || "MEDIUM",
+            positionBottom: data.settings.positionBottom || "bottom-24",
+            positionRight: data.settings.positionRight || "right-4",
+            positionBottomMd: data.settings.positionBottomMd || "bottom-20",
+            positionRightMd: data.settings.positionRightMd || "right-6",
+            iconName: data.settings.iconName || "Headset",
+            isEnabled: data.settings.isEnabled ?? true,
+            openInNewTab: data.settings.openInNewTab ?? true,
+            customStyles: data.settings.customStyles,
+          });
           toast.success('Contact settings loaded successfully');
         } else {
           toast.error(data.error || 'Failed to load settings');
@@ -179,6 +196,24 @@ export default function ContactSettingsPage() {
         const updatedData = await response.json();
         if (updatedData.success) {
           setSettings(updatedData.settings);
+          // Update form with the latest saved data from backend
+          form.reset({
+            contactMethod: updatedData.settings.contactMethod || "TELEGRAM",
+            url: updatedData.settings.url || "",
+            appUrl: updatedData.settings.appUrl || "",
+            contactValue: updatedData.settings.contactValue || "",
+            buttonText: updatedData.settings.buttonText || "Help & Support",
+            buttonColor: updatedData.settings.buttonColor || "primary",
+            buttonSize: updatedData.settings.buttonSize || "MEDIUM",
+            positionBottom: updatedData.settings.positionBottom || "bottom-24",
+            positionRight: updatedData.settings.positionRight || "right-4",
+            positionBottomMd: updatedData.settings.positionBottomMd || "bottom-20",
+            positionRightMd: updatedData.settings.positionRightMd || "right-6",
+            iconName: updatedData.settings.iconName || "Headset",
+            isEnabled: updatedData.settings.isEnabled ?? true,
+            openInNewTab: updatedData.settings.openInNewTab ?? true,
+            customStyles: updatedData.settings.customStyles,
+          });
           toast.success('Contact settings updated successfully!');
         } else {
           toast.error(updatedData.error || 'Failed to update settings');

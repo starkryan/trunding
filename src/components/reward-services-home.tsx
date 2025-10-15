@@ -392,8 +392,8 @@ export default function RewardServicesHome() {
                           </>
                         ) : (
                           <>
-                            Invest
-                            <FaArrowRight className="h-4 w-4 ml-2" />
+                            Invest Now
+                            
                           </>
                         )}
                       </Button>

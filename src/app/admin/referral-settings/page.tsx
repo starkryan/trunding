@@ -794,8 +794,8 @@ export default function ReferralSettingsPage() {
                             {index + 1}
                           </div>
                           <div>
-                            <p className="font-medium">{referrer.name || referrer.email}</p>
-                            <p className="text-sm text-muted-foreground">{referrer.email}</p>
+                            <p className="font-medium">{referrer?.name || referrer?.email || 'Unknown User'}</p>
+                            <p className="text-sm text-muted-foreground">{referrer?.email || 'No email'}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -827,9 +827,9 @@ export default function ReferralSettingsPage() {
                       <div key={referral.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
                           <div>
-                            <p className="font-medium">{referral.referrer.name || referral.referrer.email}</p>
+                            <p className="font-medium">{referral?.referrer?.name || referral?.referrer?.email || 'Unknown User'}</p>
                             <p className="text-sm text-muted-foreground">
-                              referred {referral.referredUser.name || referral.referredUser.email}
+                              referred {referral?.referredUser?.name || referral?.referredUser?.email || 'Unknown User'}
                             </p>
                           </div>
                         </div>

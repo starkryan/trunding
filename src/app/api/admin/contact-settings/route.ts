@@ -207,10 +207,33 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = contactSettingsSchema.parse(body)
 
-    // Return the configuration for testing (don't save)
+    // Auto-generate URLs based on contact method for testing (same logic as PUT)
+    let { url, appUrl, contactValue } = validatedData
+
+    if (validatedData.contactMethod === "TELEGRAM" && !url) {
+      url = defaultSettings.url
+      appUrl = defaultSettings.appUrl
+    } else if (validatedData.contactMethod === "WHATSAPP" && !url) {
+      url = `https://wa.me/${contactValue?.replace(/[^\d]/g, '')}`
+      appUrl = `whatsapp://send?phone=${contactValue?.replace(/[^\d]/g, '')}`
+    } else if (validatedData.contactMethod === "EMAIL" && !url) {
+      url = `mailto:${contactValue}`
+      appUrl = undefined
+    } else if (validatedData.contactMethod === "PHONE" && !url) {
+      url = `tel:${contactValue?.replace(/[^\d]/g, '')}`
+      appUrl = undefined
+    }
+
+    // Return the configuration for testing with auto-generated URLs
+    const testConfig = {
+      ...validatedData,
+      url: url || null,
+      appUrl: appUrl || null
+    }
+
     return NextResponse.json({
       success: true,
-      testConfig: validatedData,
+      testConfig,
       message: "Test configuration created successfully"
     })
   } catch (error) {
