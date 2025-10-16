@@ -98,6 +98,26 @@ const contactSettingsSchema = z.object({
   isEnabled: z.boolean(),
   openInNewTab: z.boolean(),
   customStyles: z.any().optional(),
+}).refine((data) => {
+  // Custom validation: contactValue is required for certain methods
+  if ((data.contactMethod === "TELEGRAM" ||
+       data.contactMethod === "EMAIL" ||
+       data.contactMethod === "PHONE") && !data.contactValue) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Contact details are required for the selected contact method",
+  path: ["contactValue"]
+}).refine((data) => {
+  // Custom validation: url is required for CUSTOM method
+  if (data.contactMethod === "CUSTOM" && !data.url) {
+    return false;
+  }
+  return true;
+}, {
+  message: "URL is required for custom contact method",
+  path: ["url"]
 });
 
 type ContactSettingsFormData = z.infer<typeof contactSettingsSchema>;
@@ -121,9 +141,9 @@ export default function ContactSettingsPage() {
     resolver: zodResolver(contactSettingsSchema),
     defaultValues: {
       contactMethod: "TELEGRAM",
-      url: "https://t.me/mintward_support",
-      appUrl: "tg://resolve?domain=mintward_support",
-      contactValue: "",
+      url: "",
+      appUrl: "",
+      contactValue: "mintward",
       buttonText: "Help & Support",
       buttonColor: "primary",
       buttonSize: "MEDIUM",
@@ -131,7 +151,7 @@ export default function ContactSettingsPage() {
       positionRight: "right-4",
       positionBottomMd: "bottom-20",
       positionRightMd: "right-6",
-      iconName: "Headset",
+      iconName: "HeadsetIcon",
       isEnabled: true,
       openInNewTab: true,
     },
@@ -276,7 +296,7 @@ export default function ContactSettingsPage() {
 
   const getContactPlaceholder = (method: string) => {
     switch (method) {
-      case 'TELEGRAM': return 'mintward_support';
+      case 'TELEGRAM': return 'mintward';
       case 'WHATSAPP': return '+1234567890';
       case 'EMAIL': return 'support@example.com';
       case 'PHONE': return '+1234567890';

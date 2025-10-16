@@ -41,9 +41,9 @@ async function checkAdminAuth() {
 // Default contact settings
 const defaultSettings = {
   contactMethod: "TELEGRAM" as const,
-  url: "https://t.me/mintward_support",
-  appUrl: "tg://resolve?domain=mintward_support",
-  contactValue: null,
+  url: "https://t.me/mintward",
+  appUrl: "tg://resolve?domain=mintward",
+  contactValue: "mintward",
   buttonText: "Help & Support",
   buttonColor: "primary",
   buttonSize: "MEDIUM" as const,
@@ -51,7 +51,7 @@ const defaultSettings = {
   positionRight: "right-4",
   positionBottomMd: "bottom-20",
   positionRightMd: "right-6",
-  iconName: "Headset",
+  iconName: "HeadsetIcon",
   isEnabled: true,
   openInNewTab: true
 }
@@ -104,6 +104,13 @@ export async function PUT(request: NextRequest) {
     const validatedData = contactSettingsSchema.parse(body)
 
     // Validate contact method specific requirements
+    if (validatedData.contactMethod === "TELEGRAM" && !validatedData.contactValue) {
+      return NextResponse.json(
+        { success: false, error: "Telegram username is required for Telegram contact method" },
+        { status: 400 }
+      )
+    }
+
     if (validatedData.contactMethod === "EMAIL" && !validatedData.contactValue) {
       return NextResponse.json(
         { success: false, error: "Email address is required for email contact method" },
@@ -128,9 +135,18 @@ export async function PUT(request: NextRequest) {
     // Auto-generate URLs based on contact method if not provided
     let { url, appUrl, contactValue } = validatedData
 
-    if (validatedData.contactMethod === "TELEGRAM" && !url) {
-      url = defaultSettings.url
-      appUrl = defaultSettings.appUrl
+    if (validatedData.contactMethod === "TELEGRAM") {
+      // Always generate URLs based on contactValue for Telegram
+      if (contactValue && contactValue.trim()) {
+        // Use the provided username to generate URLs
+        const username = contactValue.trim().replace('@', '') // Remove @ if present
+        url = `https://t.me/${username}`
+        appUrl = `tg://resolve?domain=${username}`
+      } else if (!url) {
+        // Fallback to default if no contactValue and no URL provided
+        url = defaultSettings.url
+        appUrl = defaultSettings.appUrl
+      }
     } else if (validatedData.contactMethod === "WHATSAPP" && !url) {
       url = `https://wa.me/${contactValue?.replace(/[^\d]/g, '')}`
       appUrl = `whatsapp://send?phone=${contactValue?.replace(/[^\d]/g, '')}`
@@ -210,9 +226,18 @@ export async function POST(request: NextRequest) {
     // Auto-generate URLs based on contact method for testing (same logic as PUT)
     let { url, appUrl, contactValue } = validatedData
 
-    if (validatedData.contactMethod === "TELEGRAM" && !url) {
-      url = defaultSettings.url
-      appUrl = defaultSettings.appUrl
+    if (validatedData.contactMethod === "TELEGRAM") {
+      // Always generate URLs based on contactValue for Telegram
+      if (contactValue && contactValue.trim()) {
+        // Use the provided username to generate URLs
+        const username = contactValue.trim().replace('@', '') // Remove @ if present
+        url = `https://t.me/${username}`
+        appUrl = `tg://resolve?domain=${username}`
+      } else if (!url) {
+        // Fallback to default if no contactValue and no URL provided
+        url = defaultSettings.url
+        appUrl = defaultSettings.appUrl
+      }
     } else if (validatedData.contactMethod === "WHATSAPP" && !url) {
       url = `https://wa.me/${contactValue?.replace(/[^\d]/g, '')}`
       appUrl = `whatsapp://send?phone=${contactValue?.replace(/[^\d]/g, '')}`

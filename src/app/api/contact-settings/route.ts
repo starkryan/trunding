@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma"
 // Default contact settings
 const defaultSettings = {
   contactMethod: "TELEGRAM",
-  url: "https://t.me/mintward_support",
-  appUrl: "tg://resolve?domain=mintward_support",
-  contactValue: null,
+  url: "https://t.me/mintward",
+  appUrl: "tg://resolve?domain=mintward",
+  contactValue: "mintward",
   buttonText: "Help & Support",
   buttonColor: "primary",
   buttonSize: "MEDIUM",

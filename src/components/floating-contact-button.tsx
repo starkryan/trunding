@@ -27,9 +27,9 @@ interface ContactSettings {
 // Default settings as fallback
 const defaultSettings: ContactSettings = {
   contactMethod: "TELEGRAM",
-  url: "https://t.me/mintward_support",
-  appUrl: "tg://resolve?domain=mintward_support",
-  contactValue: null,
+  url: "https://t.me/mintward",
+  appUrl: "tg://resolve?domain=mintward",
+  contactValue: "mintward",
   buttonText: "Help & Support",
   buttonColor: "primary",
   buttonSize: "MEDIUM",
@@ -95,8 +95,15 @@ export default function FloatingContactButton() {
       // Handle different contact methods
       switch (settings.contactMethod) {
         case "TELEGRAM":
-          finalUrl = settings.url || "https://t.me/mintward_support";
-          appUrl = settings.appUrl || "tg://resolve?domain=mintward_support";
+          if (settings.contactValue && settings.contactValue.trim()) {
+            // Use the URL from settings (which should be properly generated)
+            finalUrl = settings.url || `https://t.me/${settings.contactValue.trim().replace('@', '')}`;
+            appUrl = settings.appUrl || `tg://resolve?domain=${settings.contactValue.trim().replace('@', '')}`;
+          } else {
+            // Fallback to default
+            finalUrl = settings.url || "https://t.me/mintward_support";
+            appUrl = settings.appUrl || "tg://resolve?domain=mintward_support";
+          }
           break;
         
         case "WHATSAPP":
