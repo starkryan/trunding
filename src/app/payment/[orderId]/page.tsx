@@ -246,64 +246,7 @@ export default function PaymentPage() {
 
   return (
     <div className="h-screen hide-scrollbars">
-      {/* Status and Controls Header - Responsive */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 h-14 sm:h-auto">
-          {/* Back button and title */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBackToHome}
-              className="p-1.5 sm:p-2 h-8 w-8 sm:h-auto sm:w-auto shrink-0"
-            >
-              <FaArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-lg font-semibold truncate">Payment Processing</h1>
-              <div className="flex items-center gap-2">
-                {isRealTimeConnected && (
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-600 hidden sm:inline">Live</span>
-                  </div>
-                )}
-                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                  Order: <span className="font-mono text-xs">{orderId.slice(0, 8)}...{orderId.slice(-8)}</span> • Status: <span className={`font-medium ${
-                    paymentStatus === 'COMPLETED' ? 'text-green-600' :
-                    paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED' ? 'text-red-600' :
-                    'text-yellow-600'
-                  }`}>{paymentStatus}</span>
-                </p>
-                <div className="text-xs text-muted-foreground sm:hidden">
-                  <div className="flex items-center gap-1">
-                    {isRealTimeConnected && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>}
-                    <span className={`font-medium ${
-                      paymentStatus === 'COMPLETED' ? 'text-green-600' :
-                      paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED' ? 'text-red-600' :
-                      'text-yellow-600'
-                    }`}>{paymentStatus}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Refresh button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManualRefresh}
-            disabled={isChecking}
-            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 h-8 sm:h-auto shrink-0"
-          >
-            <FaSyncAlt className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isChecking ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isChecking ? 'Checking...' : 'Refresh'}</span>
-            <span className="sm:hidden">{isChecking ? '...' : '↻'}</span>
-          </Button>
-        </div>
-      </div>
-
+  
       {/* Loading Overlay - shows only when no iframe loaded yet */}
       {!paymentUrl && (
         <div
@@ -361,7 +304,7 @@ export default function PaymentPage() {
 
       {/* Full-page iframe - only renders when paymentUrl is available */}
       {paymentUrl && (
-        <div className="pt-14 h-full no-scrollbar">
+        <div className="h-full no-scrollbar">
           <iframe
             src={paymentUrl}
             className="w-full h-full border-0 m-0 p-0 block no-scrollbar"

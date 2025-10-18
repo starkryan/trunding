@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
+import { VerificationReview } from "@/components/admin/verification-review";
 import {
   CreditCard,
   TrendingUp,
@@ -30,7 +31,9 @@ import {
   Copy,
   ChevronLeft,
   ChevronRight,
-  Plus
+  Plus,
+  Shield,
+  AlertTriangle
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
@@ -42,8 +45,14 @@ interface Transaction {
   currency: string;
   type: "DEPOSIT" | "WITHDRAWAL" | "REWARD" | "TRADE_BUY" | "TRADE_SELL";
   status: "PENDING" | "COMPLETED" | "FAILED" | "PROCESSING";
+  verificationStatus: "NONE" | "PENDING_VERIFICATION" | "VERIFIED" | "REJECTED";
   description: string;
   referenceId?: string;
+  utrNumber?: string;
+  screenshotUrl?: string;
+  verificationSubmittedAt?: string;
+  verificationProcessedAt?: string;
+  verificationRejectedReason?: string;
   createdAt: string;
   updatedAt?: string; // Optional since it doesn't exist in database
   metadata: Record<string, any>;
@@ -105,7 +114,9 @@ export default function AdminTransactionsPage() {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [verificationStatusFilter, setVerificationStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [methodFilter, setMethodFilter] = useState("ALL");
   const [userIdFilter, setUserIdFilter] = useState("");
@@ -121,9 +132,19 @@ export default function AdminTransactionsPage() {
   // Modal states
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Fetch transactions from API
-  const fetchTransactions = async (page = 1, newFilters = {}, isExport = false) => {
+  const fetchTransactions = useCallback(async (page = 1, newFilters = {}, isExport = false) => {
     try {
       if (!isExport) {
         setLoading(true);
@@ -152,7 +173,7 @@ export default function AdminTransactionsPage() {
         setLoading(false);
       }
     }
-  };
+  }, [limit]);
 
   // Export transactions
   const exportTransactions = async () => {
@@ -160,8 +181,9 @@ export default function AdminTransactionsPage() {
       setExporting(true);
 
       const filters = {
-        search: searchTerm || undefined,
+        search: debouncedSearchTerm || undefined,
         status: statusFilter !== "ALL" ? statusFilter : undefined,
+        verificationStatus: verificationStatusFilter !== "ALL" ? verificationStatusFilter : undefined,
         type: typeFilter !== "ALL" ? typeFilter : undefined,
         method: methodFilter !== "ALL" ? methodFilter : undefined,
         userId: userIdFilter || undefined,
@@ -201,24 +223,13 @@ export default function AdminTransactionsPage() {
     }
   };
 
-  // Auto-refresh and initial load
-  useEffect(() => {
-    fetchTransactions();
-
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(() => {
-      fetchTransactions(currentPage);
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [currentPage]);
-
-  // Auto-refresh when filters change
+  // Auto-refresh and initial load - single effect for all data fetching
   useEffect(() => {
     const filters: Record<string, any> = {};
 
-    if (searchTerm) filters.search = searchTerm;
+    if (debouncedSearchTerm) filters.search = debouncedSearchTerm;
     if (statusFilter !== "ALL") filters.status = statusFilter;
+    if (verificationStatusFilter !== "ALL") filters.verificationStatus = verificationStatusFilter;
     if (typeFilter !== "ALL") filters.type = typeFilter;
     if (methodFilter !== "ALL") filters.method = methodFilter;
     if (userIdFilter) filters.userId = userIdFilter;
@@ -228,7 +239,14 @@ export default function AdminTransactionsPage() {
     if (maxAmountFilter) filters.maxAmount = parseFloat(maxAmountFilter);
 
     fetchTransactions(currentPage, filters);
-  }, [searchTerm, statusFilter, typeFilter, methodFilter, userIdFilter, dateFromFilter, dateToFilter, minAmountFilter, maxAmountFilter, currentPage]);
+
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchTransactions(currentPage, filters);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [currentPage, debouncedSearchTerm, statusFilter, verificationStatusFilter, typeFilter, methodFilter, userIdFilter, dateFromFilter, dateToFilter, minAmountFilter, maxAmountFilter, fetchTransactions]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -242,6 +260,21 @@ export default function AdminTransactionsPage() {
         return <Badge className="bg-blue-100 text-blue-700"><Activity className="h-3 w-3 mr-1" />Processing</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getVerificationStatusBadge = (status: string) => {
+    switch (status) {
+      case "NONE":
+        return <Badge variant="outline">Not Submitted</Badge>;
+      case "PENDING_VERIFICATION":
+        return <Badge className="bg-yellow-100 text-yellow-700"><Shield className="h-3 w-3 mr-1" />Pending Review</Badge>;
+      case "VERIFIED":
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="h-3 w-3 mr-1" />Verified</Badge>;
+      case "REJECTED":
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -288,7 +321,20 @@ export default function AdminTransactionsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchTransactions(currentPage, {}, false)}
+            onClick={() => {
+              const filters: Record<string, any> = {};
+              if (debouncedSearchTerm) filters.search = debouncedSearchTerm;
+              if (statusFilter !== "ALL") filters.status = statusFilter;
+              if (verificationStatusFilter !== "ALL") filters.verificationStatus = verificationStatusFilter;
+              if (typeFilter !== "ALL") filters.type = typeFilter;
+              if (methodFilter !== "ALL") filters.method = methodFilter;
+              if (userIdFilter) filters.userId = userIdFilter;
+              if (dateFromFilter) filters.dateFrom = dateFromFilter;
+              if (dateToFilter) filters.dateTo = dateToFilter;
+              if (minAmountFilter) filters.minAmount = parseFloat(minAmountFilter);
+              if (maxAmountFilter) filters.maxAmount = parseFloat(maxAmountFilter);
+              fetchTransactions(currentPage, filters, false);
+            }}
             disabled={loading}
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -455,6 +501,18 @@ export default function AdminTransactionsPage() {
                 <SelectItem value="PROCESSING">Processing</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={verificationStatusFilter} onValueChange={setVerificationStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Verification" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Verification</SelectItem>
+                <SelectItem value="NONE">Not Submitted</SelectItem>
+                <SelectItem value="PENDING_VERIFICATION">Pending Review</SelectItem>
+                <SelectItem value="VERIFIED">Verified</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Type" />
@@ -503,7 +561,8 @@ export default function AdminTransactionsPage() {
                 <TableHead>User</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Amount</TableHead>
-                <TableHead>Method</TableHead>
+                <TableHead>UTR</TableHead>
+                <TableHead>Verification</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Actions</TableHead>
@@ -512,7 +571,7 @@ export default function AdminTransactionsPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
+                  <TableCell colSpan={9} className="h-24 text-center">
                     <div className="flex items-center justify-center">
                       <Spinner variant="bars" size={24} className="text-primary mr-2" />
                       Loading transactions...
@@ -521,7 +580,7 @@ export default function AdminTransactionsPage() {
                 </TableRow>
               ) : transactionsResponse?.transactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
+                  <TableCell colSpan={9} className="h-24 text-center">
                     No transactions found
                   </TableCell>
                 </TableRow>
@@ -571,6 +630,26 @@ export default function AdminTransactionsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
+                      {transaction.utrNumber ? (
+                        <code className="text-xs bg-muted px-2 py-1 rounded">
+                          {transaction.utrNumber.slice(0, 6)}...
+                        </code>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {getVerificationStatusBadge(transaction.verificationStatus)}
+                        {transaction.verificationRejectedReason && (
+                          <p className="text-xs text-red-600" title={transaction.verificationRejectedReason}>
+                            <AlertTriangle className="h-3 w-3 inline mr-1" />
+                            Rejected
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <Badge variant="outline" className="text-xs">
                         {transaction.method}
                       </Badge>
@@ -596,6 +675,19 @@ export default function AdminTransactionsPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        {transaction.verificationStatus === 'PENDING_VERIFICATION' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedTransaction(transaction);
+                              setVerificationModalOpen(true);
+                            }}
+                            className="text-yellow-600 hover:text-yellow-700"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -794,6 +886,39 @@ export default function AdminTransactionsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Verification Review Modal */}
+      {selectedTransaction && (
+        <VerificationReview
+          verification={{
+            id: selectedTransaction.id,
+            utrNumber: selectedTransaction.utrNumber || '',
+            screenshotUrl: selectedTransaction.screenshotUrl || '',
+            verificationSubmittedAt: selectedTransaction.verificationSubmittedAt || selectedTransaction.createdAt,
+            amount: selectedTransaction.amount,
+            currency: selectedTransaction.currency,
+            user: selectedTransaction.user,
+            createdAt: selectedTransaction.createdAt,
+            description: selectedTransaction.description,
+            referenceId: selectedTransaction.referenceId
+          }}
+          isOpen={verificationModalOpen}
+          onClose={() => setVerificationModalOpen(false)}
+          onActionComplete={() => {
+            fetchTransactions(currentPage, {
+              search: debouncedSearchTerm,
+              status: statusFilter !== "ALL" ? statusFilter : undefined,
+              type: typeFilter !== "ALL" ? typeFilter : undefined,
+              method: methodFilter !== "ALL" ? methodFilter : undefined,
+              userId: userIdFilter,
+              dateFrom: dateFromFilter,
+              dateTo: dateToFilter,
+              minAmount: minAmountFilter ? parseFloat(minAmountFilter) : undefined,
+              maxAmount: maxAmountFilter ? parseFloat(maxAmountFilter) : undefined
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

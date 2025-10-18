@@ -22,6 +22,7 @@ const transactionFiltersSchema = z.object({
   limit: z.number().min(1).max(100).default(20),
   search: z.string().optional(),
   status: z.enum(['ALL', 'PENDING', 'COMPLETED', 'FAILED', 'PROCESSING']).optional(),
+  verificationStatus: z.enum(['ALL', 'NONE', 'PENDING_VERIFICATION', 'VERIFIED', 'REJECTED']).optional(),
   type: z.enum(['ALL', 'DEPOSIT', 'WITHDRAWAL', 'REWARD', 'TRADE_BUY', 'TRADE_SELL']).optional(),
   method: z.string().optional(),
   userId: z.string().optional(),
@@ -53,18 +54,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
 
     // Parse and validate query parameters
+    const statusParam = searchParams.get('status')
+    const typeParam = searchParams.get('type')
+    const verificationStatusParam = searchParams.get('verificationStatus')
+    const minAmountParam = searchParams.get('minAmount')
+    const maxAmountParam = searchParams.get('maxAmount')
+
     const filters = transactionFiltersSchema.parse({
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '20'),
       search: searchParams.get('search') || undefined,
-      status: searchParams.get('status') || undefined,
-      type: searchParams.get('type') || undefined,
+      status: (statusParam && statusParam !== 'undefined' && statusParam !== '') ? statusParam : undefined,
+      verificationStatus: (verificationStatusParam && verificationStatusParam !== 'undefined' && verificationStatusParam !== '') ? verificationStatusParam : undefined,
+      type: (typeParam && typeParam !== 'undefined' && typeParam !== '') ? typeParam : undefined,
       method: searchParams.get('method') || undefined,
       userId: searchParams.get('userId') || undefined,
       dateFrom: searchParams.get('dateFrom') || undefined,
       dateTo: searchParams.get('dateTo') || undefined,
-      minAmount: searchParams.get('minAmount') ? parseFloat(searchParams.get('minAmount')!) : undefined,
-      maxAmount: searchParams.get('maxAmount') ? parseFloat(searchParams.get('maxAmount')!) : undefined,
+      minAmount: (minAmountParam && minAmountParam !== 'undefined' && minAmountParam !== '') ? parseFloat(minAmountParam) : undefined,
+      maxAmount: (maxAmountParam && maxAmountParam !== 'undefined' && maxAmountParam !== '') ? parseFloat(maxAmountParam) : undefined,
       sortBy: searchParams.get('sortBy') || 'createdAt',
       sortOrder: searchParams.get('sortOrder') || 'desc'
     })
@@ -92,6 +100,11 @@ export async function GET(request: NextRequest) {
     // Type filter
     if (filters.type && filters.type !== 'ALL') {
       where.type = filters.type
+    }
+
+    // Verification status filter
+    if (filters.verificationStatus && filters.verificationStatus !== 'ALL') {
+      where.verificationStatus = filters.verificationStatus
     }
 
     // Method filter (we need to filter based on extracted method from metadata/referenceId)

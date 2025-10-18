@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
           amount: true,
           currency: true,
           status: true,
+          verificationStatus: true,
           description: true,
           referenceId: true,
           metadata: true,
@@ -115,6 +116,7 @@ export async function GET(request: NextRequest) {
       amount: payment.amount,
       currency: payment.currency,
       status: payment.status === "COMPLETED" ? "COMPLETED" : payment.status,
+      verificationStatus: "NONE" as const,
       description: `Payment ${payment.status.toLowerCase()} - Order: ${payment.providerOrderId}`,
       referenceId: payment.id,
       metadata: {
@@ -176,6 +178,7 @@ export async function GET(request: NextRequest) {
       amount: request.amount,
       currency: request.currency,
       status: request.status,
+      verificationStatus: "NONE" as const,
       description: `Withdrawal request - ${request.withdrawalMethod.type === 'BANK_ACCOUNT' ? request.withdrawalMethod.bankName || 'Bank Account' : request.withdrawalMethod.upiId || 'UPI'}`,
       referenceId: request.id,
       metadata: {

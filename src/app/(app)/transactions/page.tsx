@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  FiFilter,
-  FiRefreshCw,
-  FiDownload,
   FiEye,
   FiTrendingUp,
   FiTrendingDown,
@@ -19,7 +16,6 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -28,23 +24,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Sheet } from "react-modal-sheet";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { useAuth } from "@/context/auth-context";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
-} from "@/components/ui/input-group";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { cn } from "@/lib/utils";
+import { VerificationForm } from "@/components/payment/verification-form";
 
 interface Transaction {
   id: string;
@@ -56,6 +46,7 @@ interface Transaction {
   amount: number;
   currency: string;
   status: string;
+  verificationStatus: string;
   description: string | null;
   referenceId: string | null;
   metadata: any;
@@ -104,8 +95,9 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isVerificationFormOpen, setIsVerificationFormOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -590,7 +582,7 @@ export default function TransactionsPage() {
                                       className="h-8 w-8 p-0 hover:bg-muted-foreground/10 sm:hidden"
                                       onClick={() => {
                                         setSelectedTransaction(transaction);
-                                        setIsSheetOpen(true);
+                                        setIsDrawerOpen(true);
                                       }}
                                     >
                                       <FiEye className="h-3 w-3" />
@@ -601,7 +593,7 @@ export default function TransactionsPage() {
                                       className="h-8 w-8 p-0 hover:bg-muted-foreground/10 hidden sm:flex"
                                       onClick={() => {
                                         setSelectedTransaction(transaction);
-                                        setIsSheetOpen(true);
+                                        setIsDrawerOpen(true);
                                       }}
                                     >
                                       <FiEye className="h-3 w-3" />
@@ -662,53 +654,25 @@ export default function TransactionsPage() {
             </div>
           )}
 
-          {/* React Modal Sheet */}
+          {/* Transaction Details Drawer */}
           {selectedTransaction && (
-            <>
-              <style jsx global>{`
-                .react-modal-sheet-container {
-                  background-color: var(--background) !important;
-                  border-top: 1px solid var(--border) !important;
-                }
-                .dark .react-modal-sheet-container {
-                  background-color: var(--background) !important;
-                }
-              `}</style>
-              <Sheet
-                isOpen={isSheetOpen}
-                onClose={() => setIsSheetOpen(false)}
-                snapPoints={[0, 0.85, 1]}
-                initialSnap={1}
-                disableDrag={false}
-              >
-                <Sheet.Container className="bg-background border-t border-border shadow-2xl rounded-t-2xl mt-2">
-                  <Sheet.Header>
-                    <div className="flex items-center justify-between mb-4 px-6">
-                      <div className="flex-1" />
-                      <div className="mx-auto w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
-                      <div className="flex-1 flex justify-end">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsSheetOpen(false)}
-                          className="h-8 w-8 p-0 rounded-full bg-background border border-border hover:bg-muted-foreground/10 transition-colors shadow-sm mt-3"
-                        >
-                          <FiX className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </Sheet.Header>
-                  <Sheet.Content className="h-full overflow-y-auto pb-6">
-                    <div className="p-4 sm:p-6 h-full overflow-y-auto">
-                    {/* Sheet Header */}
-                    <div className="mb-6">
-                      <h2 className="text-lg font-semibold">Transaction Details</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Full transaction information and details.
-                      </p>
-                    </div>
-
-                    <div className="space-y-6">
+            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+              <DrawerContent className="max-h-[85vh]">
+                <DrawerHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <div className="text-left">
+                    <DrawerTitle>Transaction Details</DrawerTitle>
+                    <DrawerDescription>
+                      Full transaction information and details.
+                    </DrawerDescription>
+                  </div>
+                  <DrawerClose asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
+                      <FiX className="h-4 w-4" />
+                      <span className="sr-only">Close</span>
+                    </Button>
+                  </DrawerClose>
+                </DrawerHeader>
+                <div className="px-4 pb-4 space-y-6 overflow-y-auto">
                       {/* Status and Date Section */}
                       <div className="space-y-4">
                         <h3 className="text-sm font-medium">Status & Date</h3>
@@ -734,6 +698,8 @@ export default function TransactionsPage() {
                         </div>
                       </div>
 
+                    
+                    
                       {/* Amount Section */}
                       <div className="space-y-4">
                         <h3 className="text-sm font-medium">Amount</h3>
@@ -784,6 +750,55 @@ export default function TransactionsPage() {
                             <p className="text-sm text-muted-foreground">
                               {selectedTransaction.description}
                             </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* UTR Verification Section - Only for Pending Deposits */}
+                      {selectedTransaction.status === 'PENDING' &&
+                       selectedTransaction.type === 'DEPOSIT' &&
+                       selectedTransaction.verificationStatus === 'NONE' && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium">Payment Verification</h3>
+                          <div className="rounded-lg border p-4">
+                            <div className="space-y-3">
+                              <p className="text-sm text-muted-foreground">
+                                Submit your UTR number and payment screenshot to complete this transaction verification.
+                              </p>
+                              <Button
+                                onClick={() => setIsVerificationFormOpen(true)}
+                                className="w-full"
+                                size="sm"
+                              >
+                                Submit UTR & Screenshot
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Verification Status Section */}
+                      {selectedTransaction.verificationStatus && selectedTransaction.verificationStatus !== 'NONE' && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium">Verification Status</h3>
+                          <div className="rounded-lg border p-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Status</span>
+                              <div className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                                selectedTransaction.verificationStatus === 'VERIFIED'
+                                  ? 'bg-green-100 text-green-700 ring-green-600/20 dark:bg-green-900/20 dark:text-green-400'
+                                  : selectedTransaction.verificationStatus === 'REJECTED'
+                                  ? 'bg-red-100 text-red-700 ring-red-600/20 dark:bg-red-900/20 dark:text-red-400'
+                                  : 'bg-amber-100 text-amber-700 ring-amber-600/20 dark:bg-amber-900/20 dark:text-amber-400'
+                              }`}>
+                                {selectedTransaction.verificationStatus === 'VERIFIED'
+                                  ? 'Verified'
+                                  : selectedTransaction.verificationStatus === 'REJECTED'
+                                  ? 'Rejected'
+                                  : 'Pending Review'
+                                }
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -841,13 +856,22 @@ export default function TransactionsPage() {
                         </div>
                       )}
 
-                      </div>
-                  </div>
-                </Sheet.Content>
-              </Sheet.Container>
-              <Sheet.Backdrop onTap={() => setIsSheetOpen(false)} />
-            </Sheet>
-            </>
+              </div>
+            </DrawerContent>
+          </Drawer>
+          )}
+
+          {/* Verification Form Modal */}
+          {selectedTransaction && isVerificationFormOpen && (
+            <VerificationForm
+              transaction={selectedTransaction}
+              isOpen={isVerificationFormOpen}
+              onClose={() => setIsVerificationFormOpen(false)}
+              onSuccess={() => {
+                setIsVerificationFormOpen(false);
+                fetchTransactions(); // Refresh transactions after submission
+              }}
+            />
           )}
         </CardContent>
       </Card>

@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Image from 'next/image'
-import { useTheme } from 'next-themes'
 
 const bannerConfig = [
   {
@@ -50,14 +49,7 @@ const bannerConfig = [
 ]
 
 export default function BannerCarousel() {
-  const { theme } = useTheme()
-
-  const banners = useMemo(() => {
-    return bannerConfig.map(banner => ({
-      ...banner,
-      src: theme === 'dark' ? banner.darkSrc : banner.lightSrc
-    }))
-  }, [theme])
+  const banners = bannerConfig
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
@@ -103,11 +95,21 @@ export default function BannerCarousel() {
                 key={banner.id}
                 className="relative flex-[0_0_100%] min-w-0 aspect-video md:aspect-[16/9] rounded-lg overflow-hidden"
               >
+                {/* Dark theme image - shown first, hidden in light mode */}
                 <Image
-                  src={banner.src}
+                  src={banner.darkSrc}
                   alt={banner.alt}
                   fill
-                  className="object-cover"
+                  className="object-cover dark:block hidden"
+                  priority={banner.id <= 2} // Prioritize first two images
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+                />
+                {/* Light theme image - hidden in dark mode */}
+                <Image
+                  src={banner.lightSrc}
+                  alt={banner.alt}
+                  fill
+                  className="object-cover block dark:hidden"
                   priority={banner.id <= 2} // Prioritize first two images
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
                 />

@@ -239,19 +239,28 @@ model RewardService {
 }
 
 model Transaction {
-  id          String          @id @default(cuid())
-  userId      String
-  walletId    String
-  amount      Float
-  currency    String          @default("INR")
-  type        TransactionType
-  status      String          @default("COMPLETED")
-  description String?
-  referenceId String?
-  metadata    Json?
-  createdAt   DateTime        @default(now()) @db.Timestamptz(6)
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet      Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  id                          String               @id @default(cuid())
+  userId                      String
+  walletId                    String
+  amount                      Float
+  currency                    String               @default("INR")
+  type                        TransactionType
+  status                      String               @default("COMPLETED")
+  verificationStatus          VerificationStatus   @default(NONE)
+  description                 String?
+  referenceId                 String?
+  utrNumber                   String?              @unique @db.Text
+  screenshotUrl               String?              @db.Text
+  verificationSubmittedAt     DateTime?            @db.Timestamptz(6)
+  verificationExpiresAt       DateTime?            @db.Timestamptz(6)
+  verificationProcessedAt     DateTime?            @db.Timestamptz(6)
+  verificationProcessedBy     String?
+  adminNotes                  String?              @db.Text
+  verificationRejectedReason  String?              @db.Text
+  metadata                    Json?
+  createdAt                   DateTime             @default(now()) @db.Timestamptz(6)
+  user                        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet                      Wallet               @relation(fields: [walletId], references: [id], onDelete: Cascade)
 }
 
 model UserRewardService {
@@ -368,6 +377,13 @@ enum TransactionType {
   REWARD
   REFERRAL
   REFUND
+}
+
+enum VerificationStatus {
+  NONE
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
 }
 
 enum WithdrawalMethodType {
